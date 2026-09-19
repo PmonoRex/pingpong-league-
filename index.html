@@ -19,7 +19,7 @@ input{width:100%;min-height:44px;border-radius:9px;border:1px solid #40506f;back
 input:focus{outline:2px solid #f3c94f;outline-offset:1px}.status{text-align:center;color:#9ba8c0;font-size:12px;margin-top:6px}.status.invalid{color:#ff9d9d}
 table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:8px 6px;border-bottom:1px solid #2d3954;text-align:center;font-size:13px;white-space:nowrap}th{color:#aeb9cf}td.name{text-align:left;font-weight:700}.points{font-weight:800;color:#ffd76a}
 .wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.stat{background:#0e1523;border:1px solid #2d3954;border-radius:10px;padding:10px;text-align:center}.stat b{display:block;font-size:20px}.stat small{color:#9ba8c0}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:9px;padding:11px 14px;min-height:44px;font-weight:700;font-size:15px;cursor:pointer}.save,.add{background:#f3c94f;color:#111}.shuffle{background:#4f8df3;color:#fff}.reset{background:#5a242b;color:#fff}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:9px;padding:11px 14px;min-height:44px;font-weight:700;font-size:15px;cursor:pointer}.save,.add{background:#f3c94f;color:#111}.shuffle{background:#4f8df3;color:#fff}.export{background:#39a96b;color:#fff}.reset{background:#5a242b;color:#fff}
 .manager{background:#0e1523;border:1px solid #2d3954;border-radius:12px;padding:12px;margin-bottom:18px}.manager h3{margin:0 0 10px}.add-row{display:grid;grid-template-columns:1fr auto;gap:8px}.add-row input{text-align:left;padding:0 12px}.players{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.chip{display:inline-flex;align-items:center;gap:5px;background:#24304a;border-radius:999px;padding:4px 5px 4px 10px}.chip button{width:32px;min-height:32px;padding:0;border-radius:50%;background:#5a242b;color:#fff;font-size:17px}.hint{color:#9ba8c0;font-size:12px;margin:8px 0 0}
 @media(max-width:820px){.grid{grid-template-columns:1fr}.pair{grid-template-columns:minmax(54px,1fr) 52px 20px 52px minmax(54px,1fr);gap:5px}.pair b{font-size:14px}.hero,.card{padding:14px}}
 @media(max-width:390px){main{padding-left:10px;padding-right:10px}.hero,.card{border-radius:14px;padding:12px}.pair{grid-template-columns:minmax(48px,1fr) 48px 18px 48px minmax(48px,1fr);gap:4px}.pair b{font-size:13px}.summary{gap:5px}.stat{padding:8px 4px}.stat b{font-size:18px}}
@@ -44,7 +44,7 @@ table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:8px 6px;
 </div>
 <h2>กรอกผลการแข่งขัน</h2>
 <div id="schedule"></div>
-<div class="actions"><button class="save" id="save" type="button">บันทึก</button><button class="reset" id="reset" type="button">ล้างผลทั้งหมด</button></div>
+<div class="actions"><button class="save" id="save" type="button">บันทึก</button><button class="export" id="exportDocument" type="button">📄 ส่งออกเอกสาร / PDF</button><button class="reset" id="reset" type="button">ล้างผลทั้งหมด</button></div>
 </section>
 
 <section class="card">
@@ -168,10 +168,15 @@ function label(ri,mi){
  el.classList.remove("invalid");
  if(!x||x.a===null||x.b===null){el.textContent="ยังไม่กรอกผล";return}
  if(!validScore(x.a)||!validScore(x.b)){el.textContent="กรุณากรอกเลขจำนวนเต็มตั้งแต่ 0 ขึ้นไป";el.classList.add("invalid");return}
- el.textContent=x.a>x.b?`${p[0]} ชนะ ${x.a}-${x.b}`:x.b>x.a?`${p[1]} ชนะ ${x.b}-${x.a}`:`เสมอ ${x.a}-${x.b}`;
+ el.textContent=matchResult(p,x);
 }
 
-function calc(){
+function matchResult(pair,score){
+ if(!score||!validScore(score.a)||!validScore(score.b))return "ยังไม่กรอกผล";
+ return score.a>score.b?`${pair[0]} ชนะ ${score.a}-${score.b}`:score.b>score.a?`${pair[1]} ชนะ ${score.b}-${score.a}`:`เสมอ ${score.a}-${score.b}`;
+}
+
+function standingsData(){
  const s={};players.forEach(n=>s[n]={name:n,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});let played=0;
  rounds.forEach((r,ri)=>r.m.forEach((p,mi)=>{
   const x=results[mid(ri,mi)]; if(!x||!validScore(x.a)||!validScore(x.b))return; played++;
@@ -180,14 +185,38 @@ function calc(){
  }));
  Object.values(s).forEach(x=>x.gd=x.gf-x.ga);
  const arr=Object.values(s).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||b.w-a.w||a.name.localeCompare(b.name,"th"));
+ return {arr,played};
+}
+
+function calc(){
+ const {arr,played}=standingsData();
  document.getElementById("standings").innerHTML=arr.map((x,i)=>`<tr><td>${i+1}</td><td class="name">${i===0&&played?"👑 ":""}${escapeHtml(x.name)}</td><td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td class="points">${x.pts}</td></tr>`).join("");
  document.getElementById("played").textContent=played;document.getElementById("remain").textContent=totalMatches()-played;document.getElementById("leader").textContent=played?arr[0].name:"-";
+}
+
+function exportDocument(){
+ const {arr,played}=standingsData(),created=new Intl.DateTimeFormat("th-TH",{dateStyle:"long",timeStyle:"short"}).format(new Date());
+ const scheduleRows=rounds.map((round,ri)=>{
+  const matches=round.m.map((pair,mi)=>{
+   const score=results[mid(ri,mi)],scoreText=score&&validScore(score.a)&&validScore(score.b)?`${score.a} - ${score.b}`:"—";
+   return `<tr><td>${ri+1}</td><td>${escapeHtml(pair[0])}</td><td class="score">${scoreText}</td><td>${escapeHtml(pair[1])}</td><td>${escapeHtml(matchResult(pair,score))}</td></tr>`;
+  }).join("");
+  return matches+(round.rest?`<tr class="rest-row"><td>${ri+1}</td><td colspan="4">พัก: ${escapeHtml(round.rest)}</td></tr>`:"");
+ }).join("");
+ const standingRows=arr.map((x,i)=>`<tr><td>${i+1}</td><td class="name">${escapeHtml(x.name)}</td><td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td><b>${x.pts}</b></td></tr>`).join("");
+ const report=`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>เอกสารการแข่งขันปิงปอง</title><style>
+  @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:#111;margin:0;font-size:12px}h1{margin:0 0 4px;font-size:24px}h2{margin:22px 0 8px;font-size:17px}.meta{color:#555;margin-bottom:12px}.rules{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.pill{border:1px solid #999;border-radius:99px;padding:4px 8px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat{border:1px solid #aaa;border-radius:8px;padding:8px;text-align:center}.stat b{display:block;font-size:18px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#e9eef7}.name,td:nth-child(2){text-align:left}.score{font-weight:700}.rest-row td{background:#f3f3f3;text-align:left;font-style:italic}.screen-actions{position:sticky;top:0;background:#fff;padding:10px 0;margin-bottom:10px;border-bottom:1px solid #ddd}.screen-actions button{border:0;border-radius:8px;padding:10px 14px;background:#1769e0;color:#fff;font-weight:700}tr{break-inside:avoid}@media print{.screen-actions{display:none}h2{break-after:avoid}table{font-size:10px}}
+ </style></head><body><div class="screen-actions"><button onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button></div><h1>🏓 ตีให้สุด หยุดที่เบ้าตา</h1><div class="meta">เอกสารการแข่งขันปิงปอง • จัดทำเมื่อ ${escapeHtml(created)}</div><div class="rules"><span class="pill">ชนะ 3 คะแนน</span><span class="pill">เสมอ 1 คะแนน</span><span class="pill">แพ้ 0 คะแนน</span><span class="pill">ผู้เล่น ${players.length} คน</span></div><div class="summary"><div class="stat"><b>${played}</b>แข่งแล้ว</div><div class="stat"><b>${totalMatches()-played}</b>เหลือ</div><div class="stat"><b>${totalMatches()}</b>ทั้งหมด</div></div><h2>ตารางการแข่งขัน</h2><table><thead><tr><th>รอบ</th><th>ผู้เล่น 1</th><th>ผลคะแนน</th><th>ผู้เล่น 2</th><th>ผลการแข่งขัน</th></tr></thead><tbody>${scheduleRows}</tbody></table><h2>ตารางคะแนน</h2><table><thead><tr><th>#</th><th>ผู้เล่น</th><th>แข่ง</th><th>ชนะ</th><th>เสมอ</th><th>แพ้</th><th>ลูกได้</th><th>ลูกเสีย</th><th>+/-</th><th>คะแนน</th></tr></thead><tbody>${standingRows}</tbody></table></body></html>`;
+ const docWindow=window.open("","_blank");
+ if(!docWindow){alert("กรุณาอนุญาตหน้าต่างป๊อปอัปเพื่อส่งออกเอกสาร");return}
+ docWindow.document.open();docWindow.document.write(report);docWindow.document.close();docWindow.focus();
 }
 
 document.getElementById("addPlayer").onclick=addPlayer;
 document.getElementById("newPlayer").addEventListener("keydown",event=>{if(event.key==="Enter")addPlayer()});
 document.getElementById("shuffle").onclick=()=>{if(approveReset("สุ่มตารางใหม่และล้างผลการแข่งขันเดิมหรือไม่?"))rebuildSchedule()};
 document.getElementById("save").onclick=()=>{saveState();alert("บันทึกแล้ว")};
+document.getElementById("exportDocument").onclick=exportDocument;
 document.getElementById("reset").onclick=()=>{if(confirm("ล้างผลทั้งหมด?")){results={};saveState();render()}};
 render();
 </script>
