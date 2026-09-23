@@ -113,6 +113,28 @@ button{border:0;border-radius:11px;padding:11px 14px;min-height:44px;font-weight
   .score-btn{min-width:38px}.summary{gap:6px}.stat{padding:10px 4px}.stat b{font-size:19px}
   .quick-nav{grid-template-columns:1fr}
 }
+
+/* Motion & interaction polish */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scorePop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes syncPulse{0%,100%{box-shadow:0 0 0 0 rgba(96,165,250,0)}50%{box-shadow:0 0 0 5px rgba(96,165,250,.08)}}
+@keyframes rankFlash{0%{background:rgba(96,165,250,.18)}100%{background:transparent}}
+.reveal{opacity:0;transform:translateY(10px)}
+.reveal.in-view{animation:fadeUp .38s ease forwards}
+.score-pop{animation:scorePop .22s ease}
+.sync.saving{animation:syncPulse 1s ease-in-out infinite}
+.rank-up td{animation:rankFlash .7s ease}
+.rank-move{display:inline-flex;align-items:center;justify-content:center;min-width:18px;margin-left:4px;font-size:10px;font-weight:900}
+.rank-move.up{color:#72e5a0}.rank-move.down{color:#ff9aa5}
+button,.quick-nav a,.mobile-nav a{position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.ripple{position:absolute;border-radius:50%;transform:scale(0);animation:ripple .45s linear;background:rgba(255,255,255,.18);pointer-events:none}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+body.scrolled .hero{transform:translateY(-2px);border-color:#355983}
+body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
 </style>
 </head>
 <body>
@@ -230,6 +252,7 @@ try{
 function setSyncStatus(text,status=""){
   const el=document.getElementById("syncStatus"); if(!el)return;
   el.textContent=text; el.className=`pill sync ${status}`;
+  el.classList.toggle("saving",text.includes("กำลัง"));
 }
 async function cloudRequest(method="GET",body=null){
   const options={method,headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}};
@@ -317,6 +340,7 @@ function adjustScore(ri,mi,side,delta){
   const input=document.getElementById(mid(ri,mi)+side);
   const current=inputValue(input);
   input.value=Math.max(0,(validScore(current)?current:0)+delta);
+  input.classList.remove("score-pop"); void input.offsetWidth; input.classList.add("score-pop");
   updateMatch(ri,mi);
 }
 function updateMatch(ri,mi){
@@ -377,6 +401,7 @@ function render(){
   }));
   calc();
 }
+let previousRanks={};
 function standingsData(){
   const s={}; players.forEach(n=>s[n]={name:n,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});
   let played=0;
@@ -394,11 +419,18 @@ function standingsData(){
 }
 function calc(){
   const {arr,played}=standingsData();
-  document.getElementById("standings").innerHTML=arr.map((x,i)=>`<tr>
-    <td>${i+1}</td><td class="name">${i===0&&played?"👑 ":""}${escapeHtml(x.name)}</td>
-    <td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td>
-    <td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td class="points">${x.pts}</td>
-  </tr>`).join("");
+  const nextRanks={};
+  arr.forEach((x,i)=>nextRanks[x.name]=i+1);
+  document.getElementById("standings").innerHTML=arr.map((x,i)=>{
+    const rank=i+1, old=previousRanks[x.name], moved=old&&old!==rank;
+    const move=moved?`<span class="rank-move ${rank<old?"up":"down"}">${rank<old?"▲":"▼"}${Math.abs(old-rank)}</span>`:"";
+    return `<tr class="${moved?"rank-up":""}">
+      <td>${rank}${move}</td><td class="name">${i===0&&played?"👑 ":""}${escapeHtml(x.name)}</td>
+      <td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td>
+      <td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td class="points">${x.pts}</td>
+    </tr>`;
+  }).join("");
+  previousRanks=nextRanks;
   document.getElementById("played").textContent=played;
   document.getElementById("remain").textContent=totalMatches()-played;
   document.getElementById("leader").textContent=played?arr[0].name:"-";
@@ -439,6 +471,29 @@ if("IntersectionObserver" in window){
   },{rootMargin:"-20% 0px -55% 0px",threshold:[0.05,.25,.5]});
   ["matches","standingsCard"].forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el)});
 }
+
+
+// Motion enhancements
+document.querySelectorAll(".card,.round").forEach(el=>el.classList.add("reveal"));
+if("IntersectionObserver" in window){
+  const revealObs=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("in-view");revealObs.unobserve(entry.target)}});
+  },{threshold:.08});
+  document.querySelectorAll(".reveal").forEach(el=>revealObs.observe(el));
+}else document.querySelectorAll(".reveal").forEach(el=>el.classList.add("in-view"));
+
+window.addEventListener("scroll",()=>document.body.classList.toggle("scrolled",window.scrollY>24),{passive:true});
+
+function addRipple(event){
+  const target=event.currentTarget;
+  const rect=target.getBoundingClientRect(),size=Math.max(rect.width,rect.height);
+  const span=document.createElement("span");span.className="ripple";
+  span.style.width=span.style.height=size+"px";
+  span.style.left=(event.clientX-rect.left-size/2)+"px";
+  span.style.top=(event.clientY-rect.top-size/2)+"px";
+  target.appendChild(span);setTimeout(()=>span.remove(),500);
+}
+document.querySelectorAll("button,.quick-nav a,.mobile-nav a").forEach(el=>el.addEventListener("pointerdown",addRipple));
 
 </script>
 </body>
