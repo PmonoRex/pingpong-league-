@@ -1,12 +1,141 @@
-const KEY="pp_league_v7_uid",SUPABASE_URL="https://gqlfqoeejgtjpsdvngbh.supabase.co",SUPABASE_KEY="sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z",CLOUD_ENDPOINT=`${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
-let state=JSON.parse(localStorage.getItem(KEY)||"null"),currentUserId=localStorage.getItem("pp_user_id")||"";if(!state?.profiles){location.href="index.html"}
-const esc=v=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));const uid=()=>`u_${Math.random().toString(36).slice(2,8)}${Date.now().toString(36).slice(-4)}`;const me=()=>state.profiles[currentUserId];if(me()?.role!=="admin"){alert("หน้านี้สำหรับ Admin เท่านั้น");location.href="index.html"}
-async function cloudRequest(method="GET",body=null){const o={method,headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}};if(body){o.headers["Content-Type"]="application/json";o.headers.Prefer="return=representation";o.body=JSON.stringify(body)}const r=await fetch(`${CLOUD_ENDPOINT}&select=league,updated_at`,o);if(!r.ok)throw new Error(r.status);return r.json()}
-function save(){localStorage.setItem(KEY,JSON.stringify(state));cloudRequest("PATCH",{league:{uidLeague:state},updated_at:new Date().toISOString()}).catch(()=>{})}
-function render(){document.getElementById("accounts").innerHTML=Object.values(state.profiles).sort((a,b)=>(b.role==="admin")-(a.role==="admin")||a.displayName.localeCompare(b.displayName,"th")).map(p=>`<div class="account ${p.active===false?"off":""}"><div><strong>${esc(p.displayName)} ${p.role==="admin"?'<span class="badge">ADMIN</span>':""}</strong><small>${p.id} • ${p.active===false?"Inactive":"Active"}</small></div><div class="account-actions"><button class="secondary" data-rename="${p.id}">เปลี่ยนชื่อ</button><button class="blue" data-reset="${p.id}">รีเซ็ต PIN</button><button class="${p.active===false?"primary":"danger"}" data-toggle="${p.id}">${p.active===false?"เปิดใช้งาน":"ปิดใช้งาน"}</button></div></div>`).join("");
- document.querySelectorAll("[data-reset]").forEach(b=>b.onclick=()=>{const p=state.profiles[b.dataset.reset];if(confirm(`รีเซ็ต PIN ของ ${p.displayName} เป็น 1234?`)){p.pin="1234";save();alert("รีเซ็ตแล้ว")}});
- document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const p=state.profiles[b.dataset.toggle];if(p.id===currentUserId&&p.active!==false){alert("ปิดบัญชี Admin ที่กำลังใช้งานไม่ได้");return}p.active=p.active===false?true:false;save();render()});
- document.querySelectorAll("[data-rename]").forEach(b=>b.onclick=()=>{const p=state.profiles[b.dataset.rename],name=prompt("ชื่อใหม่",p.displayName);if(!name?.trim())return;p.displayName=name.trim();save();render()});
+const KEY = LeagueShared.LEAGUE_KEY;
+const esc = LeagueShared.escapeHtml;
+let state = LeagueShared.readLocalLeague();
+let currentUserId = state ? LeagueShared.sessionUserId(state) : "";
+let saving = false;
+
+const profile = id => LeagueShared.profile(state, id);
+const isAdmin = () => LeagueShared.isAdmin(state, currentUserId);
+const cloudRequest = (method = "GET", body = null) => LeagueShared.cloudRequest("league,updated_at", method, body);
+const statusElement = document.getElementById("adminStatus");
+function setStatus(message) { statusElement.textContent = message; }
+function leaveIfNotAdmin() {
+  if (isAdmin()) return false;
+  location.replace("index.html");
+  return true;
 }
-document.getElementById("create").onclick=()=>{const name=document.getElementById("newName").value.trim(),role=document.getElementById("newRole").value;if(!name)return alert("กรอกชื่อก่อน");if(Object.values(state.profiles).some(p=>p.displayName.toLowerCase()===name.toLowerCase()))return alert("มีชื่อนี้แล้ว");const id=uid();state.profiles[id]={id,displayName:name,pin:"1234",role,active:true,createdAt:new Date().toISOString()};document.getElementById("newName").value="";save();render();alert(`สร้าง ${name} แล้ว • PIN 1234`)}
-render();
+
+async function loadCloud() {
+  try {
+    const row = (await cloudRequest())[0];
+    const latest = row?.league?.uidLeague;
+    if (!latest?.profiles) throw new Error("ไม่พบข้อมูลบัญชีในระบบ");
+    state = latest;
+    LeagueShared.saveLocalLeague(state);
+    currentUserId = LeagueShared.sessionUserId(state);
+    if (leaveIfNotAdmin()) return;
+    render();
+    setStatus("ออนไลน์ • ข้อมูลบัญชีล่าสุด");
+  } catch (error) {
+    if (leaveIfNotAdmin()) return;
+    render();
+    setStatus("เชื่อมต่อไม่ได้ • ดูข้อมูลในเครื่องได้ แต่ยังแก้บัญชีไม่ได้");
+  }
+}
+
+async function mutate(change) {
+  if (saving) return false;
+  saving = true;
+  setStatus("กำลังตรวจข้อมูลล่าสุด...");
+  try {
+    const row = (await cloudRequest())[0];
+    const latest = row?.league?.uidLeague;
+    if (!latest?.profiles) throw new Error("ไม่พบข้อมูลบัญชีในระบบ");
+    currentUserId = LeagueShared.sessionUserId(latest);
+    if (!LeagueShared.isAdmin(latest, currentUserId)) {
+      state = latest;
+      LeagueShared.saveLocalLeague(state);
+      leaveIfNotAdmin();
+      return false;
+    }
+    const updated = structuredClone(latest);
+    if (change(updated) === false) {
+      setStatus("ออนไลน์ • ไม่มีการเปลี่ยนแปลง");
+      return false;
+    }
+    setStatus("กำลังบันทึก...");
+    const now = new Date().toISOString();
+    const saved = await cloudRequest("PATCH", {
+      league: { ...(row.league || {}), uidLeague: updated },
+      updated_at: now
+    });
+    if (!saved?.length) throw new Error("บันทึกไม่สำเร็จ");
+    state = updated;
+    LeagueShared.saveLocalLeague(state);
+    render();
+    setStatus("ออนไลน์ • บันทึกแล้ว");
+    return true;
+  } catch (error) {
+    setStatus(`บันทึกไม่ได้: ${error.message}`);
+    return false;
+  } finally {
+    saving = false;
+  }
+}
+
+function render() {
+  document.getElementById("accounts").innerHTML = Object.values(state?.profiles || {})
+    .sort((a, b) => (b.role === "admin") - (a.role === "admin") || a.displayName.localeCompare(b.displayName, "th"))
+    .map(person => `<div class="account ${person.active === false ? "off" : ""}"><div><strong>${esc(person.displayName)} ${person.role === "admin" ? '<span class="badge">ADMIN</span>' : ""}</strong><small>${esc(person.id)} • ${person.active === false ? "Inactive" : "Active"}</small></div><div class="account-actions"><button class="secondary" data-rename="${esc(person.id)}">เปลี่ยนชื่อ</button><button class="blue" data-reset="${esc(person.id)}">รีเซ็ต PIN</button><button class="${person.active === false ? "primary" : "danger"}" data-toggle="${esc(person.id)}">${person.active === false ? "เปิดใช้งาน" : "ปิดใช้งาน"}</button></div></div>`)
+    .join("");
+
+  document.querySelectorAll("[data-reset]").forEach(button => button.onclick = async () => {
+    const id = button.dataset.reset;
+    if (!confirm(`รีเซ็ต PIN ของ ${profile(id)?.displayName || id} เป็น 1234?`)) return;
+    await mutate(latest => {
+      if (!latest.profiles[id]) return false;
+      latest.profiles[id].pin = "1234";
+    });
+  });
+  document.querySelectorAll("[data-toggle]").forEach(button => button.onclick = async () => {
+    const id = button.dataset.toggle;
+    await mutate(latest => {
+      const person = latest.profiles[id];
+      if (!person) return false;
+      if (id === currentUserId && person.active !== false) {
+        alert("ปิดบัญชี Admin ที่กำลังใช้งานไม่ได้");
+        return false;
+      }
+      person.active = person.active === false;
+    });
+  });
+  document.querySelectorAll("[data-rename]").forEach(button => button.onclick = async () => {
+    const id = button.dataset.rename;
+    const name = prompt("ชื่อใหม่", profile(id)?.displayName || "")?.trim();
+    if (!name) return;
+    await mutate(latest => {
+      if (!latest.profiles[id]) return false;
+      if (Object.values(latest.profiles).some(person => person.id !== id && person.displayName.toLowerCase() === name.toLowerCase())) {
+        alert("มีชื่อนี้แล้ว");
+        return false;
+      }
+      latest.profiles[id].displayName = name;
+    });
+  });
+}
+
+document.getElementById("create").onclick = async () => {
+  const input = document.getElementById("newName");
+  const name = input.value.trim();
+  const role = document.getElementById("newRole").value;
+  if (!name) return alert("กรอกชื่อก่อน");
+  if (!["player", "admin"].includes(role)) return;
+  const saved = await mutate(latest => {
+    if (Object.values(latest.profiles).some(person => person.displayName.toLowerCase() === name.toLowerCase())) {
+      alert("มีชื่อนี้แล้ว");
+      return false;
+    }
+    const id = LeagueShared.newAccountId();
+    latest.profiles[id] = { id, displayName: name, pin: "1234", role, active: true, createdAt: new Date().toISOString() };
+  });
+  if (saved) {
+    input.value = "";
+    alert(`สร้าง ${name} แล้ว • PIN 1234`);
+  }
+};
+
+window.addEventListener("storage", event => {
+  if ([KEY, LeagueShared.SESSION_KEY].includes(event.key)) loadCloud();
+});
+setStatus("กำลังโหลดข้อมูลบัญชี...");
+loadCloud();

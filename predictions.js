@@ -1,20 +1,43 @@
-const LEAGUE_KEY="pp_league_v7_uid",PRED_KEY="pp_predictions_v3_uid";
-const SUPABASE_URL="https://gqlfqoeejgtjpsdvngbh.supabase.co",SUPABASE_KEY="sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z",CLOUD_ENDPOINT=`${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
-let league=loadLeague(),pred=loadPred(),currentUserId=localStorage.getItem("pp_user_id")||"",cloudReady=false,lastCloudUpdate="";
-const esc=v=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
-const profile=id=>league.profiles?.[id],isAdmin=()=>profile(currentUserId)?.role==="admin",isDealer=()=>Boolean(currentUserId&&pred.dealerId&&currentUserId===pred.dealerId),canManageMarket=()=>isAdmin()||isDealer(),valid=v=>Number.isInteger(v)&&v>=0,mid=(r,m)=>`r${r}m${m}`;
-function loadLeague(){try{return JSON.parse(localStorage.getItem(LEAGUE_KEY)||"null")||{profiles:{},seasonPlayerIds:[],rounds:[],results:{}}}catch(e){return {profiles:{},seasonPlayerIds:[],rounds:[],results:{}}}}
+const LEAGUE_KEY=LeagueShared.LEAGUE_KEY,PRED_KEY=LeagueShared.PRED_KEY;
+let league=loadLeague(),pred=loadPred(),currentUserId="",cloudReady=false,lastCloudUpdate="",predSaving=false;
+const esc=LeagueShared.escapeHtml;
+const profile=id=>LeagueShared.profile(league,id),isAdmin=()=>LeagueShared.isAdmin(league,currentUserId),isDealer=()=>LeagueShared.isDealer(league,pred,currentUserId),canManageMarket=()=>LeagueShared.canManageMarket(league,pred,currentUserId),valid=v=>Number.isInteger(v)&&v>=0,mid=(r,m)=>`r${r}m${m}`;
+function loadLeague(){return LeagueShared.readLocalLeague()||{profiles:{},seasonPlayerIds:[],rounds:[],results:{}}}
 function freshPred(){return {dealerId:null,markets:{},bets:[],nextBetId:1}}
 function loadPred(){try{return Object.assign(freshPred(),JSON.parse(localStorage.getItem(PRED_KEY)||"null")||{})}catch(e){return freshPred()}}
-function savePred(){localStorage.setItem(PRED_KEY,JSON.stringify(pred));if(cloudReady)cloudRequest("PATCH",{predictions:{uidPredictions:pred},updated_at:new Date().toISOString()}).catch(()=>{})}
-async function cloudRequest(method="GET",body=null){const o={method,headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}};if(body){o.headers["Content-Type"]="application/json";o.headers.Prefer="return=representation";o.body=JSON.stringify(body)}const r=await fetch(`${CLOUD_ENDPOINT}&select=league,predictions,updated_at`,o);if(!r.ok)throw new Error(r.status);return r.json()}
+async function mutatePred(change){
+ if(predSaving)return false;
+ predSaving=true;
+ try{
+  const row=(await cloudRequest())[0];
+  const freshLeague=row?.league?.uidLeague;
+  if(!freshLeague?.profiles)throw new Error("ไม่พบข้อมูลบัญชีล่าสุด");
+  league=freshLeague;
+  pred=Object.assign(freshPred(),row?.predictions?.uidPredictions||{});
+  LeagueShared.saveLocalLeague(league);
+  reconcileSession();
+  renderLogin();
+  if(change()===false){render();return false}
+  setSync("กำลังบันทึก...");
+  const now=new Date().toISOString();
+  const saved=await cloudRequest("PATCH",{predictions:{...(row.predictions||{}),uidPredictions:pred},updated_at:now});
+  if(!saved?.length)throw new Error("บันทึกไม่สำเร็จ");
+  localStorage.setItem(PRED_KEY,JSON.stringify(pred));
+  lastCloudUpdate=saved[0]?.updated_at||now;
+  render();setSync("ออนไลน์ • บันทึกแล้ว","online");
+  return true;
+ }catch(error){league=loadLeague();pred=loadPred();reconcileSession();renderLogin();render();setSync("บันทึกไม่ได้ • โปรดลองใหม่","offline");alert(`บันทึกไม่ได้: ${error.message}`);return false}
+ finally{predSaving=false}
+}
+const cloudRequest=(method="GET",body=null)=>LeagueShared.cloudRequest("league,predictions,updated_at",method,body);
 function setSync(t,s=""){const e=document.getElementById("syncStatus");e.textContent=t;e.className=`sync ${s}`}
-async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){league=remote;localStorage.setItem(LEAGUE_KEY,JSON.stringify(league))}const rp=row?.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}lastCloudUpdate=row?.updated_at||"";renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pull,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
-async function pull(){try{const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){league=remote;localStorage.setItem(LEAGUE_KEY,JSON.stringify(league))}const rp=row.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}renderLogin();render()}catch(e){}}
-function activeProfiles(){return Object.values(league.profiles||{}).filter(p=>p.active!==false)}
-function renderLogin(){const sel=document.getElementById("loginUser"),list=activeProfiles();sel.innerHTML=list.length?list.map(p=>`<option value="${p.id}">${esc(p.displayName)}${p.role==="admin"?" • Admin":""}</option>`).join(""):'<option value="">ไม่มีบัญชีผู้เล่น</option>';if(currentUserId&&profile(currentUserId))sel.value=currentUserId}
-function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!id||!profile(id)){alert("ยังไม่มีบัญชีผู้เล่น กรุณาให้ Admin เพิ่มบัญชีก่อน");return}if(profile(id).pin!==pin){alert("PIN ไม่ถูกต้อง");return}currentUserId=id;localStorage.setItem("pp_user_id",id);document.getElementById("auth").classList.add("hidden");render()}
-function logout(){currentUserId="";localStorage.removeItem("pp_user_id");document.getElementById("auth").classList.remove("hidden");renderLogin()}
+function reconcileSession(){currentUserId=LeagueShared.sessionUserId(league);document.getElementById("auth").classList.toggle("hidden",Boolean(currentUserId))}
+async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){league=remote;LeagueShared.saveLocalLeague(league)}const rp=row?.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pull,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
+async function pull(){if(predSaving)return;try{const rows=await cloudRequest(),row=rows[0];if(predSaving||!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){league=remote;LeagueShared.saveLocalLeague(league)}const rp=row.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}reconcileSession();renderLogin();render()}catch(e){}}
+function activeProfiles(){return LeagueShared.activeProfiles(league)}
+function renderLogin(){LeagueShared.renderLoginOptions(document.getElementById("loginUser"),league,currentUserId)}
+function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!LeagueShared.login(league,id,pin)){alert("PIN ไม่ถูกต้องหรือบัญชีถูกปิดใช้งาน");return}document.getElementById("loginPin").value="";reconcileSession();render()}
+function logout(){LeagueShared.logout();reconcileSession();renderLogin();render()}
 function allMatches(){const out=[];(league.rounds||[]).forEach((r,ri)=>r.m.forEach((pair,mi)=>out.push({id:mid(ri,mi),ri,mi,pair,score:(league.results||{})[mid(ri,mi)]})));return out}
 function hasResult(m){return m.score&&valid(m.score.a)&&valid(m.score.b)}
 function outcome(match,market){if(!hasResult(match))return null;let a=match.score.a,b=match.score.b;if(market.favoriteId===match.pair[0])a-=market.handicap;else b-=market.handicap;if(a===b)return {type:"push"};return {type:"win",winnerId:a>b?match.pair[0]:match.pair[1]}}
@@ -62,12 +85,12 @@ function renderDealerSelect(){
   if(hint)hint.textContent=current&&profile(current)?`เจ้ามือปัจจุบัน: ${profile(current).displayName}`:"ยังไม่ได้เลือกเจ้ามือ";
 }
 
-function renderHeader(){const p=profile(currentUserId);document.getElementById("whoami").textContent=p?.displayName||"-";document.getElementById("adminBadge").classList.toggle("hidden",!isAdmin());document.getElementById("adminLink").style.display=isAdmin()?"inline-flex":"none";if(!pred.dealerId&&isAdmin())pred.dealerId=currentUserId;document.getElementById("dealerName").innerHTML=pred.dealerId&&profile(pred.dealerId)?`<button type="button" class="profile-link" data-profile="${pred.dealerId}">${esc(profile(pred.dealerId).displayName)}</button>`:"ยังไม่ตั้ง"}
+function renderHeader(){const p=LeagueShared.activeProfile(league,currentUserId);document.getElementById("whoami").textContent=p?.displayName||"-";document.getElementById("adminBadge").classList.toggle("hidden",!isAdmin());document.getElementById("adminLink").style.display=isAdmin()?"inline-flex":"none";document.getElementById("dealerName").innerHTML=pred.dealerId&&profile(pred.dealerId)?`<button type="button" class="profile-link" data-profile="${pred.dealerId}">${esc(profile(pred.dealerId).displayName)}</button>`:"ยังไม่ตั้ง"}
 function renderSummary(){
  const invested=pred.bets.filter(b=>b.userId===currentUserId).reduce((s,b)=>s+b.stake,0);
  document.getElementById("invested").textContent=credits(invested);
  document.getElementById("pending").textContent=pred.bets.filter(b=>b.userId===currentUserId&&b.status==="pending").length;
- const currentIsDealer=currentUserId===pred.dealerId;
+ const currentIsDealer=isDealer();
  document.getElementById("dealerPanel").classList.remove("hidden");
  document.getElementById("bettingPanel").classList.toggle("hidden",currentIsDealer);
  const dealerNav=document.getElementById("dealerNav");
@@ -80,29 +103,58 @@ function renderSummary(){
 }
 function marketDesc(m,market){return `${profile(market.favoriteId)?.displayName||"-"} ต่อ ${market.handicap} ลูก`}
 function renderDealer(){const box=document.getElementById("dealerMarkets");if(!box||!canManageMarket())return;box.innerHTML="";allMatches().forEach(m=>{const market=pred.markets[m.id]||{favoriteId:m.pair[0],handicap:.5,open:false};const c=document.createElement("div");c.className="market";c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag ${market.open&&!hasResult(m)?"":"closed"}">${hasResult(m)?"มีผลแล้ว":market.open?"เปิดรับ":"ปิดรับ"}</span></div><div class="market-controls"><div class="field"><label>ผู้ต่อ</label><select id="fav-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select></div><div class="field"><label>แต้มต่อ</label><input id="hcp-${m.id}" type="number" min="0" step=".5" value="${market.handicap}"></div><div class="field"><label>สถานะ</label><select id="open-${m.id}"><option value="1">เปิดรับ</option><option value="0">ปิดรับ</option></select></div></div><div class="actions"><button class="primary" data-save="${m.id}">บันทึกคู่นี้</button></div>`;box.appendChild(c);document.getElementById(`fav-${m.id}`).value=market.favoriteId;document.getElementById(`open-${m.id}`).value=market.open&&!hasResult(m)?"1":"0"});box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>saveMarket(b.dataset.save))}
-function saveMarket(id){if(!canManageMarket())return alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");const m=allMatches().find(x=>x.id===id);if(!m)return;pred.markets[id]={favoriteId:document.getElementById(`fav-${id}`).value,handicap:Number(document.getElementById(`hcp-${id}`).value),open:document.getElementById(`open-${id}`).value==="1"&&!hasResult(m)};savePred();render()}
+function saveMarket(id){
+ const favoriteId=document.getElementById(`fav-${id}`).value;
+ const handicap=Number(document.getElementById(`hcp-${id}`).value);
+ const open=document.getElementById(`open-${id}`).value==="1";
+ return mutatePred(()=>{
+  if(!canManageMarket()){alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");return false}
+  const match=allMatches().find(item=>item.id===id);
+  if(!match||!match.pair.includes(favoriteId)||!Number.isFinite(handicap)||handicap<0||handicap*2%1!==0){alert("ผู้ต่อหรือแต้มต่อไม่ถูกต้อง");return false}
+  pred.markets[id]={favoriteId,handicap,open:open&&!hasResult(match)};
+ });
+}
 function renderBetting(){
  const box=document.getElementById("bettingMarkets");box.innerHTML="";
- if(currentUserId===pred.dealerId){
+ if(isDealer()){
    box.innerHTML='<div class="locked">คุณเป็นเจ้ามือของรอบนี้ จึงไม่สามารถทายผลได้</div>';
    return;
  }
  let n=0;allMatches().forEach(m=>{const market=pred.markets[m.id];if(!market||!market.open||hasResult(m))return;n++;const own=m.pair.includes(currentUserId),existing=pred.bets.find(b=>b.matchId===m.id&&b.userId===currentUserId);const c=document.createElement("div");c.className="market";let controls=own?'<div class="locked">คุณเป็นผู้เล่นในคู่นี้ จึงทายไม่ได้</div>':existing?`<div class="locked">ทายแล้ว: ${esc(profile(existing.sideId)?.displayName||existing.sideId)} • ${credits(existing.stake)}</div>`:`<div class="bet-row"><select id="side-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select><input id="stake-${m.id}" type="number" min="1" inputmode="numeric" placeholder="ยอด"><button class="green" data-bet="${m.id}">ยืนยัน</button></div><div class="quick"><button data-q="${m.id}:10">+10</button><button data-q="${m.id}:50">+50</button><button data-q="${m.id}:100">+100</button><button data-q="${m.id}:500">+500</button></div>`;c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag">เปิดรับ</span></div>${controls}`;box.appendChild(c)});if(!n)box.innerHTML='<div class="empty">ยังไม่มีคู่ที่เปิดให้ทาย</div>';box.querySelectorAll("[data-bet]").forEach(b=>b.onclick=()=>placeBet(b.dataset.bet));box.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const [id,a]=b.dataset.q.split(":");const e=document.getElementById(`stake-${id}`);e.value=(Number(e.value)||0)+Number(a)})}
 function placeBet(id){
- const m=allMatches().find(x=>x.id===id),market=pred.markets[id];
- if(!m||!market?.open)return;
- if(currentUserId===pred.dealerId)return alert("เจ้ามือไม่สามารถทายผลได้");
- if(m.pair.includes(currentUserId))return alert("ทายคู่ตัวเองไม่ได้");const sideId=document.getElementById(`side-${id}`).value,stake=Number(document.getElementById(`stake-${id}`).value);if(!Number.isInteger(stake)||stake<=0)return alert("กรอกยอดให้ถูกต้อง");pred.bets.push({id:pred.nextBetId++,matchId:id,userId:currentUserId,sideId,stake,status:"pending",net:0,createdAt:new Date().toISOString()});savePred();render()}
-function saveDealer(){
- if(!isAdmin())return alert("เฉพาะ Admin เท่านั้น");
- const id=document.getElementById("dealerSelect").value;
- if(!id||!profile(id))return;
- if(pred.bets.some(b=>b.status==="pending") && pred.dealerId && pred.dealerId!==id){
-   if(!confirm("มีรายการทายที่ยังรอผลอยู่ เปลี่ยนเจ้ามือจะมีผลต่อการสรุปยอด ยืนยันหรือไม่?"))return;
- }
- pred.dealerId=id;savePred();render();alert(`ตั้ง ${profile(id).displayName} เป็นเจ้ามือแล้ว`);
+ const sideId=document.getElementById(`side-${id}`).value;
+ const stake=Number(document.getElementById(`stake-${id}`).value);
+ return mutatePred(()=>{
+  const match=allMatches().find(item=>item.id===id);
+  const eligibility=LeagueShared.betEligibility(league,pred,currentUserId,match&&{...match,hasResult:Boolean(hasResult(match))});
+  if(!eligibility.allowed){alert(eligibility.reason);return false}
+  if(!match.pair.includes(sideId)||!Number.isInteger(stake)||stake<=0){alert("กรอกยอดให้ถูกต้อง");return false}
+  pred.bets.push({id:pred.nextBetId++,matchId:id,userId:currentUserId,sideId,stake,status:"pending",net:0,createdAt:new Date().toISOString()});
+ });
 }
-function settleAll(){if(!canManageMarket())return alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");let count=0;pred.bets.forEach(b=>{if(b.status!=="pending")return;const m=allMatches().find(x=>x.id===b.matchId),market=pred.markets[b.matchId],r=m&&market?outcome(m,market):null;if(!r)return;if(r.type==="push"){b.status="push";b.net=0}else if(r.winnerId===b.sideId){b.status="won";b.net=b.stake}else{b.status="lost";b.net=-b.stake}count++});savePred();render();alert(count?`คำนวณแล้ว ${count} รายการ`:"ยังไม่มีรายการพร้อมคำนวณ")}
+async function saveDealer(){
+ const id=document.getElementById("dealerSelect").value;
+ const saved=await mutatePred(()=>{
+  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return false}
+  if(!id||!LeagueShared.activeProfile(league,id))return false;
+  if(pred.bets.some(b=>b.status==="pending")&&pred.dealerId&&pred.dealerId!==id){
+   if(!confirm("มีรายการทายที่ยังรอผลอยู่ เปลี่ยนเจ้ามือจะมีผลต่อการสรุปยอด ยืนยันหรือไม่?"))return false;
+  }
+  pred.dealerId=id;
+ });
+ if(saved)alert(`ตั้ง ${profile(id).displayName} เป็นเจ้ามือแล้ว`);
+}
+async function settleAll(){
+ let count=null;
+ const saved=await mutatePred(()=>{
+  if(!canManageMarket()){alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");return false}
+  count=0;
+  pred.bets.forEach(b=>{if(b.status!=="pending")return;const m=allMatches().find(x=>x.id===b.matchId),market=pred.markets[b.matchId],r=m&&market?outcome(m,market):null;if(!r)return;if(r.type==="push"){b.status="push";b.net=0}else if(r.winnerId===b.sideId){b.status="won";b.net=b.stake}else{b.status="lost";b.net=-b.stake}count++});
+  return count>0;
+ });
+ if(saved)alert(`คำนวณแล้ว ${count} รายการ`);
+ else if(count===0)alert("ยังไม่มีรายการพร้อมคำนวณ");
+}
 function renderSettlement(){let receive=0,pay=0;const rows=activeProfiles().filter(p=>p.id!==pred.dealerId).map(p=>{const bs=pred.bets.filter(b=>b.userId===p.id&&b.status!=="pending"),cost=bs.reduce((s,b)=>s+b.stake,0),won=bs.filter(b=>b.status==="won").reduce((s,b)=>s+b.stake,0),lost=bs.filter(b=>b.status==="lost").reduce((s,b)=>s+b.stake,0),net=won-lost;receive+=lost;pay+=won;return `<tr><td><button type="button" class="profile-link" data-profile="${p.id}">${esc(p.displayName)}</button></td><td>${credits(cost)}</td><td>${credits(won)}</td><td>${credits(lost)}</td><td class="${net>0?"positive":net<0?"negative":""}">${net>0?"+":""}${credits(net)}</td></tr>`}).join("");document.getElementById("dealerReceives").textContent=credits(receive);document.getElementById("dealerPays").textContent=credits(pay);const net=receive-pay,e=document.getElementById("dealerNet");e.textContent=`${net>0?"+":""}${credits(net)}`;e.className=net>0?"positive":net<0?"negative":"";document.getElementById("settlement").innerHTML=rows||'<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>'}
 function statusText(s){return {pending:"รอผล",won:"ชนะ",lost:"แพ้",push:"คืนยอด"}[s]||s}
 function renderHistory(){const list=canManageMarket()?pred.bets:pred.bets.filter(b=>b.userId===currentUserId);document.getElementById("history").innerHTML=list.slice().reverse().map(b=>{const m=allMatches().find(x=>x.id===b.matchId),pair=m?`${profile(m.pair[0])?.displayName}–${profile(m.pair[1])?.displayName}`:"ตารางเดิม";return `<tr><td>${b.id}</td><td><button type="button" class="profile-link" data-profile="${b.userId}">${esc(profile(b.userId)?.displayName||b.userId)}</button></td><td>${esc(pair)}</td><td>${esc(profile(b.sideId)?.displayName||b.sideId)}</td><td>${credits(b.stake)}</td><td>${statusText(b.status)}</td><td class="${b.net>0?"positive":b.net<0?"negative":""}">${b.status==="pending"?"–":`${b.net>0?"+":""}${credits(b.net)}`}</td></tr>`}).join("")||'<tr><td colspan="7" class="empty">ยังไม่มีประวัติ</td></tr>'}
@@ -115,7 +167,7 @@ document.getElementById("saveDealer").onclick=saveDealer;
 document.getElementById("profileClose").onclick=closeProfile;
 document.getElementById("profileBackdrop").addEventListener("click",e=>{if(e.target.id==="profileBackdrop")closeProfile()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfile()});
-renderLogin();if(currentUserId&&profile(currentUserId))document.getElementById("auth").classList.add("hidden");render();initCloud();
+reconcileSession();renderLogin();render();initCloud();
 
 const predNavItems=[...document.querySelectorAll(".bottom-nav [data-scroll]")];
 predNavItems.forEach(item=>item.addEventListener("click",e=>{
@@ -134,4 +186,4 @@ if("IntersectionObserver" in window){
   },{rootMargin:"-20% 0px -58% 0px",threshold:[.05,.2,.45]});
   ["bettingPanel","dealerPanel","historySection"].forEach(id=>{const el=document.getElementById(id);if(el)navObs.observe(el)});
 }
-
+window.addEventListener("storage",event=>{if(event.key===LeagueShared.SESSION_KEY){reconcileSession();renderLogin();render()}});
