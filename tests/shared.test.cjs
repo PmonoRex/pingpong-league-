@@ -27,8 +27,8 @@ const profiles = {
   eve: { id: 'eve', displayName: 'Eve', pin: '1234', role: 'admin', active: false }
 };
 const league = { profiles };
-const match = { id: 'r0m0', pair: ['alice', 'bob'], hasResult: false };
-const predictions = { dealerId: 'gift', markets: { r0m0: { open: true } }, bets: [] };
+const match = { id: 'r0m0', season: 2, pair: ['alice', 'bob'], hasResult: false };
+const predictions = { dealerId: 'gift', markets: { 's2:r0m0': { open: true } }, bets: [] };
 
 test('Admin can appoint dealer while only the active dealer manages markets', () => {
   const { shared } = loadShared();
@@ -46,10 +46,34 @@ test('Admin can bet when not dealer; dealer, match player, disabled account and 
   assert.equal(shared.betEligibility(league, predictions, 'gift', match).allowed, false);
   assert.equal(shared.betEligibility(league, predictions, 'alice', match).allowed, false);
   assert.equal(shared.betEligibility(league, predictions, 'eve', match).allowed, false);
-  const duplicate = { ...predictions, bets: [{ matchId: match.id, userId: 'mos' }] };
+  const duplicate = { ...predictions, bets: [{ season: 2, matchId: match.id, userId: 'mos' }] };
   assert.equal(shared.betEligibility(league, duplicate, 'mos', match).allowed, false);
   assert.equal(shared.betEligibility(league, { ...predictions, markets: {} }, 'mos', match).allowed, false);
   assert.equal(shared.betEligibility(league, predictions, 'mos', { ...match, hasResult: true }).allowed, false);
+});
+
+test('Markets and duplicate bets are isolated by season', () => {
+  const { shared } = loadShared();
+  assert.equal(shared.marketKey(2, 'r0m0'), 's2:r0m0');
+  const previousSeason = { ...predictions, markets: { 's1:r0m0': { open: true } } };
+  assert.equal(shared.betEligibility(league, previousSeason, 'mos', match).allowed, false);
+  const oldBet = { ...predictions, bets: [{ season: 1, matchId: match.id, userId: 'mos' }] };
+  assert.equal(shared.betEligibility(league, oldBet, 'mos', match).allowed, true);
+});
+
+test('A placed bet keeps its original handicap for settlement', () => {
+  const { shared } = loadShared();
+  const score = { a: 11, b: 10 };
+  const originalTerms = { favoriteId: 'alice', handicap: 0.5 };
+  const laterMarket = { favoriteId: 'alice', handicap: 2 };
+  assert.equal(shared.predictionOutcome(match.pair, score, originalTerms).winnerId, 'alice');
+  assert.equal(shared.predictionOutcome(match.pair, score, laterMarket).winnerId, 'bob');
+  assert.equal(shared.predictionOutcome(match.pair, { a: 11, b: 10 }, { favoriteId: 'alice', handicap: 1 }).type, 'push');
+  const bet = { season: 2, matchId: match.id, pair: [...match.pair], favoriteId: 'alice', handicap: 0.5, status: 'pending' };
+  const scoredMatch = { ...match, score };
+  assert.equal(shared.settlementOutcome(2, bet, scoredMatch).winnerId, 'alice');
+  assert.equal(shared.settlementOutcome(3, bet, { ...scoredMatch, season: 3 }), null);
+  assert.equal(shared.settlementOutcome(2, bet, { ...scoredMatch, pair: ['bob', 'alice'] }), null);
 });
 
 test('One login persists across pages and a deactivated account loses its session', () => {

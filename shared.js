@@ -20,14 +20,30 @@ const LeagueShared = (() => {
   const isAdmin = (league, id) => activeProfile(league, id)?.role === "admin";
   const isDealer = (league, predictions, id) => Boolean(activeProfile(league, id) && predictions?.dealerId === id);
   const canManageMarket = (league, predictions, id) => isDealer(league, predictions, id);
+  const marketKey = (season, matchId) => `s${season}:${matchId}`;
+  function predictionOutcome(pair, score, market) {
+    if (!Array.isArray(pair) || pair.length !== 2 || !pair.includes(market?.favoriteId) ||
+        !Number.isInteger(score?.a) || score.a < 0 || !Number.isInteger(score?.b) || score.b < 0 ||
+        !Number.isFinite(market.handicap) || market.handicap < 0) return null;
+    const adjustedA = score.a - (market.favoriteId === pair[0] ? market.handicap : 0);
+    const adjustedB = score.b - (market.favoriteId === pair[1] ? market.handicap : 0);
+    if (adjustedA === adjustedB) return { type: "push" };
+    return { type: "win", winnerId: adjustedA > adjustedB ? pair[0] : pair[1] };
+  }
+  function settlementOutcome(season, bet, match) {
+    if (bet?.season !== season || bet.status !== "pending" || match?.season !== season ||
+        match.id !== bet.matchId || !Array.isArray(bet.pair) || bet.pair.length !== 2 ||
+        !bet.pair.every((id, index) => id === match.pair?.[index])) return null;
+    return predictionOutcome(match.pair, match.score, { favoriteId: bet.favoriteId, handicap: bet.handicap });
+  }
 
   function betEligibility(league, predictions, id, match) {
     if (!activeProfile(league, id)) return { allowed: false, reason: "กรุณาเข้าสู่ระบบด้วยบัญชีที่เปิดใช้งาน" };
     if (isDealer(league, predictions, id)) return { allowed: false, reason: "เจ้ามือไม่สามารถทายผลได้" };
     if (!match?.pair || match.pair.includes(id)) return { allowed: false, reason: "ทายคู่ตัวเองไม่ได้" };
-    const market = predictions?.markets?.[match.id];
+    const market = predictions?.markets?.[marketKey(match.season, match.id)];
     if (!market?.open || match.hasResult) return { allowed: false, reason: "คู่นี้ไม่ได้เปิดรับทาย" };
-    if (predictions?.bets?.some(bet => bet.matchId === match.id && bet.userId === id)) {
+    if (predictions?.bets?.some(bet => bet.season === match.season && bet.matchId === match.id && bet.userId === id)) {
       return { allowed: false, reason: "คุณทายคู่นี้แล้ว" };
     }
     return { allowed: true, reason: "" };
@@ -94,6 +110,6 @@ const LeagueShared = (() => {
   }
 
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, escapeHtml, newAccountId, profile,
-    activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, betEligibility,
+    activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
     sessionUserId, login, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, smoothScrollTo, cloudRequest });
 })();
