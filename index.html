@@ -193,6 +193,70 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
   .rank-chart{height:190px}
 }
 
+
+/* Fix player-name contrast */
+.player-link{
+  appearance:none;
+  -webkit-appearance:none;
+  background:transparent !important;
+  border:0 !important;
+  color:#f7fbff !important;
+  padding:0 !important;
+  min-height:0 !important;
+  height:auto !important;
+  font:inherit !important;
+  font-weight:800 !important;
+  line-height:1.25 !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  text-align:left !important;
+  display:inline !important;
+}
+.player-link:hover,.player-link:focus{
+  color:#8fc5ff !important;
+  outline:none;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.player-link:active{transform:none !important}
+.rank-person .player-link{color:#f7fbff !important}
+td.name .player-link{color:#f7fbff !important}
+
+
+/* Simple player PIN accounts */
+.auth-overlay{
+  position:fixed;inset:0;z-index:100;background:rgba(3,9,18,.82);backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:center;padding:18px
+}
+.auth-overlay.hidden{display:none!important}
+.auth-card{
+  width:min(440px,100%);background:linear-gradient(180deg,#10213a,#0b1728);
+  border:1px solid #315070;border-radius:24px;padding:18px;box-shadow:0 32px 90px rgba(0,0,0,.55)
+}
+.auth-card h2{margin:0 0 5px;font-size:24px}
+.auth-card p{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.45}
+.auth-field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.auth-field label{font-size:12px;color:#9fb0c8}
+.auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.auth-actions button{width:100%}
+.account-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:12px;padding:9px 10px;border:1px solid #2f496b;border-radius:12px;background:rgba(8,18,31,.5)
+}
+.account-user{display:flex;align-items:center;gap:8px;font-size:13px}
+.admin-badge{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#5a4514;color:#ffe087;border:1px solid #8b6d23;font-size:10px;font-weight:900}
+.account-buttons{display:flex;gap:6px;flex-wrap:wrap}
+.account-buttons button{min-height:34px;padding:7px 9px;font-size:11px;background:#173052;color:#dceaff;border:1px solid #31547e}
+.account-buttons .logout{background:#44222b;color:#ffc6ce;border-color:#6c3340}
+.admin-only.locked-admin{opacity:.45;pointer-events:none;filter:grayscale(.4)}
+.pin-modal{position:fixed;inset:0;z-index:105;background:rgba(3,9,18,.72);display:none;align-items:center;justify-content:center;padding:18px}
+.pin-modal.open{display:flex}
+.pin-sheet{width:min(420px,100%);background:#0f1d31;border:1px solid #315070;border-radius:20px;padding:16px}
+.pin-sheet h3{margin:0 0 12px}
+.pin-help{font-size:12px;color:var(--muted);margin:6px 0 12px}
+.admin-account-tools{margin-top:12px;padding-top:12px;border-top:1px solid #29405f}
+.admin-account-tools .row{display:grid;grid-template-columns:1fr auto;gap:8px}
+
 </style>
 </head>
 <body>
@@ -206,6 +270,10 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
     <span class="pill">แพ้ 0 คะแนน</span><span class="pill">ลูกได้ / ลูกเสีย / ผลต่าง</span>
     <span class="pill sync" id="syncStatus">กำลังเชื่อมต่อ...</span>
   </div>
+  <div class="account-bar">
+    <div class="account-user"><span>👤</span><strong id="accountUserLabel">ยังไม่ได้เข้าสู่ระบบ</strong><span class="admin-badge hidden" id="adminBadge">ADMIN</span></div>
+    <div class="account-buttons"><button id="changePinBtn" type="button">เปลี่ยน PIN</button><button class="logout" id="logoutBtn" type="button">ออกจากระบบ</button></div>
+  </div>
   <nav class="quick-nav" aria-label="เมนูหลัก">
     <a class="primary" href="#matches">🏓 การแข่งขัน</a>
     <a href="#standingsCard">🏆 ตารางคะแนน</a>
@@ -216,7 +284,7 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
 
 <div class="grid">
 <section class="card" id="matches">
-  <div class="manager">
+  <div class="manager admin-only" id="playerManager">
     <h3>👥 จัดการผู้เล่น</h3>
     <p class="hint">เพิ่มหรือลบผู้เล่นได้ตลอดเวลา • เมื่อเปลี่ยนรายชื่อ ระบบจะสร้างตารางใหม่</p>
     <div class="add-row">
@@ -225,6 +293,10 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
     </div>
     <div class="players" id="playerList"></div>
     <div class="actions"><button class="shuffle" id="shuffle" type="button">🔀 สุ่มจับคู่ใหม่</button></div>
+    <div class="admin-account-tools">
+      <strong style="font-size:13px">🔐 จัดการ PIN ผู้เล่น</strong>
+      <div class="row" style="margin-top:8px"><select id="adminPinPlayer"></select><button class="secondary" id="adminResetPin" type="button">รีเซ็ตเป็น 1234</button></div>
+    </div>
   </div>
 
   <div class="section-head">
@@ -234,7 +306,7 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
   <div class="actions">
     <button class="save" id="save" type="button">💾 บันทึก</button>
     <button class="export" id="exportDocument" type="button">📄 ส่งออก / PDF</button>
-    <button class="reset" id="reset" type="button">ล้างผลทั้งหมด</button>
+    <button class="reset admin-only" id="reset" type="button">ล้างผลทั้งหมด</button>
   </div>
 </section>
 
@@ -254,7 +326,7 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
     </table>
   </div>
   <div class="rank-toolbar">
-    <button class="finish-season" id="finishSeason" type="button">🏁 จบการแข่งขัน / บันทึกแรงค์</button>
+    <button class="finish-season admin-only" id="finishSeason" type="button">🏁 จบการแข่งขัน / บันทึกแรงค์</button>
     <span class="section-kicker" id="finishHint">ต้องแข่งครบทุกแมตช์ก่อน</span>
   </div>
 </section>
@@ -284,6 +356,28 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
 </div>
 </main>
 
+
+
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <h2>🏓 เข้าสู่ลีก</h2>
+    <p>เลือกชื่อของคุณแล้วใส่ PIN 4–6 หลัก ค่าเริ่มต้นของทุกบัญชีคือ <b>1234</b></p>
+    <div class="auth-field"><label>ผู้เล่น</label><select id="loginPlayer"></select></div>
+    <div class="auth-field"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div>
+    <button class="blue" id="loginBtn" type="button" style="width:100%">เข้าสู่ระบบ</button>
+    <p style="margin-top:10px">Admin: <b>มอส</b></p>
+  </div>
+</div>
+<div class="pin-modal" id="pinModal">
+  <div class="pin-sheet">
+    <h3>เปลี่ยน PIN</h3>
+    <div class="auth-field"><label>PIN ปัจจุบัน</label><input id="oldPin" type="password" inputmode="numeric" maxlength="6"></div>
+    <div class="auth-field"><label>PIN ใหม่</label><input id="newPin" type="password" inputmode="numeric" maxlength="6"></div>
+    <div class="auth-field"><label>ยืนยัน PIN ใหม่</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div>
+    <div class="pin-help">PIN ต้องเป็นตัวเลข 4–6 หลัก</div>
+    <div class="auth-actions"><button class="secondary" id="cancelPin" type="button">ยกเลิก</button><button class="save" id="savePin" type="button">บันทึก PIN</button></div>
+  </div>
+</div>
 
 <div class="profile-backdrop" id="profileBackdrop" aria-hidden="true">
   <div class="profile-sheet" role="dialog" aria-modal="true" aria-labelledby="profileName">
@@ -328,7 +422,8 @@ const SUPABASE_URL="https://gqlfqoeejgtjpsdvngbh.supabase.co";
 const SUPABASE_KEY="sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z";
 const CLOUD_ENDPOINT=`${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
 
-let players=[...defaultPlayers], rounds=[], results={}, rankHistory=[], currentSeason=1;
+let players=[...defaultPlayers], rounds=[], results={}, rankHistory=[], currentSeason=1, accounts={}, currentAccount=localStorage.getItem("pp_logged_user")||"";
+const ADMIN_NAME="มอส";
 let cloudReady=false,cloudDirty=false,cloudSaving=false,cloudSaveTimer=null,lastCloudUpdate="";
 
 const escapeHtml=v=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
@@ -359,12 +454,64 @@ function makeRoundRobin(source){
 try{
   const saved=JSON.parse(localStorage.getItem(KEY)||"null");
   if(saved&&Array.isArray(saved.players)&&saved.players.length>=2&&Array.isArray(saved.rounds)){
-    players=saved.players; rounds=saved.rounds; results=saved.results||{}; rankHistory=Array.isArray(saved.rankHistory)?saved.rankHistory:[]; currentSeason=Number(saved.currentSeason)||rankHistory.length+1;
+    players=saved.players; rounds=saved.rounds; results=saved.results||{}; rankHistory=Array.isArray(saved.rankHistory)?saved.rankHistory:[]; currentSeason=Number(saved.currentSeason)||rankHistory.length+1; accounts=saved.accounts||{};
   }else{
     rounds=makeRoundRobin(players);
     results=JSON.parse(localStorage.getItem(OLD_KEY)||"{}")||{};
   }
 }catch(e){rounds=makeRoundRobin(players);results={}}
+
+
+function ensureAccounts(){
+  players.forEach(name=>{
+    if(!accounts[name])accounts[name]={pin:"1234",role:name===ADMIN_NAME?"admin":"player",createdAt:new Date().toISOString()};
+    if(name===ADMIN_NAME)accounts[name].role="admin";
+  });
+}
+function isAdmin(){return currentAccount===ADMIN_NAME && accounts[currentAccount]?.role==="admin"}
+function validPinFormat(pin){return /^\d{4,6}$/.test(String(pin||""))}
+function renderLoginOptions(){
+  ensureAccounts();
+  const sel=document.getElementById("loginPlayer"); if(!sel)return;
+  sel.innerHTML=players.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
+  if(players.includes(currentAccount))sel.value=currentAccount;
+}
+function renderAccountUi(){
+  ensureAccounts();
+  const label=document.getElementById("accountUserLabel"),badge=document.getElementById("adminBadge");
+  if(label)label.textContent=currentAccount||"ยังไม่ได้เข้าสู่ระบบ";
+  if(badge)badge.classList.toggle("hidden",!isAdmin());
+  document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("locked-admin",!isAdmin()));
+  const adminSelect=document.getElementById("adminPinPlayer");
+  if(adminSelect){
+    adminSelect.innerHTML=players.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
+  }
+}
+function showLogin(){renderLoginOptions();document.getElementById("authOverlay")?.classList.remove("hidden");document.body.style.overflow="hidden"}
+function hideLogin(){document.getElementById("authOverlay")?.classList.add("hidden");document.body.style.overflow=""}
+function login(){
+  ensureAccounts();
+  const name=document.getElementById("loginPlayer").value,pin=document.getElementById("loginPin").value;
+  if(!accounts[name]||accounts[name].pin!==pin){alert("ชื่อหรือ PIN ไม่ถูกต้อง");return}
+  currentAccount=name;localStorage.setItem("pp_logged_user",name);document.getElementById("loginPin").value="";
+  hideLogin();renderAccountUi();render();
+}
+function logout(){currentAccount="";localStorage.removeItem("pp_logged_user");showLogin();renderAccountUi()}
+function openPinModal(){if(!currentAccount){showLogin();return}document.getElementById("pinModal").classList.add("open");["oldPin","newPin","confirmPin"].forEach(id=>document.getElementById(id).value="")}
+function closePinModal(){document.getElementById("pinModal").classList.remove("open")}
+function changePin(){
+  const oldPin=document.getElementById("oldPin").value,newPin=document.getElementById("newPin").value,confirm=document.getElementById("confirmPin").value;
+  if(accounts[currentAccount]?.pin!==oldPin){alert("PIN ปัจจุบันไม่ถูกต้อง");return}
+  if(!validPinFormat(newPin)){alert("PIN ใหม่ต้องเป็นตัวเลข 4–6 หลัก");return}
+  if(newPin!==confirm){alert("ยืนยัน PIN ใหม่ไม่ตรงกัน");return}
+  accounts[currentAccount].pin=newPin;saveState();closePinModal();alert("เปลี่ยน PIN สำเร็จ");
+}
+function adminResetPin(){
+  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
+  const name=document.getElementById("adminPinPlayer").value;if(!accounts[name])return;
+  if(!confirm(`รีเซ็ต PIN ของ ${name} เป็น 1234?`))return;
+  accounts[name].pin="1234";saveState();alert(`รีเซ็ต PIN ของ ${name} แล้ว`);
+}
 
 function setSyncStatus(text,status=""){
   const el=document.getElementById("syncStatus"); if(!el)return;
@@ -379,7 +526,7 @@ async function cloudRequest(method="GET",body=null){
   return response.status===204?[]:response.json();
 }
 function saveState(){
-  localStorage.setItem(KEY,JSON.stringify({players,rounds,results,rankHistory,currentSeason}));
+  localStorage.setItem(KEY,JSON.stringify({players,rounds,results,rankHistory,currentSeason,accounts}));
   if(!cloudReady)return;
   cloudDirty=true; setSyncStatus("กำลังบันทึก...");
   clearTimeout(cloudSaveTimer); cloudSaveTimer=setTimeout(pushLeague,450);
@@ -388,7 +535,7 @@ async function pushLeague(){
   if(!cloudReady||cloudSaving)return; cloudSaving=true;
   try{
     const updatedAt=new Date().toISOString();
-    const rows=await cloudRequest("PATCH",{league:{players,rounds,results,rankHistory,currentSeason},updated_at:updatedAt});
+    const rows=await cloudRequest("PATCH",{league:{players,rounds,results,rankHistory,currentSeason,accounts},updated_at:updatedAt});
     lastCloudUpdate=rows[0]?.updated_at||updatedAt; cloudDirty=false;
     setSyncStatus("ออนไลน์ • บันทึกแล้ว","online");
   }catch(e){setSyncStatus("ออฟไลน์ • เก็บในเครื่อง","offline")}
@@ -403,8 +550,8 @@ async function pullLeague(){
     lastCloudUpdate=row.updated_at||"";
     const next=row.league;
     if(next&&Array.isArray(next.players)&&next.players.length>=2&&Array.isArray(next.rounds)){
-      const changed=JSON.stringify(next)!==JSON.stringify({players,rounds,results,rankHistory,currentSeason});
-      if(changed){players=next.players;rounds=next.rounds;results=next.results||{};rankHistory=Array.isArray(next.rankHistory)?next.rankHistory:[];currentSeason=Number(next.currentSeason)||rankHistory.length+1;localStorage.setItem(KEY,JSON.stringify(next));render()}
+      const changed=JSON.stringify(next)!==JSON.stringify({players,rounds,results,rankHistory,currentSeason,accounts});
+      if(changed){players=next.players;rounds=next.rounds;results=next.results||{};rankHistory=Array.isArray(next.rankHistory)?next.rankHistory:[];currentSeason=Number(next.currentSeason)||rankHistory.length+1;accounts=next.accounts||{};localStorage.setItem(KEY,JSON.stringify(next));render()}
     }
   }catch(e){setSyncStatus("ออฟไลน์ • กำลังลองใหม่","offline")}
 }
@@ -416,7 +563,7 @@ async function initCloud(){
       lastCloudUpdate=row.updated_at||"";
       const next=row.league;
       if(next&&Array.isArray(next.players)&&next.players.length>=2&&Array.isArray(next.rounds)){
-        players=next.players;rounds=next.rounds;results=next.results||{};rankHistory=Array.isArray(next.rankHistory)?next.rankHistory:[];currentSeason=Number(next.currentSeason)||rankHistory.length+1;
+        players=next.players;rounds=next.rounds;results=next.results||{};rankHistory=Array.isArray(next.rankHistory)?next.rankHistory:[];currentSeason=Number(next.currentSeason)||rankHistory.length+1;accounts=next.accounts||{};
         localStorage.setItem(KEY,JSON.stringify(next));
       }
     }
@@ -430,13 +577,15 @@ function approveReset(msg){return !hasResults()||confirm(msg)}
 function rebuildSchedule(){rounds=makeRoundRobin(players);results={};saveState();render()}
 
 function addPlayer(){
+  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
   const input=document.getElementById("newPlayer"), name=input.value.trim();
   if(!name){input.focus();return}
   if(players.some(p=>p.toLocaleLowerCase("th")===name.toLocaleLowerCase("th"))){alert("มีชื่อผู้เล่นนี้แล้ว");return}
   if(!approveReset("การเพิ่มผู้เล่นจะสร้างตารางใหม่และล้างผลการแข่งขันเดิม ดำเนินการต่อหรือไม่?"))return;
-  players.push(name); input.value=""; rebuildSchedule();
+  players.push(name); accounts[name]={pin:"1234",role:name===ADMIN_NAME?"admin":"player",createdAt:new Date().toISOString()}; input.value=""; rebuildSchedule();
 }
 function removePlayer(index){
+  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
   if(players.length<=2){alert("ต้องมีผู้เล่นอย่างน้อย 2 คน");return}
   if(!approveReset(`ลบ ${players[index]} แล้วสร้างตารางใหม่หรือไม่? ผลการแข่งขันเดิมจะถูกล้าง`))return;
   players.splice(index,1); rebuildSchedule();
@@ -529,6 +678,7 @@ function renderPlayerRankHistory(){
   document.getElementById("rankHistoryTrack").innerHTML=p.history.length?p.history.map(h=>`<div class="season-chip"><small>S${h.season}</small><b>#${h.rank}</b><small>+${h.rp} RP</small></div>`).join(""):'<div class="muted">ยังไม่มี Season ที่บันทึก</div>';
 }
 function finishSeason(){
+  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
   const {arr,played}=standingsData();
   if(played!==totalMatches()){alert(`ยังแข่งไม่ครบ เหลือ ${totalMatches()-played} แมตช์`);return}
   if(!confirm(`ยืนยันจบ Season ${currentSeason} และบันทึกอันดับถาวร?`))return;
@@ -608,6 +758,7 @@ function bindProfileButtons(){
 }
 
 function render(){
+  ensureAccounts();renderAccountUi();
   renderPlayers();
   document.getElementById("leagueInfo").textContent=`${players.length} คน • พบกันหมด ${totalMatches()} แมตช์`;
   const box=document.getElementById("schedule"); box.innerHTML="";
@@ -702,6 +853,13 @@ document.getElementById("save").onclick=()=>{saveState();alert("บันทึ�
 document.getElementById("exportDocument").onclick=exportDocument;
 document.getElementById("reset").onclick=()=>{if(confirm("ล้างผลทั้งหมด?")){results={};saveState();render()}};
 document.getElementById("finishSeason").onclick=finishSeason;
+document.getElementById("loginBtn").onclick=login;
+document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
+document.getElementById("logoutBtn").onclick=logout;
+document.getElementById("changePinBtn").onclick=openPinModal;
+document.getElementById("cancelPin").onclick=closePinModal;
+document.getElementById("savePin").onclick=changePin;
+document.getElementById("adminResetPin").onclick=adminResetPin;
 document.getElementById("rankPlayerSelect").addEventListener("change",renderPlayerRankHistory);
 
 document.getElementById("profileClose").onclick=closePlayerProfile;
@@ -709,6 +867,8 @@ document.getElementById("profileBackdrop").addEventListener("click",event=>{if(e
 document.addEventListener("keydown",event=>{if(event.key==="Escape")closePlayerProfile()});
 
 
+ensureAccounts();
+if(currentAccount&&accounts[currentAccount])hideLogin();else showLogin();
 render();
 initCloud();
 

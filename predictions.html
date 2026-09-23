@@ -86,6 +86,41 @@ body.scrolled .bottom-nav{box-shadow:0 22px 62px rgba(0,0,0,.5)}
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
 
+
+/* Simple player PIN accounts */
+.auth-overlay{
+  position:fixed;inset:0;z-index:100;background:rgba(3,9,18,.82);backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:center;padding:18px
+}
+.auth-overlay.hidden{display:none!important}
+.auth-card{
+  width:min(440px,100%);background:linear-gradient(180deg,#10213a,#0b1728);
+  border:1px solid #315070;border-radius:24px;padding:18px;box-shadow:0 32px 90px rgba(0,0,0,.55)
+}
+.auth-card h2{margin:0 0 5px;font-size:24px}
+.auth-card p{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.45}
+.auth-field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.auth-field label{font-size:12px;color:#9fb0c8}
+.auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.auth-actions button{width:100%}
+.account-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:12px;padding:9px 10px;border:1px solid #2f496b;border-radius:12px;background:rgba(8,18,31,.5)
+}
+.account-user{display:flex;align-items:center;gap:8px;font-size:13px}
+.admin-badge{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#5a4514;color:#ffe087;border:1px solid #8b6d23;font-size:10px;font-weight:900}
+.account-buttons{display:flex;gap:6px;flex-wrap:wrap}
+.account-buttons button{min-height:34px;padding:7px 9px;font-size:11px;background:#173052;color:#dceaff;border:1px solid #31547e}
+.account-buttons .logout{background:#44222b;color:#ffc6ce;border-color:#6c3340}
+.admin-only.locked-admin{opacity:.45;pointer-events:none;filter:grayscale(.4)}
+.pin-modal{position:fixed;inset:0;z-index:105;background:rgba(3,9,18,.72);display:none;align-items:center;justify-content:center;padding:18px}
+.pin-modal.open{display:flex}
+.pin-sheet{width:min(420px,100%);background:#0f1d31;border:1px solid #315070;border-radius:20px;padding:16px}
+.pin-sheet h3{margin:0 0 12px}
+.pin-help{font-size:12px;color:var(--muted);margin:6px 0 12px}
+.admin-account-tools{margin-top:12px;padding-top:12px;border-top:1px solid #29405f}
+.admin-account-tools .row{display:grid;grid-template-columns:1fr auto;gap:8px}
+
 </style>
 </head>
 <body>
@@ -96,6 +131,10 @@ body.scrolled .bottom-nav{box-shadow:0 22px 62px rgba(0,0,0,.5)}
   <div class="sub">เลือกคู่ • เลือกฝั่ง • ใส่ยอด • ติดตามผลแบบออนไลน์</div>
   <div class="notice"><b>โหมดบันทึกยอดเท่านั้น</b> ระบบคำนวณยอดได้–เสีย แต่ไม่มีการรับหรือจ่ายเงินจริง
     <div class="sync-state" id="syncStatus">กำลังเชื่อมต่อข้อมูลร่วมกัน...</div>
+  </div>
+  <div class="account-bar">
+    <div class="account-user"><span>👤</span><strong id="accountUserLabel">ยังไม่ได้เข้าสู่ระบบ</strong><span class="admin-badge hidden" id="adminBadge">ADMIN</span></div>
+    <div class="account-buttons"><button id="changePinBtn" type="button">เปลี่ยน PIN</button><button class="logout" id="logoutBtn" type="button">ออกจากระบบ</button></div>
   </div>
   <div class="top-actions">
     <a href="index.html">🏓 กลับหน้าการแข่งขัน</a>
@@ -116,7 +155,7 @@ body.scrolled .bottom-nav{box-shadow:0 22px 62px rgba(0,0,0,.5)}
   </div>
 </section>
 
-<section class="card" id="dealerSetup">
+<section class="card admin-only" id="dealerSetup">
   <h2>ตั้งเจ้ามือ</h2>
   <p class="muted">กำหนดได้ 1 คน เจ้้ามือเป็นผู้ตั้งผู้ต่อ แต้มต่อ และเปิด–ปิดรับทาย</p>
   <div class="row">
@@ -152,6 +191,28 @@ body.scrolled .bottom-nav{box-shadow:0 22px 62px rgba(0,0,0,.5)}
 </section>
 </main>
 
+
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <h2>🏓 เข้าสู่ลีก</h2>
+    <p>เลือกชื่อของคุณแล้วใส่ PIN 4–6 หลัก ค่าเริ่มต้นของทุกบัญชีคือ <b>1234</b></p>
+    <div class="auth-field"><label>ผู้เล่น</label><select id="loginPlayer"></select></div>
+    <div class="auth-field"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div>
+    <button class="blue" id="loginBtn" type="button" style="width:100%">เข้าสู่ระบบ</button>
+    <p style="margin-top:10px">Admin: <b>มอส</b></p>
+  </div>
+</div>
+<div class="pin-modal" id="pinModal">
+  <div class="pin-sheet">
+    <h3>เปลี่ยน PIN</h3>
+    <div class="auth-field"><label>PIN ปัจจุบัน</label><input id="oldPin" type="password" inputmode="numeric" maxlength="6"></div>
+    <div class="auth-field"><label>PIN ใหม่</label><input id="newPin" type="password" inputmode="numeric" maxlength="6"></div>
+    <div class="auth-field"><label>ยืนยัน PIN ใหม่</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div>
+    <div class="pin-help">PIN ต้องเป็นตัวเลข 4–6 หลัก</div>
+    <div class="auth-actions"><button class="secondary" id="cancelPin" type="button">ยกเลิก</button><button class="save" id="savePin" type="button">บันทึก PIN</button></div>
+  </div>
+</div>
+
 <nav class="bottom-nav" aria-label="เมนูทายผล">
   <a class="nav-item active" data-scroll="identity" href="#identity"><span>👤</span>ผู้ใช้งาน</a>
   <a class="nav-item" data-scroll="bettingPanel" href="#bettingPanel"><span>🎯</span>ทายผล</a>
@@ -167,20 +228,80 @@ const SUPABASE_KEY="sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z";
 const CLOUD_ENDPOINT=`${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
 let cloudReady=false,cloudDirty=false,cloudSaving=false,cloudSaveTimer=null,lastCloudUpdate="";
 const defaultPlayers=["พี่โช็ค","กิฟท์","กอล์ฟ","มังกร","พฤษ","เฟิร์น","มอส"];
-let league=loadLeague(),state=loadPredictionState(),currentUser=localStorage.getItem("pp_current_user")||league.players[0];
+let league=loadLeague(),state=loadPredictionState(),currentUser=localStorage.getItem("pp_current_user")||league.players[0],accounts=(league.accounts||{}),currentAccount=localStorage.getItem("pp_logged_user")||"";
+const ADMIN_NAME="มอส";
+
+
+function ensureAccounts(){
+  league.players.forEach(name=>{
+    if(!accounts[name])accounts[name]={pin:"1234",role:name===ADMIN_NAME?"admin":"player",createdAt:new Date().toISOString()};
+    if(name===ADMIN_NAME)accounts[name].role="admin";
+  });
+}
+function isAdmin(){return currentAccount===ADMIN_NAME && accounts[currentAccount]?.role==="admin"}
+function validPinFormat(pin){return /^\d{4,6}$/.test(String(pin||""))}
+function renderLoginOptions(){
+  ensureAccounts();
+  const sel=document.getElementById("loginPlayer"); if(!sel)return;
+  sel.innerHTML=league.players.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
+  if(league.players.includes(currentAccount))sel.value=currentAccount;
+}
+function renderAccountUi(){
+  ensureAccounts();
+  const label=document.getElementById("accountUserLabel"),badge=document.getElementById("adminBadge");
+  if(label)label.textContent=currentAccount||"ยังไม่ได้เข้าสู่ระบบ";
+  if(badge)badge.classList.toggle("hidden",!isAdmin());
+  document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("locked-admin",!isAdmin()));
+  const adminSelect=document.getElementById("adminPinPlayer");
+  if(adminSelect){adminSelect.innerHTML=league.league.players.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("")}
+}
+function showLogin(){renderLoginOptions();document.getElementById("authOverlay")?.classList.remove("hidden");document.body.style.overflow="hidden"}
+function hideLogin(){document.getElementById("authOverlay")?.classList.add("hidden");document.body.style.overflow=""}
+function login(){
+  ensureAccounts();
+  const name=document.getElementById("loginPlayer").value,pin=document.getElementById("loginPin").value;
+  if(!accounts[name]||accounts[name].pin!==pin){alert("ชื่อหรือ PIN ไม่ถูกต้อง");return}
+  currentAccount=name;localStorage.setItem("pp_logged_user",name);document.getElementById("loginPin").value="";
+  hideLogin();renderAccountUi();render();
+}
+function logout(){currentAccount="";localStorage.removeItem("pp_logged_user");showLogin();renderAccountUi()}
+function openPinModal(){if(!currentAccount){showLogin();return}document.getElementById("pinModal").classList.add("open");["oldPin","newPin","confirmPin"].forEach(id=>document.getElementById(id).value="")}
+function closePinModal(){document.getElementById("pinModal").classList.remove("open")}
+function changePin(){
+  const oldPin=document.getElementById("oldPin").value,newPin=document.getElementById("newPin").value,confirm=document.getElementById("confirmPin").value;
+  if(accounts[currentAccount]?.pin!==oldPin){alert("PIN ปัจจุบันไม่ถูกต้อง");return}
+  if(!validPinFormat(newPin)){alert("PIN ใหม่ต้องเป็นตัวเลข 4–6 หลัก");return}
+  if(newPin!==confirm){alert("ยืนยัน PIN ใหม่ไม่ตรงกัน");return}
+  accounts[currentAccount].pin=newPin;saveLeagueAccounts();closePinModal();alert("เปลี่ยน PIN สำเร็จ");
+}
+function adminResetPin(){
+  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
+  const name=document.getElementById("adminPinPlayer").value;if(!accounts[name])return;
+  if(!confirm(`รีเซ็ต PIN ของ ${name} เป็น 1234?`))return;
+  accounts[name].pin="1234";saveLeagueAccounts();alert(`รีเซ็ต PIN ของ ${name} แล้ว`);
+}
+
+function saveLeagueAccounts(){
+  league.accounts=accounts;
+  localStorage.setItem(LEAGUE_KEY,JSON.stringify(league));
+  if(cloudReady){
+    const updatedAt=new Date().toISOString();
+    cloudRequest("PATCH",{league,updated_at:updatedAt}).catch(()=>{});
+  }
+}
 
 function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),1800)}
 function loadLeague(){try{const saved=JSON.parse(localStorage.getItem(LEAGUE_KEY)||"null");if(saved&&Array.isArray(saved.players)&&saved.players.length>=2&&Array.isArray(saved.rounds))return saved}catch(e){}return {players:[...defaultPlayers],rounds:[],results:{}}}
 function signatureOf(data){return JSON.stringify({players:data.players,rounds:data.rounds})}
 function freshState(){return {leagueSignature:signatureOf(league),dealer:null,wallets:{},markets:{},bets:[],nextBetId:1}}
-function normalizePredictionState(saved){if(!saved||saved.leagueSignature!==signatureOf(league))saved=freshState();saved.wallets=saved.wallets||{};saved.markets=saved.markets||{};saved.bets=Array.isArray(saved.bets)?saved.bets:[];saved.nextBetId=saved.nextBetId||1;league.players.forEach(name=>{if(!Number.isFinite(saved.wallets[name]))saved.wallets[name]=STARTING_CREDITS});if(saved.dealer&&!league.players.includes(saved.dealer))saved.dealer=null;return saved}
+function normalizePredictionState(saved){if(!saved||saved.leagueSignature!==signatureOf(league))saved=freshState();saved.wallets=saved.wallets||{};saved.markets=saved.markets||{};saved.bets=Array.isArray(saved.bets)?saved.bets:[];saved.nextBetId=saved.nextBetId||1;league.league.players.forEach(name=>{if(!Number.isFinite(saved.wallets[name]))saved.wallets[name]=STARTING_CREDITS});if(saved.dealer&&!league.players.includes(saved.dealer))saved.dealer=null;return saved}
 function loadPredictionState(){let saved=null;try{saved=JSON.parse(localStorage.getItem(PREDICTION_KEY)||"null")}catch(e){}return normalizePredictionState(saved)}
 function setSyncStatus(text,status=""){const el=document.getElementById("syncStatus");if(!el)return;el.textContent=text;el.className=`sync-state ${status}`;el.classList.toggle("saving",text.includes("กำลัง"))}
 async function cloudRequest(method="GET",body=null){const options={method,headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}};if(body){options.headers["Content-Type"]="application/json";options.headers.Prefer="return=representation";options.body=JSON.stringify(body)}const response=await fetch(`${CLOUD_ENDPOINT}&select=league,predictions,updated_at`,options);if(!response.ok)throw new Error(`Cloud ${response.status}`);return response.status===204?[]:response.json()}
 function save(){localStorage.setItem(PREDICTION_KEY,JSON.stringify(state));if(!cloudReady)return;cloudDirty=true;setSyncStatus("กำลังบันทึก...");clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(pushPredictions,450)}
 async function pushPredictions(){if(!cloudReady||cloudSaving)return;cloudSaving=true;try{const updatedAt=new Date().toISOString(),rows=await cloudRequest("PATCH",{predictions:state,updated_at:updatedAt});lastCloudUpdate=rows[0]?.updated_at||updatedAt;cloudDirty=false;setSyncStatus("ออนไลน์ • ซิงก์แล้ว","online")}catch(error){setSyncStatus("ออฟไลน์ • เก็บในเครื่อง","offline")}finally{cloudSaving=false}}
-async function pullCloud(force=false){if(!cloudReady||(!force&&(cloudDirty||cloudSaving)))return;try{const rows=await cloudRequest(),row=rows[0];if(!row)return;setSyncStatus("ออนไลน์ • ซิงก์แล้ว","online");if(!force&&row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";let changed=false;const remoteLeague=row.league;if(remoteLeague&&Array.isArray(remoteLeague.players)&&remoteLeague.players.length>=2&&Array.isArray(remoteLeague.rounds)&&JSON.stringify(remoteLeague)!==JSON.stringify(league)){league=remoteLeague;localStorage.setItem(LEAGUE_KEY,JSON.stringify(league));changed=true}const remoteState=normalizePredictionState(row.predictions);if(JSON.stringify(remoteState)!==JSON.stringify(state)){state=remoteState;localStorage.setItem(PREDICTION_KEY,JSON.stringify(state));changed=true}if(changed)render()}catch(error){setSyncStatus("ออฟไลน์ • กำลังลองใหม่","offline")}}
-async function initCloud(){setSyncStatus("กำลังเชื่อมต่อ...");try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;if(row){lastCloudUpdate=row.updated_at||"";const remoteLeague=row.league;if(remoteLeague&&Array.isArray(remoteLeague.players)&&remoteLeague.players.length>=2&&Array.isArray(remoteLeague.rounds)){league=remoteLeague;localStorage.setItem(LEAGUE_KEY,JSON.stringify(league))}state=normalizePredictionState(row.predictions);localStorage.setItem(PREDICTION_KEY,JSON.stringify(state));render();setSyncStatus("ออนไลน์ • ทุกเครื่องเห็นข้อมูลเดียวกัน","online")}setInterval(pullCloud,3000)}catch(error){setSyncStatus("ยังไม่เชื่อมฐานข้อมูล","offline")}}
+async function pullCloud(force=false){if(!cloudReady||(!force&&(cloudDirty||cloudSaving)))return;try{const rows=await cloudRequest(),row=rows[0];if(!row)return;setSyncStatus("ออนไลน์ • ซิงก์แล้ว","online");if(!force&&row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";let changed=false;const remoteLeague=row.league;if(remoteLeague&&Array.isArray(remoteLeague.players)&&remoteLeague.players.length>=2&&Array.isArray(remoteLeague.rounds)&&JSON.stringify(remoteLeague)!==JSON.stringify(league)){league=remoteLeague;accounts=league.accounts||accounts;localStorage.setItem(LEAGUE_KEY,JSON.stringify(league));changed=true}const remoteState=normalizePredictionState(row.predictions);if(JSON.stringify(remoteState)!==JSON.stringify(state)){state=remoteState;localStorage.setItem(PREDICTION_KEY,JSON.stringify(state));changed=true}if(changed)render()}catch(error){setSyncStatus("ออฟไลน์ • กำลังลองใหม่","offline")}}
+async function initCloud(){setSyncStatus("กำลังเชื่อมต่อ...");try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;if(row){lastCloudUpdate=row.updated_at||"";const remoteLeague=row.league;if(remoteLeague&&Array.isArray(remoteLeague.players)&&remoteLeague.players.length>=2&&Array.isArray(remoteLeague.rounds)){league=remoteLeague;accounts=league.accounts||accounts;localStorage.setItem(LEAGUE_KEY,JSON.stringify(league))}state=normalizePredictionState(row.predictions);localStorage.setItem(PREDICTION_KEY,JSON.stringify(state));render();setSyncStatus("ออนไลน์ • ทุกเครื่องเห็นข้อมูลเดียวกัน","online")}setInterval(pullCloud,3000)}catch(error){setSyncStatus("ยังไม่เชื่อมฐานข้อมูล","offline")}}
 
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]))}
 function mid(ri,mi){return `r${ri}m${mi}`}
@@ -191,14 +312,14 @@ function hasResult(match){return match.score&&validScore(match.score.a)&&validSc
 function outcome(match,market){if(!hasResult(match))return null;let a=match.score.a,b=match.score.b;if(market.favorite===match.pair[0])a-=market.handicap;else b-=market.handicap;if(a===b)return {type:"push",winner:null};return {type:"win",winner:a>b?match.pair[0]:match.pair[1]}}
 function credits(v){return Number(v||0).toLocaleString("th-TH",{maximumFractionDigits:2})}
 
-function renderUserOptions(){const user=document.getElementById("currentUser"),dealer=document.getElementById("dealerSelect");user.innerHTML="";dealer.innerHTML="";league.players.forEach(name=>{[user,dealer].forEach(el=>{const o=document.createElement("option");o.value=name;o.textContent=name;el.appendChild(o)})});if(!league.players.includes(currentUser))currentUser=league.players[0];user.value=currentUser;if(state.dealer)dealer.value=state.dealer}
+function renderUserOptions(){const user=document.getElementById("currentUser"),dealer=document.getElementById("dealerSelect");user.innerHTML="";dealer.innerHTML="";league.league.players.forEach(name=>{[user,dealer].forEach(el=>{const o=document.createElement("option");o.value=name;o.textContent=name;el.appendChild(o)})});if(!league.players.includes(currentUser))currentUser=league.players[0];user.value=currentUser;if(state.dealer)dealer.value=state.dealer}
 function bump(el,value){if(el.textContent!==String(value)){el.textContent=value;el.classList.remove("value-pop");void el.offsetWidth;el.classList.add("value-pop")}else el.textContent=value}
 function renderSummary(){
  const invested=state.bets.filter(b=>b.user===currentUser).reduce((s,b)=>s+b.stake,0);
  bump(document.getElementById("balance"),credits(invested));
  bump(document.getElementById("dealerName"),state.dealer||"ยังไม่ตั้ง");
  bump(document.getElementById("pendingCount"),state.bets.filter(b=>b.user===currentUser&&b.status==="pending").length);
- const isDealer=currentUser===state.dealer;
+ const isDealer=currentUser===state.dealer&&isAdmin();
  document.getElementById("dealerPanel").classList.toggle("hidden",!isDealer);
  document.getElementById("bettingPanel").classList.toggle("hidden",isDealer);
 }
@@ -301,12 +422,23 @@ function renderHistory(){
  const body=document.getElementById("betHistory"),isDealer=currentUser===state.dealer,bets=(isDealer?state.bets:state.bets.filter(b=>b.user===currentUser)).slice().reverse();
  body.innerHTML=bets.map(b=>{const match=getMatch(b.matchId),pair=match?`${match.pair[0]}–${match.pair[1]}`:"ตารางเดิม",net=b.status==="won"?b.stake:b.status==="lost"?-b.stake:0;return `<tr><td>${b.id}</td><td>${escapeHtml(b.user)}</td><td>${escapeHtml(pair)}</td><td>${escapeHtml(b.side)}</td><td>${credits(b.stake)}</td><td>${statusText(b.status)}</td><td class="${net>0?"positive":net<0?"negative":""}">${b.status==="pending"?"–":`${net>0?"+":""}${credits(net)}`}</td></tr>`}).join("")||'<tr><td colspan="7" class="empty">ยังไม่มีประวัติ</td></tr>';
 }
-function render(){renderUserOptions();renderSummary();renderDealerMarkets();renderBettingMarkets();renderSettlement();renderHistory()}
+function render(){
+ ensureAccounts();renderAccountUi();
+ if(currentAccount&&league.league.players.includes(currentAccount)){currentUser=currentAccount;localStorage.setItem("pp_current_user",currentUser)}
+ renderUserOptions();renderSummary();renderDealerMarkets();renderBettingMarkets();renderSettlement();renderHistory();
+ const userSelect=document.getElementById("currentUser");if(userSelect){userSelect.value=currentUser;userSelect.disabled=!!currentAccount}
+}
 
 document.getElementById("currentUser").onchange=e=>{currentUser=e.target.value;localStorage.setItem("pp_current_user",currentUser);render();toast(`เปลี่ยนเป็น ${currentUser}`)};
-document.getElementById("setDealer").onclick=()=>{const name=document.getElementById("dealerSelect").value;if(state.dealer&&state.dealer!==name&&state.bets.length){alert("มีรายการทายแล้ว จึงเปลี่ยนเจ้ามือไม่ได้");return}state.dealer=name;currentUser=name;localStorage.setItem("pp_current_user",currentUser);save();render();toast(`ตั้ง ${name} เป็นเจ้ามือแล้ว`)};
+document.getElementById("setDealer").onclick=()=>{if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}const name=document.getElementById("dealerSelect").value;if(state.dealer&&state.dealer!==name&&state.bets.length){alert("มีรายการทายแล้ว จึงเปลี่ยนเจ้ามือไม่ได้");return}state.dealer=name;currentUser=name;localStorage.setItem("pp_current_user",currentUser);save();render();toast(`ตั้ง ${name} เป็นเจ้ามือแล้ว`)};
 document.getElementById("refreshLeague").onclick=async()=>{setSyncStatus("กำลังรีเฟรช...");await pullCloud(true);render();toast("รีเฟรชแล้ว")};
-document.getElementById("settleAll").onclick=settleAll;
+document.getElementById("settleAll").onclick=()=>{if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}settleAll()};
+document.getElementById("loginBtn").onclick=login;
+document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
+document.getElementById("logoutBtn").onclick=logout;
+document.getElementById("changePinBtn").onclick=openPinModal;
+document.getElementById("cancelPin").onclick=closePinModal;
+document.getElementById("savePin").onclick=changePin;
 
 const navItems=[...document.querySelectorAll(".bottom-nav [data-scroll]")];
 navItems.forEach(item=>item.addEventListener("click",e=>{e.preventDefault();const target=document.getElementById(item.dataset.scroll);if(target&&!target.classList.contains("hidden"))target.scrollIntoView({behavior:"smooth",block:"start"});else toast("เมนูนี้ยังไม่เปิดสำหรับผู้ใช้งานนี้")}));
@@ -315,6 +447,8 @@ if("IntersectionObserver" in window){
  ["identity","bettingPanel","dealerPanel","summaryPanel"].forEach(id=>{const el=document.getElementById(id);if(el)obs.observe(el)});
 }
 window.addEventListener("storage",event=>{if(event.key===LEAGUE_KEY){league=loadLeague();state=loadPredictionState();render()}});
+ensureAccounts();
+if(currentAccount&&accounts[currentAccount])hideLogin();else showLogin();
 save();render();initCloud();
 
 // Motion enhancements
