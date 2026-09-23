@@ -159,6 +159,40 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
 .season-note{color:var(--muted);font-size:12px;line-height:1.45;margin-top:8px}
 @media(max-width:760px){.rank-grid{grid-template-columns:1fr}}
 
+
+/* Player profile & trend chart */
+.player-link{cursor:pointer;text-decoration:none;color:inherit}
+.player-link:hover{color:#dceaff}
+.profile-backdrop{position:fixed;inset:0;background:rgba(2,8,18,.68);backdrop-filter:blur(10px);z-index:60;display:none;align-items:flex-end;justify-content:center;padding:14px}
+.profile-backdrop.open{display:flex}
+.profile-sheet{width:min(720px,100%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#0f2036,#0b1728);border:1px solid #315070;border-radius:24px 24px 16px 16px;box-shadow:0 30px 80px rgba(0,0,0,.55);padding:16px;animation:sheetUp .28s ease}
+@keyframes sheetUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.profile-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+.profile-title{display:flex;gap:10px;align-items:center}
+.profile-avatar{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1d4ed8,#3b82f6);font-size:24px;border:1px solid #5a8fe6}
+.profile-head h3{margin:0;font-size:22px}.profile-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.profile-close{width:40px;min-height:40px;border-radius:50%;padding:0;background:#18283f;color:#fff;border:1px solid #304966}
+.profile-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0 14px}
+.profile-metric{background:#0b1728;border:1px solid #2a405e;border-radius:13px;padding:10px 6px;text-align:center}
+.profile-metric b{display:block;font-size:18px}.profile-metric small{color:var(--muted);font-size:10px}
+.chart-card{background:#0a1626;border:1px solid #263b59;border-radius:16px;padding:12px;margin-top:10px}
+.chart-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}
+.chart-title strong{font-size:14px}.chart-title span{font-size:11px;color:var(--muted)}
+.rank-chart{width:100%;height:220px;display:block}
+.chart-grid line{stroke:#213551;stroke-width:1}
+.chart-axis{fill:#8fa3bf;font-size:10px}
+.chart-line{fill:none;stroke:#60a5fa;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.chart-dot{fill:#f6c94c;stroke:#0b1728;stroke-width:2}
+.profile-history{margin-top:12px}
+.profile-history-row{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #213551}
+.profile-history-row:last-child{border-bottom:0}
+.profile-history-row small{color:var(--muted)}
+@media(max-width:560px){
+  .profile-metrics{grid-template-columns:repeat(2,1fr)}
+  .profile-sheet{max-height:92vh}
+  .rank-chart{height:190px}
+}
+
 </style>
 </head>
 <body>
@@ -249,6 +283,36 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
 
 </div>
 </main>
+
+
+<div class="profile-backdrop" id="profileBackdrop" aria-hidden="true">
+  <div class="profile-sheet" role="dialog" aria-modal="true" aria-labelledby="profileName">
+    <div class="profile-head">
+      <div class="profile-title">
+        <div class="profile-avatar">🏓</div>
+        <div>
+          <h3 id="profileName">ผู้เล่น</h3>
+          <p id="profileTier">Bronze • 0 RP</p>
+        </div>
+      </div>
+      <button class="profile-close" id="profileClose" type="button" aria-label="ปิด">×</button>
+    </div>
+    <div class="profile-metrics">
+      <div class="profile-metric"><b id="profileRp">0</b><small>RP สะสม</small></div>
+      <div class="profile-metric"><b id="profileTitles">0</b><small>แชมป์</small></div>
+      <div class="profile-metric"><b id="profileBest">-</b><small>อันดับดีที่สุด</small></div>
+      <div class="profile-metric"><b id="profileAvg">-</b><small>อันดับเฉลี่ย</small></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><strong>แนวโน้มอันดับย้อนหลัง</strong><span>อันดับ 1 อยู่ด้านบน</span></div>
+      <svg class="rank-chart" id="profileChart" viewBox="0 0 640 220" preserveAspectRatio="none" aria-label="กราฟอันดับย้อนหลัง"></svg>
+    </div>
+    <div class="profile-history">
+      <div class="section-head"><div><h2 style="font-size:16px">ประวัติ Season</h2><div class="section-kicker">อันดับและ RP ที่ได้รับในแต่ละครั้ง</div></div></div>
+      <div id="profileHistoryList"></div>
+    </div>
+  </div>
+</div>
 
 <nav class="mobile-nav" aria-label="ทางลัด">
   <a class="active" data-scroll-target="matches" href="#matches"><span>🏓</span>การแข่งขัน</a>
@@ -447,7 +511,7 @@ function renderRanking(){
   if(!list||!select)return;
   list.innerHTML=profiles.map((p,i)=>`<div class="rank-row">
     <div class="rank-pos">${i+1}</div>
-    <div class="rank-person"><strong>${escapeHtml(p.name)}</strong><small>${p.seasons} Season • ดีสุด ${p.best?`#${p.best}`:"-"}</small></div>
+    <div class="rank-person"><strong><button type="button" class="player-link" data-player-profile="${escapeHtml(p.name)}">${escapeHtml(p.name)}</button></strong><small>${p.seasons} Season • ดีสุด ${p.best?`#${p.best}`:"-"}</small></div>
     <div class="rank-rp">${p.rp} RP<div class="rank-tier"><span class="tier-badge">${p.tier}</span></div></div>
   </div>`).join("")||'<div class="empty">ยังไม่มีข้อมูลแรงค์</div>';
   const previous=select.value;
@@ -479,6 +543,68 @@ function finishSeason(){
   rounds=makeRoundRobin(players);results={};
   saveState();render();
   document.getElementById("rankingCard")?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+
+function profileFor(name){
+  return rankingProfiles().find(p=>p.name===name) || {name,rp:0,seasons:0,titles:0,best:null,last:null,avg:null,tier:"Bronze",history:[]};
+}
+function drawRankChart(profile){
+  const svg=document.getElementById("profileChart");
+  if(!svg)return;
+  const hist=profile.history||[];
+  if(!hist.length){
+    svg.innerHTML='<text x="320" y="112" text-anchor="middle" fill="#91a4be" font-size="14">ยังไม่มีประวัติ Season</text>';
+    return;
+  }
+  const w=640,h=220,padL=42,padR=18,padT=18,padB=30;
+  const maxRank=Math.max(players.length,...hist.map(x=>x.rank));
+  const x=(i)=>hist.length===1?(w/2):(padL+i*((w-padL-padR)/(hist.length-1)));
+  const y=(rank)=>padT+((rank-1)/(Math.max(1,maxRank-1)))*(h-padT-padB);
+  let parts=['<g class="chart-grid">'];
+  for(let r=1;r<=maxRank;r++){
+    const yy=y(r);parts.push(`<line x1="${padL}" y1="${yy}" x2="${w-padR}" y2="${yy}"></line>`);
+    parts.push(`<text class="chart-axis" x="8" y="${yy+3}">#${r}</text>`);
+  }
+  parts.push('</g>');
+  const pts=hist.map((d,i)=>`${x(i)},${y(d.rank)}`).join(" ");
+  parts.push(`<polyline class="chart-line" points="${pts}"></polyline>`);
+  hist.forEach((d,i)=>{
+    const xx=x(i),yy=y(d.rank);
+    parts.push(`<circle class="chart-dot" cx="${xx}" cy="${yy}" r="5"></circle>`);
+    parts.push(`<text class="chart-axis" x="${xx}" y="${h-8}" text-anchor="middle">S${d.season}</text>`);
+  });
+  svg.innerHTML=parts.join("");
+}
+function openPlayerProfile(name){
+  const p=profileFor(name),backdrop=document.getElementById("profileBackdrop");
+  document.getElementById("profileName").textContent=p.name;
+  document.getElementById("profileTier").textContent=`${p.tier} • ${p.rp} RP`;
+  document.getElementById("profileRp").textContent=p.rp;
+  document.getElementById("profileTitles").textContent=p.titles;
+  document.getElementById("profileBest").textContent=p.best?`#${p.best}`:"-";
+  document.getElementById("profileAvg").textContent=p.avg?p.avg.toFixed(2):"-";
+  const history=document.getElementById("profileHistoryList");
+  history.innerHTML=p.history.length?p.history.slice().reverse().map(h=>`<div class="profile-history-row">
+    <div><b>S${h.season}</b><br><small>${h.date?new Date(h.date).toLocaleDateString("th-TH"):""}</small></div>
+    <div><b>จบอันดับ #${h.rank}</b><br><small>${p.name}</small></div>
+    <div class="points">+${h.rp} RP</div>
+  </div>`).join(""):'<div class="muted">ยังไม่มีประวัติการแข่งขัน</div>';
+  drawRankChart(p);
+  backdrop.classList.add("open");backdrop.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+}
+function closePlayerProfile(){
+  const backdrop=document.getElementById("profileBackdrop");
+  backdrop.classList.remove("open");backdrop.setAttribute("aria-hidden","true");
+  document.body.style.overflow="";
+}
+function bindProfileButtons(){
+  document.querySelectorAll("[data-player-profile]").forEach(btn=>{
+    if(btn.dataset.bound)return;
+    btn.dataset.bound="1";
+    btn.addEventListener("click",()=>openPlayerProfile(btn.dataset.playerProfile));
+  });
 }
 
 function render(){
@@ -520,6 +646,7 @@ function render(){
   }));
   calc();
   renderRanking();
+  bindProfileButtons();
   const {played}=standingsData();
   const finish=document.getElementById("finishSeason"),hint=document.getElementById("finishHint");
   if(finish){finish.disabled=played!==totalMatches();finish.textContent=`🏁 จบ Season ${currentSeason} / บันทึกแรงค์`}
@@ -549,7 +676,7 @@ function calc(){
     const rank=i+1, old=previousRanks[x.name], moved=old&&old!==rank;
     const move=moved?`<span class="rank-move ${rank<old?"up":"down"}">${rank<old?"▲":"▼"}${Math.abs(old-rank)}</span>`:"";
     return `<tr class="${moved?"rank-up":""}">
-      <td>${rank}${move}</td><td class="name">${i===0&&played?"👑 ":""}${escapeHtml(x.name)}</td>
+      <td>${rank}${move}</td><td class="name">${i===0&&played?"👑 ":""}<button type="button" class="player-link" data-player-profile="${escapeHtml(x.name)}">${escapeHtml(x.name)}</button></td>
       <td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td>
       <td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td class="points">${x.pts}</td>
     </tr>`;
@@ -576,6 +703,11 @@ document.getElementById("exportDocument").onclick=exportDocument;
 document.getElementById("reset").onclick=()=>{if(confirm("ล้างผลทั้งหมด?")){results={};saveState();render()}};
 document.getElementById("finishSeason").onclick=finishSeason;
 document.getElementById("rankPlayerSelect").addEventListener("change",renderPlayerRankHistory);
+
+document.getElementById("profileClose").onclick=closePlayerProfile;
+document.getElementById("profileBackdrop").addEventListener("click",event=>{if(event.target.id==="profileBackdrop")closePlayerProfile()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape")closePlayerProfile()});
+
 
 render();
 initCloud();
