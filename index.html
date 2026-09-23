@@ -13,6 +13,8 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
+a,button,input,.card,.match,.pill{transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease,opacity .18s ease}
+button:active,.quick-nav a:active,.mobile-nav a:active{transform:scale(.97)}
 body{
   margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
   background:linear-gradient(180deg,var(--bg),#091524 42%,#08111d);
@@ -175,8 +177,8 @@ button{border:0;border-radius:11px;padding:11px 14px;min-height:44px;font-weight
 </main>
 
 <nav class="mobile-nav" aria-label="ทางลัด">
-  <a class="active" href="#matches"><span>🏓</span>การแข่งขัน</a>
-  <a href="#standingsCard"><span>🏆</span>ตารางคะแนน</a>
+  <a class="active" data-scroll-target="matches" href="#matches"><span>🏓</span>การแข่งขัน</a>
+  <a data-scroll-target="standingsCard" href="#standingsCard"><span>🏆</span>ตารางคะแนน</a>
   <a href="predictions.html"><span>🎯</span>ทายผล</a>
 </nav>
 
@@ -419,6 +421,25 @@ document.getElementById("reset").onclick=()=>{if(confirm("ล้างผลท�
 
 render();
 initCloud();
+
+// Smooth bottom navigation + active section tracking
+const sectionLinks=[...document.querySelectorAll(".mobile-nav [data-scroll-target]")];
+sectionLinks.forEach(link=>{
+  link.addEventListener("click",event=>{
+    event.preventDefault();
+    const target=document.getElementById(link.dataset.scrollTarget);
+    if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+});
+if("IntersectionObserver" in window){
+  const observer=new IntersectionObserver(entries=>{
+    const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+    if(!visible)return;
+    sectionLinks.forEach(link=>link.classList.toggle("active",link.dataset.scrollTarget===visible.target.id));
+  },{rootMargin:"-20% 0px -55% 0px",threshold:[0.05,.25,.5]});
+  ["matches","standingsCard"].forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el)});
+}
+
 </script>
 </body>
 </html>
