@@ -9,13 +9,13 @@
 <main>
 <section class="hero">
  <h1>⚙️ Admin Center</h1>
- <div class="muted">จัดการบัญชีผู้เล่นด้วย user_id • เพิ่มผู้เล่นใหม่ได้เฉพาะ Admin</div>
+ <div class="muted">จัดการบัญชีผู้เล่น • เพิ่มผู้เล่นใหม่ได้เฉพาะ Admin</div>
  <div class="muted" id="adminStatus" role="status">กำลังโหลดข้อมูลบัญชี...</div>
  <div class="actions"><a class="secondary" href="index.html">← กลับหน้าการแข่งขัน</a></div>
 </section>
 <section class="card">
  <h2>➕ เพิ่มบัญชีผู้เล่น</h2>
- <div class="notice">บัญชีใหม่จะมี PIN เริ่มต้น <b>1234</b> และมี user_id ถาวร ประวัติจะผูกกับ user_id ไม่ใช่ชื่อ</div>
+ <div class="notice">บัญชีใหม่จะมี PIN เริ่มต้น <b>1234</b> และประวัติจะยังอยู่แม้เปลี่ยนชื่อ</div>
  <div class="form"><input id="newName" placeholder="ชื่อผู้เล่น"><select id="newRole"><option value="player">Player</option><option value="admin">Admin</option></select><button class="primary" id="create">สร้างบัญชี</button></div>
 </section>
 <section class="card">
@@ -24,6 +24,6 @@
 </section>
 </main>
 <script src="shared.js" defer></script>
-<script src="admin.js" defer></script>
+<script src="admin.js?v=hide-id-20260924" defer></script>
 </body>
 </html>

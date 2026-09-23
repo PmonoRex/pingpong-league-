@@ -76,7 +76,7 @@ async function mutate(change) {
 function render() {
   document.getElementById("accounts").innerHTML = Object.values(state?.profiles || {})
     .sort((a, b) => (b.role === "admin") - (a.role === "admin") || a.displayName.localeCompare(b.displayName, "th"))
-    .map(person => `<div class="account ${person.active === false ? "off" : ""}"><div><strong>${esc(person.displayName)} ${person.role === "admin" ? '<span class="badge">ADMIN</span>' : ""}</strong><small>${esc(person.id)} • ${person.active === false ? "Inactive" : "Active"}</small></div><div class="account-actions"><button class="secondary" data-rename="${esc(person.id)}">เปลี่ยนชื่อ</button><button class="blue" data-reset="${esc(person.id)}">รีเซ็ต PIN</button><button class="${person.active === false ? "primary" : "danger"}" data-toggle="${esc(person.id)}">${person.active === false ? "เปิดใช้งาน" : "ปิดใช้งาน"}</button></div></div>`)
+    .map(person => `<div class="account ${person.active === false ? "off" : ""}"><div><strong>${esc(person.displayName)} ${person.role === "admin" ? '<span class="badge">ADMIN</span>' : ""}</strong><small>${person.active === false ? "ปิดใช้งาน" : "เปิดใช้งาน"}</small></div><div class="account-actions"><button class="secondary" data-rename="${esc(person.id)}">เปลี่ยนชื่อ</button><button class="blue" data-reset="${esc(person.id)}">รีเซ็ต PIN</button><button class="${person.active === false ? "primary" : "danger"}" data-toggle="${esc(person.id)}">${person.active === false ? "เปิดใช้งาน" : "ปิดใช้งาน"}</button></div></div>`)
     .join("");
 
   document.querySelectorAll("[data-reset]").forEach(button => button.onclick = async () => {

@@ -59,7 +59,7 @@ function openProfile(userId){
   const p=profile(userId);if(!p)return;
   const r=playerRankProfile(userId);
   document.getElementById("profileName").textContent=p.displayName;
-  document.getElementById("profileMeta").textContent=`${p.role==="admin"?"Admin":"Player"} • ${p.id}`;
+  document.getElementById("profileMeta").textContent=p.role==="admin"?"Admin":"Player";
   document.getElementById("profileRp").textContent=r.rp;
   document.getElementById("profileTitles").textContent=r.titles;
   document.getElementById("profileBest").textContent=r.best?`#${r.best}`:"-";
