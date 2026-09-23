@@ -30,11 +30,11 @@ const league = { profiles };
 const match = { id: 'r0m0', pair: ['alice', 'bob'], hasResult: false };
 const predictions = { dealerId: 'gift', markets: { r0m0: { open: true } }, bets: [] };
 
-test('Admin and dealer permissions use active accounts and the selected dealer', () => {
+test('Admin can appoint dealer while only the active dealer manages markets', () => {
   const { shared } = loadShared();
   assert.equal(shared.isAdmin(league, 'mos'), true);
   assert.equal(shared.isDealer(league, predictions, 'mos'), false);
-  assert.equal(shared.canManageMarket(league, predictions, 'mos'), true);
+  assert.equal(shared.canManageMarket(league, predictions, 'mos'), false);
   assert.equal(shared.canManageMarket(league, predictions, 'gift'), true);
   assert.equal(shared.canManageMarket(league, predictions, 'alice'), false);
   assert.equal(shared.canManageMarket(league, predictions, 'eve'), false);

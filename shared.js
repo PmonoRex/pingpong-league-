@@ -19,7 +19,7 @@ const LeagueShared = (() => {
   const activeProfiles = league => Object.values(league?.profiles || {}).filter(person => person.active !== false);
   const isAdmin = (league, id) => activeProfile(league, id)?.role === "admin";
   const isDealer = (league, predictions, id) => Boolean(activeProfile(league, id) && predictions?.dealerId === id);
-  const canManageMarket = (league, predictions, id) => isAdmin(league, id) || isDealer(league, predictions, id);
+  const canManageMarket = (league, predictions, id) => isDealer(league, predictions, id);
 
   function betEligibility(league, predictions, id, match) {
     if (!activeProfile(league, id)) return { allowed: false, reason: "กรุณาเข้าสู่ระบบด้วยบัญชีที่เปิดใช้งาน" };

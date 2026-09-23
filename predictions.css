@@ -60,9 +60,8 @@ input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4
 .bottom-nav a:active{transform:scale(.97)}
 
 
-.dealer-controls{display:none}
-body.can-manage-market .dealer-controls{display:block}
-body:not(.is-admin) .dealer-selector{display:none}
+.dealer-selector,.dealer-market-controls{display:none}
+body.is-admin .dealer-selector{display:block}
+body.is-dealer .dealer-market-controls{display:block}
 .dealer-current-card{margin-top:10px;padding:12px;border:1px solid #31547e;border-radius:13px;background:#0b1728}
 .dealer-current-card b{display:block;font-size:18px;margin-top:3px}
-
