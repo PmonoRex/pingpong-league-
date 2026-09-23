@@ -1,5 +1,5 @@
 :root{--bg:#07111f;--card:#0f1d31;--card2:#14243b;--line:#263b59;--text:#f7fbff;--muted:#91a4be;--blue:#3b82f6;--gold:#f6c94c;--green:#22c55e;--red:#ef4444}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,#07111f,#091524 46%,#08111d);color:var(--text)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,#07111f,#091524 46%,#08111d);color:var(--text)}
 body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 10% 0,rgba(59,130,246,.12),transparent 34%),radial-gradient(circle at 90% 10%,rgba(246,201,76,.06),transparent 28%)}
 main{max-width:1180px;margin:auto;padding:14px 12px 92px}
 .hero,.card{background:rgba(15,29,49,.96);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 16px 38px rgba(0,0,0,.22)}

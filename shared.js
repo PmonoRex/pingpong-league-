@@ -61,6 +61,26 @@ const LeagueShared = (() => {
   }
   function saveLocalLeague(league) { localStorage.setItem(LEAGUE_KEY, JSON.stringify(league)); }
 
+  let scrollFrame = null;
+  function smoothScrollTo(target) {
+    if (!target) return;
+    if (scrollFrame !== null) cancelAnimationFrame(scrollFrame);
+    const start = window.scrollY;
+    const limit = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const destination = Math.max(0, Math.min(limit, start + target.getBoundingClientRect().top - 14));
+    const distance = destination - start;
+    if (Math.abs(distance) < 2) return;
+    const duration = Math.min(650, Math.max(320, Math.abs(distance) * 0.5));
+    const started = performance.now();
+    const step = now => {
+      const progress = Math.min(1, (now - started) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      window.scrollTo(0, start + distance * eased);
+      scrollFrame = progress < 1 ? requestAnimationFrame(step) : null;
+    };
+    scrollFrame = requestAnimationFrame(step);
+  }
+
   async function cloudRequest(columns, method = "GET", body = null) {
     const options = { method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } };
     if (body !== null) {
@@ -75,5 +95,5 @@ const LeagueShared = (() => {
 
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, betEligibility,
-    sessionUserId, login, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, cloudRequest });
+    sessionUserId, login, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, smoothScrollTo, cloudRequest });
 })();

@@ -176,7 +176,9 @@ predNavItems.forEach(item=>item.addEventListener("click",e=>{
   if(!target || target.classList.contains("hidden")){
     return;
   }
-  target.scrollIntoView({behavior:"smooth",block:"start"});
+  history.replaceState(null,"",item.getAttribute("href"));
+  LeagueShared.smoothScrollTo(target);
+  predNavItems.forEach(navItem=>navItem.classList.toggle("active",navItem===item));
 }));
 if("IntersectionObserver" in window){
   const navObs=new IntersectionObserver(entries=>{

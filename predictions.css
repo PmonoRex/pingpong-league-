@@ -1,5 +1,5 @@
 :root{--bg:#07111f;--card:#0f1d31;--card2:#14243b;--line:#263b59;--text:#f7fbff;--muted:#91a4be;--blue:#3b82f6;--gold:#f6c94c;--green:#22c55e;--red:#ef4444}
-*{box-sizing:border-box}html{scroll-behavior:smooth}
+*{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,#07111f,#091524 46%,#08111d);color:var(--text)}
 main{max-width:900px;margin:auto;padding:14px 12px 92px}
 .hero,.card{background:#0f1d31;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 16px 38px rgba(0,0,0,.22)}

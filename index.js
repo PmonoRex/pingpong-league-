@@ -96,3 +96,11 @@ function render(){renderHeader();renderRoster();renderSchedule();calc();renderRa
 document.getElementById("applyRoster").onclick=applyRoster;document.getElementById("saveBtn").onclick=()=>{if(!isAdmin())return alert("เฉพาะ Admin");saveState();alert("บันทึกแล้ว")};document.getElementById("clearScores").onclick=()=>{if(!isAdmin()){alert("เฉพาะ Admin");return}if(confirm("ล้างคะแนนทั้งหมด?")){state.results={};saveState();render()}};document.getElementById("finishSeason").onclick=finishSeason;document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;
 loadLocal();reconcileSession();renderLogin();render();initCloud();
 window.addEventListener("storage",event=>{if(event.key===LeagueShared.SESSION_KEY){reconcileSession();renderLogin();render()}});
+document.querySelectorAll('.bottom-nav a[href^="#"]').forEach(link=>link.addEventListener("click",event=>{
+ const target=document.querySelector(link.getAttribute("href"));
+ if(!target)return;
+ event.preventDefault();
+ history.replaceState(null,"",link.getAttribute("href"));
+ LeagueShared.smoothScrollTo(target);
+ document.querySelectorAll('.bottom-nav a[href^="#"]').forEach(item=>item.classList.toggle("active",item===link));
+}));

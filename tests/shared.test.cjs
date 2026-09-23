@@ -16,7 +16,7 @@ function loadShared() {
     return { ok: true, json: async () => [{ updated_at: '2026-09-24T00:00:00Z' }] };
   } };
   vm.runInNewContext(fs.readFileSync('shared.js', 'utf8') + '\nglobalThis.shared = LeagueShared;', context);
-  return { shared: context.shared, localStorage, requests };
+  return { shared: context.shared, localStorage, requests, context };
 }
 
 const profiles = {
@@ -71,4 +71,20 @@ test('Cloud request keeps the same shared endpoint and JSON payload', async () =
   assert.match(requests[0].url, /app_state\?id=eq\.main&select=league,updated_at$/);
   assert.equal(requests[0].options.method, 'PATCH');
   assert.equal(JSON.parse(requests[0].options.body).league.uidLeague.profiles.mos.role, 'admin');
+});
+
+test('Section navigation moves through intermediate positions before reaching target', () => {
+  const { shared, context } = loadShared();
+  const frames = [];
+  const viewport = { scrollY: 0, innerHeight: 600, scrollTo(_x, y) { this.scrollY = y; } };
+  context.window = viewport;
+  context.document = { documentElement: { scrollHeight: 3000 } };
+  context.performance = { now: () => 0 };
+  context.requestAnimationFrame = callback => { frames.push(callback); return frames.length; };
+  context.cancelAnimationFrame = () => {};
+  shared.smoothScrollTo({ getBoundingClientRect: () => ({ top: 1200 }) });
+  frames.shift()(100);
+  assert.ok(viewport.scrollY > 0 && viewport.scrollY < 1186);
+  frames.shift()(700);
+  assert.equal(viewport.scrollY, 1186);
 });
