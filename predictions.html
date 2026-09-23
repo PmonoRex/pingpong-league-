@@ -22,7 +22,7 @@ h1,h2{margin:0 0 7px}h1{font-size:clamp(29px,6vw,44px)}
 button,a.btn{border:0;border-radius:11px;padding:10px 13px;min-height:42px;font-weight:850;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 .primary{background:#efc13d;color:#17120a}.blue{background:#3275da;color:#fff}.green{background:#1d9c58;color:#fff}.danger{background:#44222b;color:#ffc6ce;border:1px solid #6c3340}.secondary{background:#173052;color:#dceaff;border:1px solid #31547e}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.stat{background:#0b1728;border:1px solid #2a3d59;border-radius:13px;padding:11px 5px;text-align:center}.stat b{display:block;font-size:20px;color:#ffd76a}.stat small{color:var(--muted);font-size:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}.stat{background:#0b1728;border:1px solid #2a3d59;border-radius:13px;padding:11px 5px;text-align:center}.stat b{display:block;font-size:20px;color:#ffd76a}.stat small{color:var(--muted);font-size:10px}
 .market{background:linear-gradient(180deg,#162640,#132238);border:1px solid #2b405f;border-radius:15px;padding:12px;margin-bottom:10px}
 .market-head{display:flex;justify-content:space-between;gap:10px}.market-title{font-weight:850}.tag{padding:4px 8px;border-radius:999px;font-size:10px;background:#17452f;color:#aef2c9}.tag.closed{background:#4a252e;color:#ffc1c7}
 .handicap{color:#f2cf6b;font-size:12px;margin-top:5px}
@@ -62,6 +62,11 @@ input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4
 .dealer-selector .row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
 @media(max-width:560px){.profile-metrics{grid-template-columns:repeat(2,1fr)}.dealer-selector .row{grid-template-columns:1fr}}
 
+
+#bettingPanel,#dealerPanel,#historySection{scroll-margin-top:14px}
+.bottom-nav a{transition:background-color .18s ease,color .18s ease,transform .18s ease}
+.bottom-nav a:active{transform:scale(.97)}
+
 </style>
 </head>
 <body>
@@ -85,12 +90,13 @@ input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4
 
 <section class="card hidden" id="dealerPanel">
  <h2>🛠 แผงเจ้ามือ</h2>
- <div class="muted">Admin สามารถเลือกเจ้ามือ ตั้งผู้ต่อ แต้มต่อ และเปิด/ปิดรับทายได้</div>
+ <div class="muted">Admin จัดการเจ้ามือจากหน้านี้ • ผู้ที่ถูกเลือกเป็นเจ้ามือจะทายไม่ได้ แต่ Admin คนอื่นยังทายได้ตามปกติ</div>
  <div class="dealer-selector">
    <div class="row">
      <div class="field"><label>เลือกเจ้ามือ</label><select id="dealerSelect"></select></div>
      <button class="primary" id="saveDealer">ยืนยันเจ้ามือ</button>
    </div>
+   <div class="muted" id="dealerHint" style="margin-top:8px">เลือกผู้เล่น 1 คนเป็นเจ้ามือ</div>
  </div>
  <div class="actions"><button class="green" id="settleAll">✓ คำนวณผลล่าสุด</button></div>
  <div id="dealerMarkets"></div>
@@ -107,13 +113,18 @@ input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4
  <div class="wrap"><table class="history"><thead><tr><th>ผู้เล่น</th><th>ยอดลง</th><th>ชนะ</th><th>แพ้</th><th>สุทธิ</th></tr></thead><tbody id="settlement"></tbody></table></div>
 </section>
 
-<section class="card">
+<section class="card" id="historySection">
  <h2>🧾 ประวัติการทาย</h2>
  <div class="wrap"><table class="history"><thead><tr><th>#</th><th>ผู้ทาย</th><th>คู่</th><th>เลือก</th><th>ยอด</th><th>สถานะ</th><th>สุทธิ</th></tr></thead><tbody id="history"></tbody></table></div>
 </section>
 </main>
 
-<nav class="bottom-nav"><a href="index.html"><span>🏓</span>การแข่งขัน</a><a class="active" href="#bettingPanel"><span>🎯</span>ทายผล</a><a href="#history"><span>🧾</span>ประวัติ</a></nav>
+<nav class="bottom-nav">
+  <a href="index.html"><span>🏓</span>การแข่งขัน</a>
+  <a class="active" data-scroll="bettingPanel" href="#bettingPanel"><span>🎯</span>ทายผล</a>
+  <a data-scroll="dealerPanel" href="#dealerPanel" id="dealerNav"><span>🛠</span>เจ้ามือ</a>
+  <a data-scroll="historySection" href="#historySection"><span>🧾</span>ประวัติ</a>
+</nav>
 
 
 <div class="profile-backdrop" id="profileBackdrop" aria-hidden="true">
@@ -205,15 +216,36 @@ function renderDealerSelect(){
   const current=pred.dealerId;
   sel.innerHTML=activeProfiles().map(p=>`<option value="${p.id}">${esc(p.displayName)}${p.role==="admin"?" • Admin":""}</option>`).join("");
   if(current&&profile(current))sel.value=current;
+  const hint=document.getElementById("dealerHint");
+  if(hint)hint.textContent=current&&profile(current)?`เจ้ามือปัจจุบัน: ${profile(current).displayName}`:"ยังไม่ได้เลือกเจ้ามือ";
 }
 
 function renderHeader(){const p=profile(currentUserId);document.getElementById("whoami").textContent=p?.displayName||"-";document.getElementById("adminBadge").classList.toggle("hidden",!isAdmin());document.getElementById("adminLink").style.display=isAdmin()?"inline-flex":"none";if(!pred.dealerId&&isAdmin())pred.dealerId=currentUserId;document.getElementById("dealerName").innerHTML=pred.dealerId&&profile(pred.dealerId)?`<button type="button" class="profile-link" data-profile="${pred.dealerId}">${esc(profile(pred.dealerId).displayName)}</button>`:"ยังไม่ตั้ง"}
-function renderSummary(){document.getElementById("invested").textContent=credits(pred.bets.filter(b=>b.userId===currentUserId).reduce((s,b)=>s+b.stake,0));document.getElementById("pending").textContent=pred.bets.filter(b=>b.userId===currentUserId&&b.status==="pending").length;document.getElementById("dealerPanel").classList.toggle("hidden",!isAdmin());document.getElementById("bettingPanel").classList.toggle("hidden",isAdmin())}
+function renderSummary(){
+ const invested=pred.bets.filter(b=>b.userId===currentUserId).reduce((s,b)=>s+b.stake,0);
+ document.getElementById("invested").textContent=credits(invested);
+ document.getElementById("pending").textContent=pred.bets.filter(b=>b.userId===currentUserId&&b.status==="pending").length;
+ const currentIsDealer=currentUserId===pred.dealerId;
+ document.getElementById("dealerPanel").classList.toggle("hidden",!isAdmin());
+ document.getElementById("bettingPanel").classList.toggle("hidden",currentIsDealer);
+ const dealerNav=document.getElementById("dealerNav");
+ if(dealerNav) dealerNav.style.display=isAdmin()?"flex":"none";
+}
 function marketDesc(m,market){return `${profile(market.favoriteId)?.displayName||"-"} ต่อ ${market.handicap} ลูก`}
 function renderDealer(){const box=document.getElementById("dealerMarkets");box.innerHTML="";allMatches().forEach(m=>{const market=pred.markets[m.id]||{favoriteId:m.pair[0],handicap:.5,open:false};const c=document.createElement("div");c.className="market";c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag ${market.open&&!hasResult(m)?"":"closed"}">${hasResult(m)?"มีผลแล้ว":market.open?"เปิดรับ":"ปิดรับ"}</span></div><div class="market-controls"><div class="field"><label>ผู้ต่อ</label><select id="fav-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select></div><div class="field"><label>แต้มต่อ</label><input id="hcp-${m.id}" type="number" min="0" step=".5" value="${market.handicap}"></div><div class="field"><label>สถานะ</label><select id="open-${m.id}"><option value="1">เปิดรับ</option><option value="0">ปิดรับ</option></select></div></div><div class="actions"><button class="primary" data-save="${m.id}">บันทึกคู่นี้</button></div>`;box.appendChild(c);document.getElementById(`fav-${m.id}`).value=market.favoriteId;document.getElementById(`open-${m.id}`).value=market.open&&!hasResult(m)?"1":"0"});box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>saveMarket(b.dataset.save))}
 function saveMarket(id){const m=allMatches().find(x=>x.id===id);if(!m)return;pred.markets[id]={favoriteId:document.getElementById(`fav-${id}`).value,handicap:Number(document.getElementById(`hcp-${id}`).value),open:document.getElementById(`open-${id}`).value==="1"&&!hasResult(m)};savePred();render()}
-function renderBetting(){const box=document.getElementById("bettingMarkets");box.innerHTML="";let n=0;allMatches().forEach(m=>{const market=pred.markets[m.id];if(!market||!market.open||hasResult(m))return;n++;const own=m.pair.includes(currentUserId),existing=pred.bets.find(b=>b.matchId===m.id&&b.userId===currentUserId);const c=document.createElement("div");c.className="market";let controls=own?'<div class="locked">คุณเป็นผู้เล่นในคู่นี้ จึงทายไม่ได้</div>':existing?`<div class="locked">ทายแล้ว: ${esc(profile(existing.sideId)?.displayName||existing.sideId)} • ${credits(existing.stake)}</div>`:`<div class="bet-row"><select id="side-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select><input id="stake-${m.id}" type="number" min="1" inputmode="numeric" placeholder="ยอด"><button class="green" data-bet="${m.id}">ยืนยัน</button></div><div class="quick"><button data-q="${m.id}:10">+10</button><button data-q="${m.id}:50">+50</button><button data-q="${m.id}:100">+100</button><button data-q="${m.id}:500">+500</button></div>`;c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag">เปิดรับ</span></div>${controls}`;box.appendChild(c)});if(!n)box.innerHTML='<div class="empty">ยังไม่มีคู่ที่เปิดให้ทาย</div>';box.querySelectorAll("[data-bet]").forEach(b=>b.onclick=()=>placeBet(b.dataset.bet));box.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const [id,a]=b.dataset.q.split(":");const e=document.getElementById(`stake-${id}`);e.value=(Number(e.value)||0)+Number(a)})}
-function placeBet(id){const m=allMatches().find(x=>x.id===id),market=pred.markets[id];if(!m||!market?.open)return;if(m.pair.includes(currentUserId))return alert("ทายคู่ตัวเองไม่ได้");const sideId=document.getElementById(`side-${id}`).value,stake=Number(document.getElementById(`stake-${id}`).value);if(!Number.isInteger(stake)||stake<=0)return alert("กรอกยอดให้ถูกต้อง");pred.bets.push({id:pred.nextBetId++,matchId:id,userId:currentUserId,sideId,stake,status:"pending",net:0,createdAt:new Date().toISOString()});savePred();render()}
+function renderBetting(){
+ const box=document.getElementById("bettingMarkets");box.innerHTML="";
+ if(currentUserId===pred.dealerId){
+   box.innerHTML='<div class="locked">คุณเป็นเจ้ามือของรอบนี้ จึงไม่สามารถทายผลได้</div>';
+   return;
+ }
+ let n=0;allMatches().forEach(m=>{const market=pred.markets[m.id];if(!market||!market.open||hasResult(m))return;n++;const own=m.pair.includes(currentUserId),existing=pred.bets.find(b=>b.matchId===m.id&&b.userId===currentUserId);const c=document.createElement("div");c.className="market";let controls=own?'<div class="locked">คุณเป็นผู้เล่นในคู่นี้ จึงทายไม่ได้</div>':existing?`<div class="locked">ทายแล้ว: ${esc(profile(existing.sideId)?.displayName||existing.sideId)} • ${credits(existing.stake)}</div>`:`<div class="bet-row"><select id="side-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select><input id="stake-${m.id}" type="number" min="1" inputmode="numeric" placeholder="ยอด"><button class="green" data-bet="${m.id}">ยืนยัน</button></div><div class="quick"><button data-q="${m.id}:10">+10</button><button data-q="${m.id}:50">+50</button><button data-q="${m.id}:100">+100</button><button data-q="${m.id}:500">+500</button></div>`;c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag">เปิดรับ</span></div>${controls}`;box.appendChild(c)});if(!n)box.innerHTML='<div class="empty">ยังไม่มีคู่ที่เปิดให้ทาย</div>';box.querySelectorAll("[data-bet]").forEach(b=>b.onclick=()=>placeBet(b.dataset.bet));box.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const [id,a]=b.dataset.q.split(":");const e=document.getElementById(`stake-${id}`);e.value=(Number(e.value)||0)+Number(a)})}
+function placeBet(id){
+ const m=allMatches().find(x=>x.id===id),market=pred.markets[id];
+ if(!m||!market?.open)return;
+ if(currentUserId===pred.dealerId)return alert("เจ้ามือไม่สามารถทายผลได้");
+ if(m.pair.includes(currentUserId))return alert("ทายคู่ตัวเองไม่ได้");const sideId=document.getElementById(`side-${id}`).value,stake=Number(document.getElementById(`stake-${id}`).value);if(!Number.isInteger(stake)||stake<=0)return alert("กรอกยอดให้ถูกต้อง");pred.bets.push({id:pred.nextBetId++,matchId:id,userId:currentUserId,sideId,stake,status:"pending",net:0,createdAt:new Date().toISOString()});savePred();render()}
 function saveDealer(){
  if(!isAdmin())return alert("เฉพาะ Admin เท่านั้น");
  const id=document.getElementById("dealerSelect").value;
@@ -221,7 +253,7 @@ function saveDealer(){
  if(pred.bets.some(b=>b.status==="pending") && pred.dealerId && pred.dealerId!==id){
    if(!confirm("มีรายการทายที่ยังรอผลอยู่ เปลี่ยนเจ้ามือจะมีผลต่อการสรุปยอด ยืนยันหรือไม่?"))return;
  }
- pred.dealerId=id;savePred();render();
+ pred.dealerId=id;savePred();render();alert(`ตั้ง ${profile(id).displayName} เป็นเจ้ามือแล้ว`);
 }
 function settleAll(){if(!isAdmin())return;let count=0;pred.bets.forEach(b=>{if(b.status!=="pending")return;const m=allMatches().find(x=>x.id===b.matchId),market=pred.markets[b.matchId],r=m&&market?outcome(m,market):null;if(!r)return;if(r.type==="push"){b.status="push";b.net=0}else if(r.winnerId===b.sideId){b.status="won";b.net=b.stake}else{b.status="lost";b.net=-b.stake}count++});savePred();render();alert(count?`คำนวณแล้ว ${count} รายการ`:"ยังไม่มีรายการพร้อมคำนวณ")}
 function renderSettlement(){let receive=0,pay=0;const rows=activeProfiles().filter(p=>p.id!==pred.dealerId).map(p=>{const bs=pred.bets.filter(b=>b.userId===p.id&&b.status!=="pending"),cost=bs.reduce((s,b)=>s+b.stake,0),won=bs.filter(b=>b.status==="won").reduce((s,b)=>s+b.stake,0),lost=bs.filter(b=>b.status==="lost").reduce((s,b)=>s+b.stake,0),net=won-lost;receive+=lost;pay+=won;return `<tr><td><button type="button" class="profile-link" data-profile="${p.id}">${esc(p.displayName)}</button></td><td>${credits(cost)}</td><td>${credits(won)}</td><td>${credits(lost)}</td><td class="${net>0?"positive":net<0?"negative":""}">${net>0?"+":""}${credits(net)}</td></tr>`}).join("");document.getElementById("dealerReceives").textContent=credits(receive);document.getElementById("dealerPays").textContent=credits(pay);const net=receive-pay,e=document.getElementById("dealerNet");e.textContent=`${net>0?"+":""}${credits(net)}`;e.className=net>0?"positive":net<0?"negative":"";document.getElementById("settlement").innerHTML=rows||'<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>'}
@@ -237,6 +269,26 @@ document.getElementById("profileClose").onclick=closeProfile;
 document.getElementById("profileBackdrop").addEventListener("click",e=>{if(e.target.id==="profileBackdrop")closeProfile()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeProfile()});
 renderLogin();if(currentUserId&&profile(currentUserId))document.getElementById("auth").classList.add("hidden");render();initCloud();
+
+const predNavItems=[...document.querySelectorAll(".bottom-nav [data-scroll]")];
+predNavItems.forEach(item=>item.addEventListener("click",e=>{
+  e.preventDefault();
+  const target=document.getElementById(item.dataset.scroll);
+  if(!target || target.classList.contains("hidden")){
+    if(item.dataset.scroll==="dealerPanel"&&!isAdmin()) alert("เมนูเจ้ามือสำหรับ Admin เท่านั้น");
+    return;
+  }
+  target.scrollIntoView({behavior:"smooth",block:"start"});
+}));
+if("IntersectionObserver" in window){
+  const navObs=new IntersectionObserver(entries=>{
+    const visible=entries.filter(e=>e.isIntersecting&&!e.target.classList.contains("hidden")).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+    if(!visible)return;
+    predNavItems.forEach(item=>item.classList.toggle("active",item.dataset.scroll===visible.target.id));
+  },{rootMargin:"-20% 0px -58% 0px",threshold:[.05,.2,.45]});
+  ["bettingPanel","dealerPanel","historySection"].forEach(id=>{const el=document.getElementById(id);if(el)navObs.observe(el)});
+}
+
 </script>
 </body>
 </html>
