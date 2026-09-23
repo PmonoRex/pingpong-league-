@@ -67,6 +67,14 @@ input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4
 .bottom-nav a{transition:background-color .18s ease,color .18s ease,transform .18s ease}
 .bottom-nav a:active{transform:scale(.97)}
 
+
+.dealer-admin-controls{display:block}
+.dealer-view-only{display:none}
+body:not(.is-admin) .dealer-admin-controls{display:none}
+body:not(.is-admin) .dealer-view-only{display:block}
+.dealer-current-card{margin-top:10px;padding:12px;border:1px solid #31547e;border-radius:13px;background:#0b1728}
+.dealer-current-card b{display:block;font-size:18px;margin-top:3px}
+
 </style>
 </head>
 <body>
@@ -88,18 +96,28 @@ input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4
  <div class="stats"><div class="stat"><b id="invested">0</b><small>ยอดลงทุนรวม</small></div><div class="stat"><b id="dealerName">-</b><small>เจ้ามือ</small></div><div class="stat"><b id="pending">0</b><small>รอผล</small></div></div>
 </section>
 
-<section class="card hidden" id="dealerPanel">
- <h2>🛠 แผงเจ้ามือ</h2>
- <div class="muted">Admin จัดการเจ้ามือจากหน้านี้ • ผู้ที่ถูกเลือกเป็นเจ้ามือจะทายไม่ได้ แต่ Admin คนอื่นยังทายได้ตามปกติ</div>
- <div class="dealer-selector">
-   <div class="row">
-     <div class="field"><label>เลือกเจ้ามือ</label><select id="dealerSelect"></select></div>
-     <button class="primary" id="saveDealer">ยืนยันเจ้ามือ</button>
+<section class="card" id="dealerPanel">
+ <h2>🛠 เจ้ามือ</h2>
+ <div class="muted">ดูว่าใครเป็นเจ้ามือปัจจุบันได้ทุกคน • เฉพาะ Admin เปลี่ยนเจ้ามือและตั้งตลาดได้</div>
+
+ <div class="dealer-view-only">
+   <div class="dealer-current-card">
+     <span class="muted">เจ้ามือปัจจุบัน</span>
+     <b id="dealerCurrentPublic">ยังไม่ได้ตั้ง</b>
    </div>
-   <div class="muted" id="dealerHint" style="margin-top:8px">เลือกผู้เล่น 1 คนเป็นเจ้ามือ</div>
  </div>
- <div class="actions"><button class="green" id="settleAll">✓ คำนวณผลล่าสุด</button></div>
- <div id="dealerMarkets"></div>
+
+ <div class="dealer-admin-controls">
+   <div class="dealer-selector">
+     <div class="row">
+       <div class="field"><label>เลือกเจ้ามือ</label><select id="dealerSelect"></select></div>
+       <button class="primary" id="saveDealer">ยืนยันเจ้ามือ</button>
+     </div>
+     <div class="muted" id="dealerHint" style="margin-top:8px">เลือกผู้เล่น 1 คนเป็นเจ้ามือ</div>
+   </div>
+   <div class="actions"><button class="green" id="settleAll">✓ คำนวณผลล่าสุด</button></div>
+   <div id="dealerMarkets"></div>
+ </div>
 </section>
 
 <section class="card" id="bettingPanel">
@@ -212,6 +230,7 @@ function bindProfileLinks(){
   });
 }
 function renderDealerSelect(){
+  if(!isAdmin())return;
   const sel=document.getElementById("dealerSelect");if(!sel)return;
   const current=pred.dealerId;
   sel.innerHTML=activeProfiles().map(p=>`<option value="${p.id}">${esc(p.displayName)}${p.role==="admin"?" • Admin":""}</option>`).join("");
@@ -226,13 +245,18 @@ function renderSummary(){
  document.getElementById("invested").textContent=credits(invested);
  document.getElementById("pending").textContent=pred.bets.filter(b=>b.userId===currentUserId&&b.status==="pending").length;
  const currentIsDealer=currentUserId===pred.dealerId;
- document.getElementById("dealerPanel").classList.toggle("hidden",!isAdmin());
+ document.getElementById("dealerPanel").classList.remove("hidden");
  document.getElementById("bettingPanel").classList.toggle("hidden",currentIsDealer);
  const dealerNav=document.getElementById("dealerNav");
- if(dealerNav) dealerNav.style.display=isAdmin()?"flex":"none";
+ if(dealerNav) dealerNav.style.display="flex";
+ document.body.classList.toggle("is-admin",isAdmin());
+ const publicDealer=document.getElementById("dealerCurrentPublic");
+ if(publicDealer) publicDealer.innerHTML=pred.dealerId&&profile(pred.dealerId)
+   ? `<button type="button" class="profile-link" data-profile="${pred.dealerId}">${esc(profile(pred.dealerId).displayName)}</button>`
+   : "ยังไม่ได้ตั้ง";
 }
 function marketDesc(m,market){return `${profile(market.favoriteId)?.displayName||"-"} ต่อ ${market.handicap} ลูก`}
-function renderDealer(){const box=document.getElementById("dealerMarkets");box.innerHTML="";allMatches().forEach(m=>{const market=pred.markets[m.id]||{favoriteId:m.pair[0],handicap:.5,open:false};const c=document.createElement("div");c.className="market";c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag ${market.open&&!hasResult(m)?"":"closed"}">${hasResult(m)?"มีผลแล้ว":market.open?"เปิดรับ":"ปิดรับ"}</span></div><div class="market-controls"><div class="field"><label>ผู้ต่อ</label><select id="fav-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select></div><div class="field"><label>แต้มต่อ</label><input id="hcp-${m.id}" type="number" min="0" step=".5" value="${market.handicap}"></div><div class="field"><label>สถานะ</label><select id="open-${m.id}"><option value="1">เปิดรับ</option><option value="0">ปิดรับ</option></select></div></div><div class="actions"><button class="primary" data-save="${m.id}">บันทึกคู่นี้</button></div>`;box.appendChild(c);document.getElementById(`fav-${m.id}`).value=market.favoriteId;document.getElementById(`open-${m.id}`).value=market.open&&!hasResult(m)?"1":"0"});box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>saveMarket(b.dataset.save))}
+function renderDealer(){const box=document.getElementById("dealerMarkets");if(!box||!isAdmin())return;box.innerHTML="";allMatches().forEach(m=>{const market=pred.markets[m.id]||{favoriteId:m.pair[0],handicap:.5,open:false};const c=document.createElement("div");c.className="market";c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag ${market.open&&!hasResult(m)?"":"closed"}">${hasResult(m)?"มีผลแล้ว":market.open?"เปิดรับ":"ปิดรับ"}</span></div><div class="market-controls"><div class="field"><label>ผู้ต่อ</label><select id="fav-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select></div><div class="field"><label>แต้มต่อ</label><input id="hcp-${m.id}" type="number" min="0" step=".5" value="${market.handicap}"></div><div class="field"><label>สถานะ</label><select id="open-${m.id}"><option value="1">เปิดรับ</option><option value="0">ปิดรับ</option></select></div></div><div class="actions"><button class="primary" data-save="${m.id}">บันทึกคู่นี้</button></div>`;box.appendChild(c);document.getElementById(`fav-${m.id}`).value=market.favoriteId;document.getElementById(`open-${m.id}`).value=market.open&&!hasResult(m)?"1":"0"});box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>saveMarket(b.dataset.save))}
 function saveMarket(id){const m=allMatches().find(x=>x.id===id);if(!m)return;pred.markets[id]={favoriteId:document.getElementById(`fav-${id}`).value,handicap:Number(document.getElementById(`hcp-${id}`).value),open:document.getElementById(`open-${id}`).value==="1"&&!hasResult(m)};savePred();render()}
 function renderBetting(){
  const box=document.getElementById("bettingMarkets");box.innerHTML="";
@@ -275,7 +299,6 @@ predNavItems.forEach(item=>item.addEventListener("click",e=>{
   e.preventDefault();
   const target=document.getElementById(item.dataset.scroll);
   if(!target || target.classList.contains("hidden")){
-    if(item.dataset.scroll==="dealerPanel"&&!isAdmin()) alert("เมนูเจ้ามือสำหรับ Admin เท่านั้น");
     return;
   }
   target.scrollIntoView({behavior:"smooth",block:"start"});
