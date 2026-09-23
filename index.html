@@ -5,37 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07111f">
 <title>ตีให้สุด หยุดที่เบ้าตา</title>
-<style>
-:root{--bg:#07111f;--card:#0f1d31;--card2:#14243b;--line:#263b59;--text:#f7fbff;--muted:#91a4be;--blue:#3b82f6;--gold:#f6c94c;--green:#22c55e;--red:#ef4444}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,#07111f,#091524 46%,#08111d);color:var(--text)}
-body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 10% 0,rgba(59,130,246,.12),transparent 34%),radial-gradient(circle at 90% 10%,rgba(246,201,76,.06),transparent 28%)}
-main{max-width:1180px;margin:auto;padding:14px 12px 92px}
-.hero,.card{background:rgba(15,29,49,.96);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 16px 38px rgba(0,0,0,.22)}
-.hero{background:linear-gradient(135deg,#0f2746,#0b1728 60%,#171a2c)}
-.eyebrow{font-size:12px;color:#bcd8ff;font-weight:900;letter-spacing:.08em}h1{margin:6px 0 0;font-size:clamp(29px,6vw,48px);line-height:1.08}
-.sub{color:#d7e8fb;margin-top:8px}.rules,.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.pill{border:1px solid #355276;border-radius:999px;padding:7px 10px;background:#0a1728;font-size:12px}
-.sync.online{color:#a8f3c4;border-color:#287c4c}.sync.offline{color:#ffd0a3;border-color:#9a5b37}
-.account-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;padding:9px 10px;border:1px solid #2f496b;border-radius:12px;background:#091728}
-.account-user{display:flex;align-items:center;gap:7px;font-size:13px}.admin-badge{padding:3px 7px;border-radius:999px;background:#5a4514;color:#ffe087;font-size:10px;font-weight:900}
-button,a.btn{border:0;border-radius:11px;padding:10px 13px;min-height:42px;font-weight:850;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
-.primary{background:linear-gradient(180deg,#f7d765,#efc13d);color:#17120a}.blue{background:linear-gradient(180deg,#4b8df7,#3275da);color:#fff}.green{background:#1d9c58;color:#fff}.danger{background:#44222b;color:#ffc6ce;border:1px solid #6c3340}.secondary{background:#173052;color:#dceaff;border:1px solid #31547e}
-.grid{display:grid;grid-template-columns:1.08fr .92fr;gap:14px;align-items:start}.section-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.section-head h2{margin:0;font-size:21px}.hint{color:var(--muted);font-size:12px;line-height:1.45}
-.roster-box{background:#0b182a;border:1px solid #29405f;border-radius:16px;padding:13px;margin-bottom:16px}
-.roster-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
-.roster-item{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid #2b405f;border-radius:12px;background:#10203a}
-.roster-item input{width:20px;height:20px;min-height:0}.roster-item strong{font-size:13px}.roster-item small{display:block;color:var(--muted);font-size:10px}.locked{opacity:.55;pointer-events:none}
-.round{margin-bottom:16px}.rh{display:flex;justify-content:space-between;margin-bottom:8px}.rest{font-size:11px;color:#9fb0c8;border:1px solid #253957;border-radius:999px;padding:4px 8px}
-.match{background:linear-gradient(180deg,#162640,#132238);border:1px solid #2b405f;border-radius:15px;padding:11px;margin-bottom:9px}
-.pair{display:grid;grid-template-columns:minmax(48px,1fr) 132px 22px 132px minmax(48px,1fr);gap:5px;align-items:center}.pair b{font-size:13px}.left{text-align:right}.vs{text-align:center;color:#8296b2;font-size:11px;font-weight:900}
-.score-control{display:grid;grid-template-columns:38px 1fr 38px;gap:4px}.score-control button{padding:0;min-height:42px;font-size:21px}.minus{background:#173052;color:#fff;border:1px solid #31547e}.plus{background:#1d9c58;color:#fff}
-input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4d69;background:#0b1626;color:#fff;padding:0 10px;font-size:16px}.score-control input{text-align:center;padding:0}
-.status{text-align:center;color:#a4b5cc;font-size:11px;margin-top:6px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}.stat{background:#0b1728;border:1px solid #2a3d59;border-radius:13px;padding:11px 5px;text-align:center}.stat b{display:block;font-size:20px}.stat small{color:var(--muted);font-size:10px}
-.wrap{overflow-x:auto;border:1px solid #263a57;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:9px 6px;border-bottom:1px solid #263851;text-align:center;font-size:12px;white-space:nowrap}th{color:#9fb0c8;background:#0c1727}td.name{text-align:left;font-weight:800}.points{color:#ffd76a;font-weight:900}
-.rank-card{margin-top:14px}.rank-row{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #263851}.rank-pos{width:34px;height:34px;border-radius:10px;background:#132844;display:flex;align-items:center;justify-content:center;font-weight:900}.rank-row:first-child .rank-pos{background:#efc13d;color:#17120a}.rank-rp{color:#ffd76a;font-weight:900}.tier{color:var(--muted);font-size:10px}
-.bottom-nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:30;width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:7px;background:rgba(8,18,31,.94);backdrop-filter:blur(16px);border:1px solid #2b4261;border-radius:18px}.bottom-nav a{color:#a8b8ce;text-decoration:none;font-size:10px;font-weight:850;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;border-radius:11px}.bottom-nav a span{font-size:17px}.bottom-nav a.active{background:#17335a;color:#fff}
-.auth-overlay{position:fixed;inset:0;z-index:100;background:rgba(3,9,18,.84);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;padding:18px}.auth-overlay.hidden{display:none}.auth-card{width:min(420px,100%);background:#10213a;border:1px solid #315070;border-radius:22px;padding:18px}.auth-card h2{margin:0 0 5px}.auth-card p{color:var(--muted);font-size:12px}.field{display:flex;flex-direction:column;gap:5px;margin:10px 0}.field label{color:#9fb0c8;font-size:11px}
-@media(max-width:840px){.grid{grid-template-columns:1fr}.roster-list{grid-template-columns:1fr 1fr}}@media(max-width:500px){.roster-list{grid-template-columns:1fr}.pair{grid-template-columns:minmax(38px,1fr) 116px 16px 116px minmax(38px,1fr);gap:3px}.pair b{font-size:11px}.score-control{grid-template-columns:34px 1fr 34px}.summary{gap:5px}}
-</style>
+<link rel="stylesheet" href="index.css">
 </head>
 <body>
 <main>
@@ -94,87 +64,6 @@ input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4
  </div>
 </div>
 
-<script>
-const KEY="pp_league_v7_uid";
-const LEGACY_KEYS=["pp_league_v5","pp_league_v4"];
-const SUPABASE_URL="https://gqlfqoeejgtjpsdvngbh.supabase.co";
-const SUPABASE_KEY="sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z";
-const CLOUD_ENDPOINT=`${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
-const ADMIN_NAME="มอส";
-
-let state={profiles:{},seasonPlayerIds:[],rounds:[],results:{},rankHistory:[],currentSeason:1};
-let currentUserId=localStorage.getItem("pp_user_id")||"";
-let cloudReady=false,cloudSaving=false,dirty=false,lastCloudUpdate="",saveTimer=null;
-
-const uid=()=>`u_${Math.random().toString(36).slice(2,8)}${Date.now().toString(36).slice(-4)}`;
-const esc=v=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
-const valid=v=>Number.isInteger(v)&&v>=0;
-const profile=id=>state.profiles[id];
-const activeProfiles=()=>Object.values(state.profiles).filter(p=>p.active!==false);
-const seasonProfiles=()=>state.seasonPlayerIds.map(id=>profile(id)).filter(Boolean);
-const seasonNames=()=>seasonProfiles().map(p=>p.displayName);
-const totalMatches=()=>state.seasonPlayerIds.length*(state.seasonPlayerIds.length-1)/2;
-const isAdmin=()=>profile(currentUserId)?.role==="admin";
-const mid=(r,m)=>`r${r}m${m}`;
-
-function deterministicId(name,i){return `legacy_${i+1}_${encodeURIComponent(name).replace(/%/g,"").slice(0,12)}`}
-function migrateLegacy(){
- let legacy=null;
- for(const k of LEGACY_KEYS){try{const x=JSON.parse(localStorage.getItem(k)||"null");if(x&&x.players){legacy=x;break}}catch(e){}}
- const names=legacy?.players?.length?legacy.players:["พี่โช็ค","กิฟท์","กอล์ฟ","มังกร","พฤษ","เฟิร์น","มอส"];
- names.forEach((name,i)=>{const id=deterministicId(name,i);state.profiles[id]={id,displayName:name,pin:"1234",role:name===ADMIN_NAME?"admin":"player",active:true,createdAt:new Date().toISOString()}});
- state.seasonPlayerIds=names.map((n,i)=>deterministicId(n,i));
- state.rounds=legacy?.rounds||makeRoundRobin(state.seasonPlayerIds);
- state.results=legacy?.results||{};
- state.rankHistory=legacy?.rankHistory||[];
- state.currentSeason=legacy?.currentSeason||1;
- saveLocal();
-}
-function loadLocal(){try{const x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&x.profiles){state=x;return}}catch(e){}migrateLegacy()}
-function saveLocal(){localStorage.setItem(KEY,JSON.stringify(state))}
-function makeRoundRobin(ids){
- const a=[...ids];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}if(a.length%2)a.push(null);
- const out=[],size=a.length;
- for(let r=0;r<size-1;r++){let rest=null,m=[];for(let i=0;i<size/2;i++){const x=a[i],y=a[size-1-i];if(x&&y)m.push(r%2?[y,x]:[x,y]);else rest=x||y}out.push({rest,m});a.splice(1,0,a.pop())}
- return out;
-}
-function setSync(text,status=""){const e=document.getElementById("syncStatus");e.textContent=text;e.className=`pill sync ${status}`}
-async function cloudRequest(method="GET",body=null){const o={method,headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}};if(body){o.headers["Content-Type"]="application/json";o.headers.Prefer="return=representation";o.body=JSON.stringify(body)}const r=await fetch(`${CLOUD_ENDPOINT}&select=league,updated_at`,o);if(!r.ok)throw new Error(r.status);return r.json()}
-function cloudPayload(){return {uidLeague:state}}
-function saveState(){saveLocal();if(!cloudReady)return;dirty=true;setSync("กำลังบันทึก...");clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,400)}
-async function pushCloud(){if(!cloudReady||cloudSaving)return;cloudSaving=true;try{const now=new Date().toISOString(),rows=await cloudRequest("PATCH",{league:cloudPayload(),updated_at:now});lastCloudUpdate=rows[0]?.updated_at||now;dirty=false;setSync("ออนไลน์ • บันทึกแล้ว","online")}catch(e){setSync("ออฟไลน์ • เก็บในเครื่อง","offline")}finally{cloudSaving=false}}
-async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal()}lastCloudUpdate=row?.updated_at||"";render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pullCloud,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
-async function pullCloud(){if(!cloudReady||dirty||cloudSaving)return;try{const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal();render()}}catch(e){}}
-
-function renderLogin(){const sel=document.getElementById("loginUser");sel.innerHTML=activeProfiles().map(p=>`<option value="${p.id}">${esc(p.displayName)}${p.role==="admin"?" • Admin":""}</option>`).join("")}
-function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!profile(id)||profile(id).pin!==pin){alert("PIN ไม่ถูกต้อง");return}currentUserId=id;localStorage.setItem("pp_user_id",id);document.getElementById("auth").classList.add("hidden");render()}
-function logout(){currentUserId="";localStorage.removeItem("pp_user_id");document.getElementById("auth").classList.remove("hidden");renderLogin()}
-function renderHeader(){const p=profile(currentUserId);document.getElementById("whoami").textContent=p?.displayName||"-";document.getElementById("adminBadge").style.display=isAdmin()?"inline-flex":"none";document.getElementById("adminLink").style.display=isAdmin()?"inline-flex":"none";document.getElementById("leagueInfo").textContent=`Season ${state.currentSeason} • ${state.seasonPlayerIds.length} คน • ${totalMatches()} แมตช์`}
-function renderRoster(){
- const box=document.getElementById("rosterList");const selected=new Set(state.seasonPlayerIds);
- box.innerHTML=activeProfiles().map(p=>`<label class="roster-item ${isAdmin()?"":"locked"}"><input type="checkbox" data-roster="${p.id}" ${selected.has(p.id)?"checked":""} ${isAdmin()?"":"disabled"}><div><strong>${esc(p.displayName)}</strong><small>${p.id}${p.role==="admin"?" • Admin":""}</small></div></label>`).join("");
- document.getElementById("applyRoster").style.display=isAdmin()?"inline-flex":"none";document.getElementById("addAccountLink").style.display=isAdmin()?"inline-flex":"none";
-}
-function applyRoster(){if(!isAdmin())return;const ids=[...document.querySelectorAll("[data-roster]:checked")].map(x=>x.dataset.roster);if(ids.length<2){alert("ต้องเลือกอย่างน้อย 2 คน");return}if(Object.keys(state.results).length&&!confirm("การเปลี่ยนผู้เล่นจะล้างผล Season ปัจจุบัน ยืนยันหรือไม่?"))return;state.seasonPlayerIds=ids;state.rounds=makeRoundRobin(ids);state.results={};saveState();render()}
-function renderSchedule(){
- const box=document.getElementById("schedule");box.innerHTML="";
- state.rounds.forEach((r,ri)=>{const sec=document.createElement("div");sec.className="round";sec.innerHTML=`<div class="rh"><b>รอบ ${ri+1}</b><span class="rest">${r.rest?`พัก: ${esc(profile(r.rest)?.displayName||r.rest)}`:"แข่งครบ"}</span></div>`;
-  r.m.forEach((pair,mi)=>{const id=mid(ri,mi),x=state.results[id]||{},a=profile(pair[0]),b=profile(pair[1]);const row=document.createElement("div");row.className="match";row.innerHTML=`<div class="pair"><b class="left">${esc(a?.displayName||pair[0])}</b><div class="score-control"><button class="minus" data-score="${id}:a:-1">−</button><input id="${id}a" inputmode="numeric" type="number" min="0" value="${x.a??""}"><button class="plus" data-score="${id}:a:1">+</button></div><span class="vs">VS</span><div class="score-control"><button class="minus" data-score="${id}:b:-1">−</button><input id="${id}b" inputmode="numeric" type="number" min="0" value="${x.b??""}"><button class="plus" data-score="${id}:b:1">+</button></div><b>${esc(b?.displayName||pair[1])}</b></div><div class="status" id="${id}s"></div>`;sec.appendChild(row)});box.appendChild(sec)});
- box.querySelectorAll("[data-score]").forEach(btn=>btn.onclick=()=>{const [id,side,delta]=btn.dataset.score.split(":");const inp=document.getElementById(id+side),v=inp.value===""?0:Number(inp.value);inp.value=Math.max(0,v+Number(delta));updateFromInputs(id)});
- state.rounds.forEach((r,ri)=>r.m.forEach((p,mi)=>["a","b"].forEach(side=>document.getElementById(mid(ri,mi)+side).oninput=()=>updateFromInputs(mid(ri,mi)))));
- updateLabels();
-}
-function updateFromInputs(id){const a=document.getElementById(id+"a").value,b=document.getElementById(id+"b").value;if(a===""&&b==="")delete state.results[id];else state.results[id]={a:a===""?null:Number(a),b:b===""?null:Number(b)};saveState();updateLabels();calc()}
-function updateLabels(){state.rounds.forEach((r,ri)=>r.m.forEach((pair,mi)=>{const id=mid(ri,mi),x=state.results[id],el=document.getElementById(id+"s");if(!el)return;if(!x||!valid(x.a)||!valid(x.b)){el.textContent="ยังไม่กรอกผล";return}const an=profile(pair[0])?.displayName||pair[0],bn=profile(pair[1])?.displayName||pair[1];el.textContent=x.a>x.b?`${an} ชนะ ${x.a}-${x.b}`:x.b>x.a?`${bn} ชนะ ${x.b}-${x.a}`:`เสมอ ${x.a}-${x.b}`}) ) }
-function standingsData(){const s={};state.seasonPlayerIds.forEach(id=>s[id]={id,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});let played=0;state.rounds.forEach((r,ri)=>r.m.forEach((pair,mi)=>{const x=state.results[mid(ri,mi)];if(!x||!valid(x.a)||!valid(x.b))return;played++;const A=s[pair[0]],B=s[pair[1]];if(!A||!B)return;A.p++;B.p++;A.gf+=x.a;A.ga+=x.b;B.gf+=x.b;B.ga+=x.a;if(x.a>x.b){A.w++;A.pts+=3;B.l++}else if(x.b>x.a){B.w++;B.pts+=3;A.l++}else{A.d++;B.d++;A.pts++;B.pts++}}));Object.values(s).forEach(x=>x.gd=x.gf-x.ga);const arr=Object.values(s).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||b.w-a.w||(profile(a.id)?.displayName||"").localeCompare(profile(b.id)?.displayName||"","th"));return {arr,played}}
-function calc(){const {arr,played}=standingsData();document.getElementById("standings").innerHTML=arr.map((x,i)=>`<tr><td>${i+1}</td><td class="name">${i===0&&played?"👑 ":""}${esc(profile(x.id)?.displayName||x.id)}</td><td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td class="points">${x.pts}</td></tr>`).join("");document.getElementById("played").textContent=played;document.getElementById("remain").textContent=totalMatches()-played;document.getElementById("leader").textContent=played?(profile(arr[0]?.id)?.displayName||"-"):"-";const btn=document.getElementById("finishSeason");btn.disabled=!isAdmin()||played!==totalMatches();document.getElementById("finishHint").textContent=played===totalMatches()?(isAdmin()?"พร้อมบันทึกแรงค์":"รอ Admin จบ Season"):`เหลือ ${totalMatches()-played} แมตช์`}
-const RP=[100,80,65,50,40,30,20,10,5];const tier=rp=>rp>=1000?"Master":rp>=700?"Diamond":rp>=450?"Platinum":rp>=250?"Gold":rp>=100?"Silver":"Bronze";
-function rankingProfiles(){const m={};Object.keys(state.profiles).forEach(id=>m[id]={id,rp:0,seasons:0,titles:0,best:null});state.rankHistory.forEach(season=>(season.standings||[]).forEach(row=>{const id=row.userId||Object.keys(state.profiles).find(k=>state.profiles[k].displayName===row.name);if(!id)return;if(!m[id])m[id]={id,rp:0,seasons:0,titles:0,best:null};m[id].rp+=row.rpAward||0;m[id].seasons++;m[id].best=m[id].best===null?row.rank:Math.min(m[id].best,row.rank);if(row.rank===1)m[id].titles++}));return Object.values(m).sort((a,b)=>b.rp-a.rp||b.titles-a.titles)}
-function renderRanking(){document.getElementById("rankingList").innerHTML=rankingProfiles().filter(x=>x.seasons||state.seasonPlayerIds.includes(x.id)).map((x,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}</div><div><strong>${esc(profile(x.id)?.displayName||x.id)}</strong><div class="tier">${x.seasons} Season • ดีสุด ${x.best?`#${x.best}`:"-"} • ${tier(x.rp)}</div></div><div class="rank-rp">${x.rp} RP</div></div>`).join("")}
-function finishSeason(){if(!isAdmin())return;const {arr,played}=standingsData();if(played!==totalMatches())return;if(!confirm(`จบ Season ${state.currentSeason} และบันทึกแรงค์?`))return;state.rankHistory.push({season:state.currentSeason,finishedAt:new Date().toISOString(),standings:arr.map((x,i)=>({userId:x.id,name:profile(x.id)?.displayName||x.id,rank:i+1,rpAward:RP[i]??5,pts:x.pts,gd:x.gd}))});state.currentSeason++;state.rounds=makeRoundRobin(state.seasonPlayerIds);state.results={};saveState();render()}
-function render(){renderHeader();renderRoster();renderSchedule();calc();renderRanking()}
-document.getElementById("applyRoster").onclick=applyRoster;document.getElementById("saveBtn").onclick=()=>{saveState();alert("บันทึกแล้ว")};document.getElementById("clearScores").onclick=()=>{if(!isAdmin()){alert("เฉพาะ Admin");return}if(confirm("ล้างคะแนนทั้งหมด?")){state.results={};saveState();render()}};document.getElementById("finishSeason").onclick=finishSeason;document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;
-loadLocal();renderLogin();if(currentUserId&&profile(currentUserId))document.getElementById("auth").classList.add("hidden");render();initCloud();
-</script>
+<script src="index.js" defer></script>
 </body>
 </html>

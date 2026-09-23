@@ -1,0 +1,68 @@
+:root{--bg:#07111f;--card:#0f1d31;--card2:#14243b;--line:#263b59;--text:#f7fbff;--muted:#91a4be;--blue:#3b82f6;--gold:#f6c94c;--green:#22c55e;--red:#ef4444}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,#07111f,#091524 46%,#08111d);color:var(--text)}
+main{max-width:900px;margin:auto;padding:14px 12px 92px}
+.hero,.card{background:#0f1d31;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 16px 38px rgba(0,0,0,.22)}
+.hero{background:linear-gradient(135deg,#0f2746,#0b1728 60%,#171a2c)}
+.eyebrow{font-size:12px;color:#bcd8ff;font-weight:900;letter-spacing:.08em}
+h1,h2{margin:0 0 7px}h1{font-size:clamp(29px,6vw,44px)}
+.sub,.muted{color:var(--muted);font-size:12px;line-height:1.45}
+.notice{margin-top:12px;padding:10px 12px;border:1px solid #8a6b1d;background:#33280c;color:#ffe9a9;border-radius:12px;font-size:12px}
+.sync{margin-top:7px;font-weight:800}.sync.online{color:#9ff0bf}.sync.offline{color:#ffb7a3}
+.account-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;padding:9px 10px;border:1px solid #2f496b;border-radius:12px;background:#091728}
+.account-user{display:flex;align-items:center;gap:7px;font-size:13px}.admin-badge{padding:3px 7px;border-radius:999px;background:#5a4514;color:#ffe087;font-size:10px;font-weight:900}
+button,a.btn{border:0;border-radius:11px;padding:10px 13px;min-height:42px;font-weight:850;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.primary{background:#efc13d;color:#17120a}.blue{background:#3275da;color:#fff}.green{background:#1d9c58;color:#fff}.danger{background:#44222b;color:#ffc6ce;border:1px solid #6c3340}.secondary{background:#173052;color:#dceaff;border:1px solid #31547e}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}.stat{background:#0b1728;border:1px solid #2a3d59;border-radius:13px;padding:11px 5px;text-align:center}.stat b{display:block;font-size:20px;color:#ffd76a}.stat small{color:var(--muted);font-size:10px}
+.market{background:linear-gradient(180deg,#162640,#132238);border:1px solid #2b405f;border-radius:15px;padding:12px;margin-bottom:10px}
+.market-head{display:flex;justify-content:space-between;gap:10px}.market-title{font-weight:850}.tag{padding:4px 8px;border-radius:999px;font-size:10px;background:#17452f;color:#aef2c9}.tag.closed{background:#4a252e;color:#ffc1c7}
+.handicap{color:#f2cf6b;font-size:12px;margin-top:5px}
+.field{display:flex;flex-direction:column;gap:5px;margin-top:8px}.field label{font-size:11px;color:#9fb0c8}
+input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4d69;background:#0b1626;color:#fff;padding:0 10px;font-size:15px}
+.market-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.bet-row{display:grid;grid-template-columns:1fr 110px auto;gap:8px;margin-top:10px}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.quick button{min-height:34px;padding:6px 9px;background:#173052;color:#dceaff;border:1px solid #31547e}
+.locked{padding:9px;border-radius:10px;background:#2e2230;color:#ffc7f2;margin-top:9px;font-size:12px}
+.wrap{overflow-x:auto;border:1px solid #263a57;border-radius:13px}.history{width:100%;border-collapse:collapse;min-width:700px}.history th,.history td{padding:9px 6px;border-bottom:1px solid #2d3954;text-align:center;font-size:12px;white-space:nowrap}.history th{color:#9fb0c8;background:#0c1727}.positive{color:#74e7a3;font-weight:900}.negative{color:#ff9aa5;font-weight:900}.empty{padding:20px;text-align:center;color:var(--muted)}
+.hidden{display:none!important}
+.auth{position:fixed;inset:0;z-index:100;background:rgba(3,9,18,.84);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;padding:18px}.auth.hidden{display:none}.auth-card{width:min(420px,100%);background:#10213a;border:1px solid #315070;border-radius:22px;padding:18px}.auth-card h2{margin:0 0 5px}
+.bottom-nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:30;width:min(680px,calc(100% - 20px));display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:7px;background:rgba(8,18,31,.94);backdrop-filter:blur(16px);border:1px solid #2b4261;border-radius:18px}.bottom-nav a{color:#a8b8ce;text-decoration:none;font-size:10px;font-weight:850;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;border-radius:11px}.bottom-nav a span{font-size:17px}.bottom-nav a.active{background:#17335a;color:#fff}
+@media(max-width:650px){.market-controls{grid-template-columns:1fr}.bet-row{grid-template-columns:1fr 90px}.bet-row button{grid-column:1/-1}}
+
+/* Player profile + dealer selector */
+.profile-link{
+  appearance:none;-webkit-appearance:none;background:transparent;border:0;color:#f7fbff;
+  padding:0;min-height:0;font:inherit;font-weight:850;text-decoration:underline;
+  text-decoration-color:#40678f;text-underline-offset:3px;cursor:pointer
+}
+.profile-link:hover,.profile-link:focus{color:#8fc5ff;outline:none}
+.profile-backdrop{position:fixed;inset:0;z-index:120;background:rgba(3,9,18,.74);backdrop-filter:blur(12px);display:none;align-items:flex-end;justify-content:center;padding:14px}
+.profile-backdrop.open{display:flex}
+.profile-sheet{width:min(680px,100%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#10213a,#0b1728);border:1px solid #315070;border-radius:24px 24px 16px 16px;padding:16px;box-shadow:0 32px 90px rgba(0,0,0,.55)}
+.profile-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.profile-title{display:flex;gap:10px;align-items:center}
+.profile-avatar{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:24px}
+.profile-close{width:40px;min-height:40px;padding:0;border-radius:50%;background:#173052;color:#fff;border:1px solid #31547e}
+.profile-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:14px 0}
+.profile-metric{background:#0b1728;border:1px solid #2a405e;border-radius:13px;padding:10px 6px;text-align:center}
+.profile-metric b{display:block;font-size:18px}.profile-metric small{color:var(--muted);font-size:10px}
+.profile-history-row{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #213551}
+.profile-history-row:last-child{border-bottom:0}
+.profile-history-row small{color:var(--muted)}
+.dealer-selector{margin-top:10px;padding:11px;border:1px solid #355276;border-radius:13px;background:#0b1728}
+.dealer-selector .row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+@media(max-width:560px){.profile-metrics{grid-template-columns:repeat(2,1fr)}.dealer-selector .row{grid-template-columns:1fr}}
+
+
+#bettingPanel,#dealerPanel,#historySection{scroll-margin-top:14px}
+.bottom-nav a{transition:background-color .18s ease,color .18s ease,transform .18s ease}
+.bottom-nav a:active{transform:scale(.97)}
+
+
+.dealer-controls{display:none}
+body.can-manage-market .dealer-controls{display:block}
+body:not(.is-admin) .dealer-selector{display:none}
+.dealer-current-card{margin-top:10px;padding:12px;border:1px solid #31547e;border-radius:13px;background:#0b1728}
+.dealer-current-card b{display:block;font-size:18px;margin-top:3px}
+
