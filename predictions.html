@@ -68,10 +68,9 @@ input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4
 .bottom-nav a:active{transform:scale(.97)}
 
 
-.dealer-admin-controls{display:block}
-.dealer-view-only{display:none}
-body:not(.is-admin) .dealer-admin-controls{display:none}
-body:not(.is-admin) .dealer-view-only{display:block}
+.dealer-controls{display:none}
+body.can-manage-market .dealer-controls{display:block}
+body:not(.is-admin) .dealer-selector{display:none}
 .dealer-current-card{margin-top:10px;padding:12px;border:1px solid #31547e;border-radius:13px;background:#0b1728}
 .dealer-current-card b{display:block;font-size:18px;margin-top:3px}
 
@@ -98,16 +97,16 @@ body:not(.is-admin) .dealer-view-only{display:block}
 
 <section class="card" id="dealerPanel">
  <h2>🛠 เจ้ามือ</h2>
- <div class="muted">ดูว่าใครเป็นเจ้ามือปัจจุบันได้ทุกคน • เฉพาะ Admin เปลี่ยนเจ้ามือและตั้งตลาดได้</div>
+ <div class="muted">เจ้ามือปัจจุบันตั้งตลาดและคำนวณผลได้ • Admin เปลี่ยนตัวเจ้ามือได้</div>
 
- <div class="dealer-view-only">
+ <div>
    <div class="dealer-current-card">
      <span class="muted">เจ้ามือปัจจุบัน</span>
      <b id="dealerCurrentPublic">ยังไม่ได้ตั้ง</b>
    </div>
  </div>
 
- <div class="dealer-admin-controls">
+ <div class="dealer-controls">
    <div class="dealer-selector">
      <div class="row">
        <div class="field"><label>เลือกเจ้ามือ</label><select id="dealerSelect"></select></div>
@@ -179,7 +178,7 @@ const LEAGUE_KEY="pp_league_v7_uid",PRED_KEY="pp_predictions_v3_uid";
 const SUPABASE_URL="https://gqlfqoeejgtjpsdvngbh.supabase.co",SUPABASE_KEY="sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z",CLOUD_ENDPOINT=`${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
 let league=loadLeague(),pred=loadPred(),currentUserId=localStorage.getItem("pp_user_id")||"",cloudReady=false,lastCloudUpdate="";
 const esc=v=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
-const profile=id=>league.profiles?.[id],isAdmin=()=>profile(currentUserId)?.role==="admin",valid=v=>Number.isInteger(v)&&v>=0,mid=(r,m)=>`r${r}m${m}`;
+const profile=id=>league.profiles?.[id],isAdmin=()=>profile(currentUserId)?.role==="admin",isDealer=()=>Boolean(currentUserId&&pred.dealerId&&currentUserId===pred.dealerId),canManageMarket=()=>isAdmin()||isDealer(),valid=v=>Number.isInteger(v)&&v>=0,mid=(r,m)=>`r${r}m${m}`;
 function loadLeague(){try{return JSON.parse(localStorage.getItem(LEAGUE_KEY)||"null")||{profiles:{},seasonPlayerIds:[],rounds:[],results:{}}}catch(e){return {profiles:{},seasonPlayerIds:[],rounds:[],results:{}}}}
 function freshPred(){return {dealerId:null,markets:{},bets:[],nextBetId:1}}
 function loadPred(){try{return Object.assign(freshPred(),JSON.parse(localStorage.getItem(PRED_KEY)||"null")||{})}catch(e){return freshPred()}}
@@ -249,15 +248,15 @@ function renderSummary(){
  document.getElementById("bettingPanel").classList.toggle("hidden",currentIsDealer);
  const dealerNav=document.getElementById("dealerNav");
  if(dealerNav) dealerNav.style.display="flex";
- document.body.classList.toggle("is-admin",isAdmin());
+ document.body.classList.toggle("is-admin",isAdmin());document.body.classList.toggle("can-manage-market",canManageMarket());
  const publicDealer=document.getElementById("dealerCurrentPublic");
  if(publicDealer) publicDealer.innerHTML=pred.dealerId&&profile(pred.dealerId)
    ? `<button type="button" class="profile-link" data-profile="${pred.dealerId}">${esc(profile(pred.dealerId).displayName)}</button>`
    : "ยังไม่ได้ตั้ง";
 }
 function marketDesc(m,market){return `${profile(market.favoriteId)?.displayName||"-"} ต่อ ${market.handicap} ลูก`}
-function renderDealer(){const box=document.getElementById("dealerMarkets");if(!box||!isAdmin())return;box.innerHTML="";allMatches().forEach(m=>{const market=pred.markets[m.id]||{favoriteId:m.pair[0],handicap:.5,open:false};const c=document.createElement("div");c.className="market";c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag ${market.open&&!hasResult(m)?"":"closed"}">${hasResult(m)?"มีผลแล้ว":market.open?"เปิดรับ":"ปิดรับ"}</span></div><div class="market-controls"><div class="field"><label>ผู้ต่อ</label><select id="fav-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select></div><div class="field"><label>แต้มต่อ</label><input id="hcp-${m.id}" type="number" min="0" step=".5" value="${market.handicap}"></div><div class="field"><label>สถานะ</label><select id="open-${m.id}"><option value="1">เปิดรับ</option><option value="0">ปิดรับ</option></select></div></div><div class="actions"><button class="primary" data-save="${m.id}">บันทึกคู่นี้</button></div>`;box.appendChild(c);document.getElementById(`fav-${m.id}`).value=market.favoriteId;document.getElementById(`open-${m.id}`).value=market.open&&!hasResult(m)?"1":"0"});box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>saveMarket(b.dataset.save))}
-function saveMarket(id){const m=allMatches().find(x=>x.id===id);if(!m)return;pred.markets[id]={favoriteId:document.getElementById(`fav-${id}`).value,handicap:Number(document.getElementById(`hcp-${id}`).value),open:document.getElementById(`open-${id}`).value==="1"&&!hasResult(m)};savePred();render()}
+function renderDealer(){const box=document.getElementById("dealerMarkets");if(!box||!canManageMarket())return;box.innerHTML="";allMatches().forEach(m=>{const market=pred.markets[m.id]||{favoriteId:m.pair[0],handicap:.5,open:false};const c=document.createElement("div");c.className="market";c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag ${market.open&&!hasResult(m)?"":"closed"}">${hasResult(m)?"มีผลแล้ว":market.open?"เปิดรับ":"ปิดรับ"}</span></div><div class="market-controls"><div class="field"><label>ผู้ต่อ</label><select id="fav-${m.id}"><option value="${m.pair[0]}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${m.pair[1]}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select></div><div class="field"><label>แต้มต่อ</label><input id="hcp-${m.id}" type="number" min="0" step=".5" value="${market.handicap}"></div><div class="field"><label>สถานะ</label><select id="open-${m.id}"><option value="1">เปิดรับ</option><option value="0">ปิดรับ</option></select></div></div><div class="actions"><button class="primary" data-save="${m.id}">บันทึกคู่นี้</button></div>`;box.appendChild(c);document.getElementById(`fav-${m.id}`).value=market.favoriteId;document.getElementById(`open-${m.id}`).value=market.open&&!hasResult(m)?"1":"0"});box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>saveMarket(b.dataset.save))}
+function saveMarket(id){if(!canManageMarket())return alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");const m=allMatches().find(x=>x.id===id);if(!m)return;pred.markets[id]={favoriteId:document.getElementById(`fav-${id}`).value,handicap:Number(document.getElementById(`hcp-${id}`).value),open:document.getElementById(`open-${id}`).value==="1"&&!hasResult(m)};savePred();render()}
 function renderBetting(){
  const box=document.getElementById("bettingMarkets");box.innerHTML="";
  if(currentUserId===pred.dealerId){
@@ -279,10 +278,10 @@ function saveDealer(){
  }
  pred.dealerId=id;savePred();render();alert(`ตั้ง ${profile(id).displayName} เป็นเจ้ามือแล้ว`);
 }
-function settleAll(){if(!isAdmin())return;let count=0;pred.bets.forEach(b=>{if(b.status!=="pending")return;const m=allMatches().find(x=>x.id===b.matchId),market=pred.markets[b.matchId],r=m&&market?outcome(m,market):null;if(!r)return;if(r.type==="push"){b.status="push";b.net=0}else if(r.winnerId===b.sideId){b.status="won";b.net=b.stake}else{b.status="lost";b.net=-b.stake}count++});savePred();render();alert(count?`คำนวณแล้ว ${count} รายการ`:"ยังไม่มีรายการพร้อมคำนวณ")}
+function settleAll(){if(!canManageMarket())return alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");let count=0;pred.bets.forEach(b=>{if(b.status!=="pending")return;const m=allMatches().find(x=>x.id===b.matchId),market=pred.markets[b.matchId],r=m&&market?outcome(m,market):null;if(!r)return;if(r.type==="push"){b.status="push";b.net=0}else if(r.winnerId===b.sideId){b.status="won";b.net=b.stake}else{b.status="lost";b.net=-b.stake}count++});savePred();render();alert(count?`คำนวณแล้ว ${count} รายการ`:"ยังไม่มีรายการพร้อมคำนวณ")}
 function renderSettlement(){let receive=0,pay=0;const rows=activeProfiles().filter(p=>p.id!==pred.dealerId).map(p=>{const bs=pred.bets.filter(b=>b.userId===p.id&&b.status!=="pending"),cost=bs.reduce((s,b)=>s+b.stake,0),won=bs.filter(b=>b.status==="won").reduce((s,b)=>s+b.stake,0),lost=bs.filter(b=>b.status==="lost").reduce((s,b)=>s+b.stake,0),net=won-lost;receive+=lost;pay+=won;return `<tr><td><button type="button" class="profile-link" data-profile="${p.id}">${esc(p.displayName)}</button></td><td>${credits(cost)}</td><td>${credits(won)}</td><td>${credits(lost)}</td><td class="${net>0?"positive":net<0?"negative":""}">${net>0?"+":""}${credits(net)}</td></tr>`}).join("");document.getElementById("dealerReceives").textContent=credits(receive);document.getElementById("dealerPays").textContent=credits(pay);const net=receive-pay,e=document.getElementById("dealerNet");e.textContent=`${net>0?"+":""}${credits(net)}`;e.className=net>0?"positive":net<0?"negative":"";document.getElementById("settlement").innerHTML=rows||'<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>'}
 function statusText(s){return {pending:"รอผล",won:"ชนะ",lost:"แพ้",push:"คืนยอด"}[s]||s}
-function renderHistory(){const list=isAdmin()?pred.bets:pred.bets.filter(b=>b.userId===currentUserId);document.getElementById("history").innerHTML=list.slice().reverse().map(b=>{const m=allMatches().find(x=>x.id===b.matchId),pair=m?`${profile(m.pair[0])?.displayName}–${profile(m.pair[1])?.displayName}`:"ตารางเดิม";return `<tr><td>${b.id}</td><td><button type="button" class="profile-link" data-profile="${b.userId}">${esc(profile(b.userId)?.displayName||b.userId)}</button></td><td>${esc(pair)}</td><td>${esc(profile(b.sideId)?.displayName||b.sideId)}</td><td>${credits(b.stake)}</td><td>${statusText(b.status)}</td><td class="${b.net>0?"positive":b.net<0?"negative":""}">${b.status==="pending"?"–":`${b.net>0?"+":""}${credits(b.net)}`}</td></tr>`}).join("")||'<tr><td colspan="7" class="empty">ยังไม่มีประวัติ</td></tr>'}
+function renderHistory(){const list=canManageMarket()?pred.bets:pred.bets.filter(b=>b.userId===currentUserId);document.getElementById("history").innerHTML=list.slice().reverse().map(b=>{const m=allMatches().find(x=>x.id===b.matchId),pair=m?`${profile(m.pair[0])?.displayName}–${profile(m.pair[1])?.displayName}`:"ตารางเดิม";return `<tr><td>${b.id}</td><td><button type="button" class="profile-link" data-profile="${b.userId}">${esc(profile(b.userId)?.displayName||b.userId)}</button></td><td>${esc(pair)}</td><td>${esc(profile(b.sideId)?.displayName||b.sideId)}</td><td>${credits(b.stake)}</td><td>${statusText(b.status)}</td><td class="${b.net>0?"positive":b.net<0?"negative":""}">${b.status==="pending"?"–":`${b.net>0?"+":""}${credits(b.net)}`}</td></tr>`}).join("")||'<tr><td colspan="7" class="empty">ยังไม่มีประวัติ</td></tr>'}
 function render(){
  renderHeader();renderSummary();renderDealerSelect();renderDealer();renderBetting();renderSettlement();renderHistory();bindProfileLinks();
 }
