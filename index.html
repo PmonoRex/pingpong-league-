@@ -6,913 +6,175 @@
 <meta name="theme-color" content="#07111f">
 <title>ตีให้สุด หยุดที่เบ้าตา</title>
 <style>
-:root{
-  --bg:#07111f;--bg2:#0b1728;--card:#0f1d31;--card2:#14243b;--line:#263b59;
-  --text:#f7fbff;--muted:#91a4be;--blue:#3b82f6;--blue2:#60a5fa;--gold:#f6c94c;
-  --green:#22c55e;--red:#ef4444;--shadow:0 14px 34px rgba(0,0,0,.22)
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-a,button,input,.card,.match,.pill{transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease,opacity .18s ease}
-button:active,.quick-nav a:active,.mobile-nav a:active{transform:scale(.97)}
-body{
-  margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
-  background:linear-gradient(180deg,var(--bg),#091524 42%,#08111d);
-  color:var(--text);-webkit-text-size-adjust:100%
-}
-body:before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
-  background:radial-gradient(circle at 10% 0%,rgba(59,130,246,.12),transparent 34%),
-             radial-gradient(circle at 92% 12%,rgba(246,201,76,.07),transparent 28%)
-}
-main{
-  max-width:1180px;margin:auto;
-  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right))
-          calc(92px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))
-}
-.hero{
-  position:relative;overflow:hidden;background:linear-gradient(135deg,#0e2340 0%,#0b1728 58%,#151827 100%);
-  border:1px solid #29486e;border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow)
-}
-.hero:after{content:"🏓";position:absolute;right:18px;top:8px;font-size:96px;opacity:.07;transform:rotate(-14deg)}
-.eyebrow{display:inline-flex;align-items:center;gap:7px;color:#bad7ff;font-size:12px;font-weight:800;letter-spacing:.08em}
-h1{margin:6px 0 0;font-size:clamp(30px,5vw,50px);line-height:1.08;letter-spacing:-.02em}
-.sub{color:#d8e7fb;margin-top:8px;font-weight:650}
-.rules{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.pill{border:1px solid #355276;border-radius:999px;padding:7px 10px;background:rgba(6,15,27,.45);font-size:13px}
-.sync.online{border-color:#287c4c;color:#a8f3c4;background:rgba(34,197,94,.08)}
-.sync.offline{border-color:#9a5b37;color:#ffd0a3;background:rgba(245,158,11,.07)}
-.quick-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
-.quick-nav a{
-  display:flex;align-items:center;justify-content:center;min-height:44px;padding:9px 10px;border-radius:12px;
-  border:1px solid #2d4666;background:#0d1b2f;color:#dceaff;text-decoration:none;font-weight:800;font-size:14px
-}
-.quick-nav a.primary{background:linear-gradient(135deg,#2563eb,#3b82f6);border-color:#4e8af0;color:#fff}
-.grid{display:grid;grid-template-columns:1.08fr .92fr;gap:16px;align-items:start}
-.card{background:rgba(15,29,49,.94);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
-.card h2{margin:0 0 5px;font-size:21px}
-.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
-.section-kicker{color:var(--muted);font-size:12px}
-.manager{background:linear-gradient(180deg,#101f35,#0d1a2d);border:1px solid #29405f;border-radius:16px;padding:14px;margin-bottom:18px}
-.manager h3{margin:0 0 4px;font-size:17px}
-.add-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
-input{width:100%;min-height:46px;border-radius:12px;border:1px solid #3a4d69;background:#0b1626;color:#fff;text-align:center;font-size:16px}
-input:focus{outline:2px solid #5aa0ff;outline-offset:1px;border-color:#5aa0ff}
-.add-row input{text-align:left;padding:0 13px}
-.players{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
-.chip{display:inline-flex;align-items:center;gap:5px;background:#1a2d49;border:1px solid #304966;border-radius:999px;padding:5px 6px 5px 11px;font-size:13px}
-.chip button{width:30px;min-height:30px;padding:0;border-radius:50%;background:#472532;color:#ffc8ce;font-size:17px}
-.hint{color:var(--muted);font-size:12px;line-height:1.45;margin:8px 0 0}
-.round{margin-bottom:17px}
-.rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 2px}
-.rh b{font-size:15px}
-.rest{color:#9fb0c8;font-size:12px;background:#0a1626;border:1px solid #253957;border-radius:999px;padding:5px 8px}
+:root{--bg:#07111f;--card:#0f1d31;--card2:#14243b;--line:#263b59;--text:#f7fbff;--muted:#91a4be;--blue:#3b82f6;--gold:#f6c94c;--green:#22c55e;--red:#ef4444}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,#07111f,#091524 46%,#08111d);color:var(--text)}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 10% 0,rgba(59,130,246,.12),transparent 34%),radial-gradient(circle at 90% 10%,rgba(246,201,76,.06),transparent 28%)}
+main{max-width:1180px;margin:auto;padding:14px 12px 92px}
+.hero,.card{background:rgba(15,29,49,.96);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 16px 38px rgba(0,0,0,.22)}
+.hero{background:linear-gradient(135deg,#0f2746,#0b1728 60%,#171a2c)}
+.eyebrow{font-size:12px;color:#bcd8ff;font-weight:900;letter-spacing:.08em}h1{margin:6px 0 0;font-size:clamp(29px,6vw,48px);line-height:1.08}
+.sub{color:#d7e8fb;margin-top:8px}.rules,.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.pill{border:1px solid #355276;border-radius:999px;padding:7px 10px;background:#0a1728;font-size:12px}
+.sync.online{color:#a8f3c4;border-color:#287c4c}.sync.offline{color:#ffd0a3;border-color:#9a5b37}
+.account-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;padding:9px 10px;border:1px solid #2f496b;border-radius:12px;background:#091728}
+.account-user{display:flex;align-items:center;gap:7px;font-size:13px}.admin-badge{padding:3px 7px;border-radius:999px;background:#5a4514;color:#ffe087;font-size:10px;font-weight:900}
+button,a.btn{border:0;border-radius:11px;padding:10px 13px;min-height:42px;font-weight:850;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.primary{background:linear-gradient(180deg,#f7d765,#efc13d);color:#17120a}.blue{background:linear-gradient(180deg,#4b8df7,#3275da);color:#fff}.green{background:#1d9c58;color:#fff}.danger{background:#44222b;color:#ffc6ce;border:1px solid #6c3340}.secondary{background:#173052;color:#dceaff;border:1px solid #31547e}
+.grid{display:grid;grid-template-columns:1.08fr .92fr;gap:14px;align-items:start}.section-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.section-head h2{margin:0;font-size:21px}.hint{color:var(--muted);font-size:12px;line-height:1.45}
+.roster-box{background:#0b182a;border:1px solid #29405f;border-radius:16px;padding:13px;margin-bottom:16px}
+.roster-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.roster-item{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid #2b405f;border-radius:12px;background:#10203a}
+.roster-item input{width:20px;height:20px;min-height:0}.roster-item strong{font-size:13px}.roster-item small{display:block;color:var(--muted);font-size:10px}.locked{opacity:.55;pointer-events:none}
+.round{margin-bottom:16px}.rh{display:flex;justify-content:space-between;margin-bottom:8px}.rest{font-size:11px;color:#9fb0c8;border:1px solid #253957;border-radius:999px;padding:4px 8px}
 .match{background:linear-gradient(180deg,#162640,#132238);border:1px solid #2b405f;border-radius:15px;padding:11px;margin-bottom:9px}
-.pair{display:grid;grid-template-columns:minmax(64px,1fr) 112px 28px 112px minmax(64px,1fr);gap:7px;align-items:center}
-.pair>span{text-align:center;color:#8296b2;font-size:12px;font-weight:800}
-.left{text-align:right}.pair b{font-size:14px}
-.score-control{display:grid;grid-template-columns:42px minmax(48px,1fr) 42px;gap:5px}
-.score-btn{padding:0;min-width:42px;background:#173052;color:#fff;border:1px solid #31547e;font-size:22px}
-.score-btn.plus{background:linear-gradient(180deg,#25b966,#1c9f56);border-color:#35cf7a}
-.status{text-align:center;color:#a4b5cc;font-size:12px;margin-top:7px;min-height:18px}
-.status.invalid{color:#ff9d9d}
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
-.stat{background:linear-gradient(180deg,#101d31,#0d1828);border:1px solid #2a3d59;border-radius:14px;padding:12px 8px;text-align:center}
-.stat b{display:block;font-size:22px}.stat small{color:var(--muted)}
-.wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #263a57;border-radius:14px}
-table{width:100%;border-collapse:collapse;min-width:720px}
-th,td{padding:10px 7px;border-bottom:1px solid #263851;text-align:center;font-size:13px;white-space:nowrap}
-th{color:#9fb0c8;background:#0c1727;position:sticky;top:0}
-tbody tr:first-child td{background:rgba(246,201,76,.07)}
-td.name{text-align:left;font-weight:750}.points{font-weight:850;color:#ffd76a}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-button{border:0;border-radius:11px;padding:11px 14px;min-height:44px;font-weight:800;font-size:14px;cursor:pointer}
-.save,.add{background:linear-gradient(180deg,#f7d765,#efc13d);color:#17120a}
-.shuffle{background:linear-gradient(180deg,#4b8df7,#3275da);color:#fff}
-.export{background:#173f31;color:#aef2cb;border:1px solid #2c6f53}
-.reset{background:#44222b;color:#ffc6ce;border:1px solid #6c3340}
-.mobile-nav{
-  position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:20;
-  width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:7px;
-  background:rgba(8,18,31,.92);backdrop-filter:blur(16px);border:1px solid #2b4261;border-radius:18px;
-  box-shadow:0 18px 50px rgba(0,0,0,.35)
-}
-.mobile-nav a{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:12px;color:#a8b8ce;text-decoration:none;font-size:11px;font-weight:800}
-.mobile-nav a span{font-size:19px;line-height:1}
-.mobile-nav a.active{background:#17335a;color:#fff}
-#matches,#standingsCard,#rankingCard{scroll-margin-top:16px}
-@media(max-width:820px){
-  .grid{grid-template-columns:1fr}.hero,.card{padding:14px}
-  .pair{grid-template-columns:minmax(46px,1fr) 138px 20px 138px minmax(46px,1fr);gap:5px}
-  .quick-nav{grid-template-columns:1fr 1fr}.quick-nav a:last-child{grid-column:1/-1}
-}
-@media(max-width:430px){
-  main{padding-left:10px;padding-right:10px}.hero,.card{border-radius:16px}
-  .pair{grid-template-columns:minmax(34px,1fr) 126px 16px 126px minmax(34px,1fr);gap:3px}
-  .pair b{font-size:12px}.score-control{grid-template-columns:38px minmax(42px,1fr) 38px}
-  .score-btn{min-width:38px}.summary{gap:6px}.stat{padding:10px 4px}.stat b{font-size:19px}
-  .quick-nav{grid-template-columns:1fr}
-}
-
-/* Motion & interaction polish */
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes scorePop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
-@keyframes syncPulse{0%,100%{box-shadow:0 0 0 0 rgba(96,165,250,0)}50%{box-shadow:0 0 0 5px rgba(96,165,250,.08)}}
-@keyframes rankFlash{0%{background:rgba(96,165,250,.18)}100%{background:transparent}}
-.reveal{opacity:0;transform:translateY(10px)}
-.reveal.in-view{animation:fadeUp .38s ease forwards}
-.score-pop{animation:scorePop .22s ease}
-.sync.saving{animation:syncPulse 1s ease-in-out infinite}
-.rank-up td{animation:rankFlash .7s ease}
-.rank-move{display:inline-flex;align-items:center;justify-content:center;min-width:18px;margin-left:4px;font-size:10px;font-weight:900}
-.rank-move.up{color:#72e5a0}.rank-move.down{color:#ff9aa5}
-button,.quick-nav a,.mobile-nav a{position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
-.ripple{position:absolute;border-radius:50%;transform:scale(0);animation:ripple .45s linear;background:rgba(255,255,255,.18);pointer-events:none}
-@keyframes ripple{to{transform:scale(4);opacity:0}}
-body.scrolled .hero{transform:translateY(-2px);border-color:#355983}
-body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
-}
-
-
-/* Ranking & history */
-.rank-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
-.finish-season{background:linear-gradient(180deg,#f7d765,#efc13d);color:#17120a}
-.finish-season[disabled]{opacity:.45;cursor:not-allowed;filter:grayscale(.3)}
-.rank-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:12px;margin-top:12px}
-.rank-list,.history-panel{background:linear-gradient(180deg,#101d31,#0d1828);border:1px solid #2a3d59;border-radius:16px;padding:12px}
-.rank-row{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:10px 8px;border-bottom:1px solid #263851}
-.rank-row:last-child{border-bottom:0}
-.rank-pos{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:#132844;border:1px solid #2d4b72;font-weight:900}
-.rank-row:first-child .rank-pos{background:linear-gradient(180deg,#f7d765,#dca72c);color:#201706;border-color:#ffe187}
-.rank-person strong{display:block}.rank-person small{color:var(--muted)}
-.rank-rp{text-align:right;font-weight:900;color:#ffd76a}.rank-tier{font-size:11px;color:#a9bad0;margin-top:2px}
-.history-panel select{margin:8px 0 10px}
-.history-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
-.history-summary .mini{border:1px solid #2b405f;border-radius:12px;padding:9px 5px;text-align:center;background:#0b1728}
-.history-summary .mini b{display:block;font-size:17px}.history-summary .mini small{color:var(--muted);font-size:10px}
-.history-track{display:flex;gap:7px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
-.season-chip{min-width:92px;border:1px solid #2d4666;border-radius:12px;padding:8px;background:#10203a;text-align:center}
-.season-chip b{display:block;font-size:16px}.season-chip small{color:var(--muted)}
-.tier-badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:850;border:1px solid #3a4d69;background:#13243a}
-.season-note{color:var(--muted);font-size:12px;line-height:1.45;margin-top:8px}
-@media(max-width:760px){.rank-grid{grid-template-columns:1fr}}
-
-
-/* Player profile & trend chart */
-.player-link{cursor:pointer;text-decoration:none;color:inherit}
-.player-link:hover{color:#dceaff}
-.profile-backdrop{position:fixed;inset:0;background:rgba(2,8,18,.68);backdrop-filter:blur(10px);z-index:60;display:none;align-items:flex-end;justify-content:center;padding:14px}
-.profile-backdrop.open{display:flex}
-.profile-sheet{width:min(720px,100%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#0f2036,#0b1728);border:1px solid #315070;border-radius:24px 24px 16px 16px;box-shadow:0 30px 80px rgba(0,0,0,.55);padding:16px;animation:sheetUp .28s ease}
-@keyframes sheetUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-.profile-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
-.profile-title{display:flex;gap:10px;align-items:center}
-.profile-avatar{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1d4ed8,#3b82f6);font-size:24px;border:1px solid #5a8fe6}
-.profile-head h3{margin:0;font-size:22px}.profile-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
-.profile-close{width:40px;min-height:40px;border-radius:50%;padding:0;background:#18283f;color:#fff;border:1px solid #304966}
-.profile-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0 14px}
-.profile-metric{background:#0b1728;border:1px solid #2a405e;border-radius:13px;padding:10px 6px;text-align:center}
-.profile-metric b{display:block;font-size:18px}.profile-metric small{color:var(--muted);font-size:10px}
-.chart-card{background:#0a1626;border:1px solid #263b59;border-radius:16px;padding:12px;margin-top:10px}
-.chart-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}
-.chart-title strong{font-size:14px}.chart-title span{font-size:11px;color:var(--muted)}
-.rank-chart{width:100%;height:220px;display:block}
-.chart-grid line{stroke:#213551;stroke-width:1}
-.chart-axis{fill:#8fa3bf;font-size:10px}
-.chart-line{fill:none;stroke:#60a5fa;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-.chart-dot{fill:#f6c94c;stroke:#0b1728;stroke-width:2}
-.profile-history{margin-top:12px}
-.profile-history-row{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #213551}
-.profile-history-row:last-child{border-bottom:0}
-.profile-history-row small{color:var(--muted)}
-@media(max-width:560px){
-  .profile-metrics{grid-template-columns:repeat(2,1fr)}
-  .profile-sheet{max-height:92vh}
-  .rank-chart{height:190px}
-}
-
-
-/* Fix player-name contrast */
-.player-link{
-  appearance:none;
-  -webkit-appearance:none;
-  background:transparent !important;
-  border:0 !important;
-  color:#f7fbff !important;
-  padding:0 !important;
-  min-height:0 !important;
-  height:auto !important;
-  font:inherit !important;
-  font-weight:800 !important;
-  line-height:1.25 !important;
-  box-shadow:none !important;
-  border-radius:0 !important;
-  text-align:left !important;
-  display:inline !important;
-}
-.player-link:hover,.player-link:focus{
-  color:#8fc5ff !important;
-  outline:none;
-  text-decoration:underline;
-  text-underline-offset:3px;
-}
-.player-link:active{transform:none !important}
-.rank-person .player-link{color:#f7fbff !important}
-td.name .player-link{color:#f7fbff !important}
-
-
-/* Simple player PIN accounts */
-.auth-overlay{
-  position:fixed;inset:0;z-index:100;background:rgba(3,9,18,.82);backdrop-filter:blur(16px);
-  display:flex;align-items:center;justify-content:center;padding:18px
-}
-.auth-overlay.hidden{display:none!important}
-.auth-card{
-  width:min(440px,100%);background:linear-gradient(180deg,#10213a,#0b1728);
-  border:1px solid #315070;border-radius:24px;padding:18px;box-shadow:0 32px 90px rgba(0,0,0,.55)
-}
-.auth-card h2{margin:0 0 5px;font-size:24px}
-.auth-card p{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.45}
-.auth-field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.auth-field label{font-size:12px;color:#9fb0c8}
-.auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.auth-actions button{width:100%}
-.account-bar{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  margin-top:12px;padding:9px 10px;border:1px solid #2f496b;border-radius:12px;background:rgba(8,18,31,.5)
-}
-.account-user{display:flex;align-items:center;gap:8px;font-size:13px}
-.admin-badge{display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#5a4514;color:#ffe087;border:1px solid #8b6d23;font-size:10px;font-weight:900}
-.account-buttons{display:flex;gap:6px;flex-wrap:wrap}
-.account-buttons button{min-height:34px;padding:7px 9px;font-size:11px;background:#173052;color:#dceaff;border:1px solid #31547e}
-.account-buttons .logout{background:#44222b;color:#ffc6ce;border-color:#6c3340}
-.admin-only.locked-admin{opacity:.45;pointer-events:none;filter:grayscale(.4)}
-.pin-modal{position:fixed;inset:0;z-index:105;background:rgba(3,9,18,.72);display:none;align-items:center;justify-content:center;padding:18px}
-.pin-modal.open{display:flex}
-.pin-sheet{width:min(420px,100%);background:#0f1d31;border:1px solid #315070;border-radius:20px;padding:16px}
-.pin-sheet h3{margin:0 0 12px}
-.pin-help{font-size:12px;color:var(--muted);margin:6px 0 12px}
-.admin-account-tools{margin-top:12px;padding-top:12px;border-top:1px solid #29405f}
-.admin-account-tools .row{display:grid;grid-template-columns:1fr auto;gap:8px}
-
+.pair{display:grid;grid-template-columns:minmax(48px,1fr) 132px 22px 132px minmax(48px,1fr);gap:5px;align-items:center}.pair b{font-size:13px}.left{text-align:right}.vs{text-align:center;color:#8296b2;font-size:11px;font-weight:900}
+.score-control{display:grid;grid-template-columns:38px 1fr 38px;gap:4px}.score-control button{padding:0;min-height:42px;font-size:21px}.minus{background:#173052;color:#fff;border:1px solid #31547e}.plus{background:#1d9c58;color:#fff}
+input,select{width:100%;min-height:44px;border-radius:11px;border:1px solid #3a4d69;background:#0b1626;color:#fff;padding:0 10px;font-size:16px}.score-control input{text-align:center;padding:0}
+.status{text-align:center;color:#a4b5cc;font-size:11px;margin-top:6px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}.stat{background:#0b1728;border:1px solid #2a3d59;border-radius:13px;padding:11px 5px;text-align:center}.stat b{display:block;font-size:20px}.stat small{color:var(--muted);font-size:10px}
+.wrap{overflow-x:auto;border:1px solid #263a57;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:9px 6px;border-bottom:1px solid #263851;text-align:center;font-size:12px;white-space:nowrap}th{color:#9fb0c8;background:#0c1727}td.name{text-align:left;font-weight:800}.points{color:#ffd76a;font-weight:900}
+.rank-card{margin-top:14px}.rank-row{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #263851}.rank-pos{width:34px;height:34px;border-radius:10px;background:#132844;display:flex;align-items:center;justify-content:center;font-weight:900}.rank-row:first-child .rank-pos{background:#efc13d;color:#17120a}.rank-rp{color:#ffd76a;font-weight:900}.tier{color:var(--muted);font-size:10px}
+.bottom-nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:30;width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:7px;background:rgba(8,18,31,.94);backdrop-filter:blur(16px);border:1px solid #2b4261;border-radius:18px}.bottom-nav a{color:#a8b8ce;text-decoration:none;font-size:10px;font-weight:850;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;border-radius:11px}.bottom-nav a span{font-size:17px}.bottom-nav a.active{background:#17335a;color:#fff}
+.auth-overlay{position:fixed;inset:0;z-index:100;background:rgba(3,9,18,.84);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;padding:18px}.auth-overlay.hidden{display:none}.auth-card{width:min(420px,100%);background:#10213a;border:1px solid #315070;border-radius:22px;padding:18px}.auth-card h2{margin:0 0 5px}.auth-card p{color:var(--muted);font-size:12px}.field{display:flex;flex-direction:column;gap:5px;margin:10px 0}.field label{color:#9fb0c8;font-size:11px}
+@media(max-width:840px){.grid{grid-template-columns:1fr}.roster-list{grid-template-columns:1fr 1fr}}@media(max-width:500px){.roster-list{grid-template-columns:1fr}.pair{grid-template-columns:minmax(38px,1fr) 116px 16px 116px minmax(38px,1fr);gap:3px}.pair b{font-size:11px}.score-control{grid-template-columns:34px 1fr 34px}.summary{gap:5px}}
 </style>
 </head>
 <body>
 <main>
 <section class="hero">
-  <div class="eyebrow">🏆 PING PONG LEAGUE</div>
-  <h1>🏓 ตีให้สุด หยุดที่เบ้าตา</h1>
-  <div class="sub" id="leagueInfo">Ping Pong League</div>
-  <div class="rules">
-    <span class="pill">ชนะ 3 คะแนน</span><span class="pill">เสมอ 1 คะแนน</span>
-    <span class="pill">แพ้ 0 คะแนน</span><span class="pill">ลูกได้ / ลูกเสีย / ผลต่าง</span>
-    <span class="pill sync" id="syncStatus">กำลังเชื่อมต่อ...</span>
-  </div>
-  <div class="account-bar">
-    <div class="account-user"><span>👤</span><strong id="accountUserLabel">ยังไม่ได้เข้าสู่ระบบ</strong><span class="admin-badge hidden" id="adminBadge">ADMIN</span></div>
-    <div class="account-buttons"><button id="changePinBtn" type="button">เปลี่ยน PIN</button><button class="logout" id="logoutBtn" type="button">ออกจากระบบ</button></div>
-  </div>
-  <nav class="quick-nav" aria-label="เมนูหลัก">
-    <a class="primary" href="#matches">🏓 การแข่งขัน</a>
-    <a href="#standingsCard">🏆 ตารางคะแนน</a>
-    <a href="#rankingCard">📈 แรงค์</a>
-    <a href="predictions.html">🎯 ทายผล / ลงทุน</a>
-  </nav>
+ <div class="eyebrow">🏆 PING PONG LEAGUE</div>
+ <h1>🏓 ตีให้สุด หยุดที่เบ้าตา</h1>
+ <div class="sub" id="leagueInfo">กำลังโหลดลีก...</div>
+ <div class="rules"><span class="pill">ชนะ 3</span><span class="pill">เสมอ 1</span><span class="pill">แพ้ 0</span><span class="pill sync" id="syncStatus">กำลังเชื่อมต่อ...</span></div>
+ <div class="account-bar">
+   <div class="account-user">👤 <strong id="whoami">-</strong><span class="admin-badge" id="adminBadge" style="display:none">ADMIN</span></div>
+   <div class="actions" style="margin:0"><a class="btn secondary" id="adminLink" href="admin.html" style="display:none">⚙️ Admin</a><button class="danger" id="logout">ออก</button></div>
+ </div>
 </section>
 
 <div class="grid">
-<section class="card" id="matches">
-  <div class="manager admin-only" id="playerManager">
-    <h3>👥 จัดการผู้เล่น</h3>
-    <p class="hint">เพิ่มหรือลบผู้เล่นได้ตลอดเวลา • เมื่อเปลี่ยนรายชื่อ ระบบจะสร้างตารางใหม่</p>
-    <div class="add-row">
-      <input id="newPlayer" type="text" maxlength="30" placeholder="กรอกชื่อผู้เล่นใหม่" autocomplete="off">
-      <button class="add" id="addPlayer" type="button">+ เพิ่มผู้เล่น</button>
-    </div>
-    <div class="players" id="playerList"></div>
-    <div class="actions"><button class="shuffle" id="shuffle" type="button">🔀 สุ่มจับคู่ใหม่</button></div>
-    <div class="admin-account-tools">
-      <strong style="font-size:13px">🔐 จัดการ PIN ผู้เล่น</strong>
-      <div class="row" style="margin-top:8px"><select id="adminPinPlayer"></select><button class="secondary" id="adminResetPin" type="button">รีเซ็ตเป็น 1234</button></div>
-    </div>
-  </div>
+<section class="card" id="competition">
+ <div class="roster-box" id="rosterBox">
+   <div class="section-head"><div><h2>👥 ผู้เล่น Season นี้</h2><div class="hint">เลือกจากบัญชีผู้เล่นด้วย user_id • เฉพาะ Admin เปลี่ยนรายชื่อได้</div></div></div>
+   <div id="rosterList" class="roster-list"></div>
+   <div class="actions"><button class="blue" id="applyRoster">✅ ใช้รายชื่อที่เลือก / สร้างตารางใหม่</button><a class="btn secondary" href="admin.html" id="addAccountLink">+ เพิ่มบัญชีผู้เล่น</a></div>
+ </div>
 
-  <div class="section-head">
-    <div><h2>การแข่งขัน</h2><div class="section-kicker">แตะ − / + เพื่อปรับคะแนน หรือกรอกตัวเลขโดยตรง</div></div>
-  </div>
-  <div id="schedule"></div>
-  <div class="actions">
-    <button class="save" id="save" type="button">💾 บันทึก</button>
-    <button class="export" id="exportDocument" type="button">📄 ส่งออก / PDF</button>
-    <button class="reset admin-only" id="reset" type="button">ล้างผลทั้งหมด</button>
-  </div>
+ <div class="section-head"><div><h2>การแข่งขัน</h2><div class="hint">แตะ − / + หรือกรอกคะแนนโดยตรง</div></div></div>
+ <div id="schedule"></div>
+ <div class="actions"><button class="primary" id="saveBtn">💾 บันทึก</button><button class="danger" id="clearScores">ล้างคะแนน</button></div>
 </section>
 
-<section class="card" id="standingsCard">
-  <div class="section-head">
-    <div><h2>🏆 ตารางคะแนน</h2><div class="section-kicker">อัปเดตอัตโนมัติจากผลการแข่งขัน</div></div>
-  </div>
-  <div class="summary">
-    <div class="stat"><b id="played">0</b><small>แข่งแล้ว</small></div>
-    <div class="stat"><b id="remain">0</b><small>เหลือ</small></div>
-    <div class="stat"><b id="leader">-</b><small>อันดับ 1</small></div>
-  </div>
-  <div class="wrap" role="region" aria-label="ตารางคะแนน" tabindex="0">
-    <table>
-      <thead><tr><th>#</th><th style="text-align:left">ผู้เล่น</th><th>แข่ง</th><th>ชนะ</th><th>เสมอ</th><th>แพ้</th><th>ลูกได้</th><th>ลูกเสีย</th><th>+/-</th><th>คะแนน</th></tr></thead>
-      <tbody id="standings"></tbody>
-    </table>
-  </div>
-  <div class="rank-toolbar">
-    <button class="finish-season admin-only" id="finishSeason" type="button">🏁 จบการแข่งขัน / บันทึกแรงค์</button>
-    <span class="section-kicker" id="finishHint">ต้องแข่งครบทุกแมตช์ก่อน</span>
-  </div>
+<section>
+ <section class="card" id="standingsCard">
+   <div class="section-head"><div><h2>🏆 ตารางคะแนน</h2><div class="hint">เรียง: คะแนน → ผลต่าง → ลูกได้ → ชนะ</div></div></div>
+   <div class="summary"><div class="stat"><b id="played">0</b><small>แข่งแล้ว</small></div><div class="stat"><b id="remain">0</b><small>เหลือ</small></div><div class="stat"><b id="leader">-</b><small>อันดับ 1</small></div></div>
+   <div class="wrap"><table><thead><tr><th>#</th><th style="text-align:left">ผู้เล่น</th><th>แข่ง</th><th>ชนะ</th><th>เสมอ</th><th>แพ้</th><th>ได้</th><th>เสีย</th><th>+/-</th><th>แต้ม</th></tr></thead><tbody id="standings"></tbody></table></div>
+   <div class="actions"><button class="primary" id="finishSeason">🏁 จบ Season / บันทึกแรงค์</button><span class="hint" id="finishHint"></span></div>
+ </section>
+ <section class="card rank-card" id="rankCard">
+   <div class="section-head"><div><h2>📈 แรงค์สะสม</h2><div class="hint">ประวัติผูกกับ user_id แม้เปลี่ยนชื่อ</div></div></div>
+   <div id="rankingList"></div>
+ </section>
 </section>
-
-<section class="card" id="rankingCard">
-  <div class="section-head">
-    <div><h2>📈 แรงค์สะสมผู้เล่น</h2><div class="section-kicker">คำนวณจากอันดับจบการแข่งขันของแต่ละ Season</div></div>
-  </div>
-  <div class="rank-grid">
-    <div class="rank-list">
-      <div id="rankingList"></div>
-    </div>
-    <div class="history-panel">
-      <strong>ประวัติรายบุคคล</strong>
-      <select id="rankPlayerSelect" aria-label="เลือกผู้เล่นดูประวัติ"></select>
-      <div class="history-summary">
-        <div class="mini"><b id="rankTotalRp">0</b><small>RP สะสม</small></div>
-        <div class="mini"><b id="rankTitles">0</b><small>แชมป์</small></div>
-        <div class="mini"><b id="rankAvg">-</b><small>อันดับเฉลี่ย</small></div>
-      </div>
-      <div class="history-track" id="rankHistoryTrack"></div>
-      <div class="season-note">RP: อันดับ 1 = 100, 2 = 80, 3 = 65, 4 = 50, 5 = 40, 6 = 30, 7 = 20, 8 = 10, 9 = 5</div>
-    </div>
-  </div>
-</section>
-
 </div>
 </main>
 
-
-
-<div class="auth-overlay" id="authOverlay">
-  <div class="auth-card">
-    <h2>🏓 เข้าสู่ลีก</h2>
-    <p>เลือกชื่อของคุณแล้วใส่ PIN 4–6 หลัก ค่าเริ่มต้นของทุกบัญชีคือ <b>1234</b></p>
-    <div class="auth-field"><label>ผู้เล่น</label><select id="loginPlayer"></select></div>
-    <div class="auth-field"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div>
-    <button class="blue" id="loginBtn" type="button" style="width:100%">เข้าสู่ระบบ</button>
-    <p style="margin-top:10px">Admin: <b>มอส</b></p>
-  </div>
-</div>
-<div class="pin-modal" id="pinModal">
-  <div class="pin-sheet">
-    <h3>เปลี่ยน PIN</h3>
-    <div class="auth-field"><label>PIN ปัจจุบัน</label><input id="oldPin" type="password" inputmode="numeric" maxlength="6"></div>
-    <div class="auth-field"><label>PIN ใหม่</label><input id="newPin" type="password" inputmode="numeric" maxlength="6"></div>
-    <div class="auth-field"><label>ยืนยัน PIN ใหม่</label><input id="confirmPin" type="password" inputmode="numeric" maxlength="6"></div>
-    <div class="pin-help">PIN ต้องเป็นตัวเลข 4–6 หลัก</div>
-    <div class="auth-actions"><button class="secondary" id="cancelPin" type="button">ยกเลิก</button><button class="save" id="savePin" type="button">บันทึก PIN</button></div>
-  </div>
-</div>
-
-<div class="profile-backdrop" id="profileBackdrop" aria-hidden="true">
-  <div class="profile-sheet" role="dialog" aria-modal="true" aria-labelledby="profileName">
-    <div class="profile-head">
-      <div class="profile-title">
-        <div class="profile-avatar">🏓</div>
-        <div>
-          <h3 id="profileName">ผู้เล่น</h3>
-          <p id="profileTier">Bronze • 0 RP</p>
-        </div>
-      </div>
-      <button class="profile-close" id="profileClose" type="button" aria-label="ปิด">×</button>
-    </div>
-    <div class="profile-metrics">
-      <div class="profile-metric"><b id="profileRp">0</b><small>RP สะสม</small></div>
-      <div class="profile-metric"><b id="profileTitles">0</b><small>แชมป์</small></div>
-      <div class="profile-metric"><b id="profileBest">-</b><small>อันดับดีที่สุด</small></div>
-      <div class="profile-metric"><b id="profileAvg">-</b><small>อันดับเฉลี่ย</small></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title"><strong>แนวโน้มอันดับย้อนหลัง</strong><span>อันดับ 1 อยู่ด้านบน</span></div>
-      <svg class="rank-chart" id="profileChart" viewBox="0 0 640 220" preserveAspectRatio="none" aria-label="กราฟอันดับย้อนหลัง"></svg>
-    </div>
-    <div class="profile-history">
-      <div class="section-head"><div><h2 style="font-size:16px">ประวัติ Season</h2><div class="section-kicker">อันดับและ RP ที่ได้รับในแต่ละครั้ง</div></div></div>
-      <div id="profileHistoryList"></div>
-    </div>
-  </div>
-</div>
-
-<nav class="mobile-nav" aria-label="ทางลัด">
-  <a class="active" data-scroll-target="matches" href="#matches"><span>🏓</span>การแข่งขัน</a>
-  <a data-scroll-target="standingsCard" href="#standingsCard"><span>🏆</span>ตารางคะแนน</a>
-  <a data-scroll-target="rankingCard" href="#rankingCard"><span>📈</span>แรงค์</a>
-  <a href="predictions.html"><span>🎯</span>ทายผล</a>
+<nav class="bottom-nav">
+ <a class="active" href="#competition"><span>🏓</span>การแข่งขัน</a>
+ <a href="#standingsCard"><span>🏆</span>ตารางคะแนน</a>
+ <a href="#rankCard"><span>📈</span>แรงค์</a>
+ <a href="predictions.html"><span>🎯</span>ทายผล</a>
 </nav>
 
+<div class="auth-overlay" id="auth">
+ <div class="auth-card">
+   <h2>เข้าสู่ลีก</h2><p>เลือกบัญชีของคุณแล้วใส่ PIN</p>
+   <div class="field"><label>บัญชี</label><select id="loginUser"></select></div>
+   <div class="field"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div>
+   <button class="blue" id="loginBtn" style="width:100%">เข้าสู่ระบบ</button>
+ </div>
+</div>
+
 <script>
-const defaultPlayers=["พี่โช็ค","กิฟท์","กอล์ฟ","มังกร","พฤษ","เฟิร์น","มอส"];
-const KEY="pp_league_v5", OLD_KEY="pp_league_v4";
+const KEY="pp_league_v7_uid";
+const LEGACY_KEYS=["pp_league_v5","pp_league_v4"];
 const SUPABASE_URL="https://gqlfqoeejgtjpsdvngbh.supabase.co";
 const SUPABASE_KEY="sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z";
 const CLOUD_ENDPOINT=`${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
-
-let players=[...defaultPlayers], rounds=[], results={}, rankHistory=[], currentSeason=1, accounts={}, currentAccount=localStorage.getItem("pp_logged_user")||"";
 const ADMIN_NAME="มอส";
-let cloudReady=false,cloudDirty=false,cloudSaving=false,cloudSaveTimer=null,lastCloudUpdate="";
 
-const escapeHtml=v=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
-const validScore=v=>Number.isInteger(v)&&v>=0;
-const totalMatches=()=>players.length*(players.length-1)/2;
+let state={profiles:{},seasonPlayerIds:[],rounds:[],results:{},rankHistory:[],currentSeason:1};
+let currentUserId=localStorage.getItem("pp_user_id")||"";
+let cloudReady=false,cloudSaving=false,dirty=false,lastCloudUpdate="",saveTimer=null;
+
+const uid=()=>`u_${Math.random().toString(36).slice(2,8)}${Date.now().toString(36).slice(-4)}`;
+const esc=v=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
+const valid=v=>Number.isInteger(v)&&v>=0;
+const profile=id=>state.profiles[id];
+const activeProfiles=()=>Object.values(state.profiles).filter(p=>p.active!==false);
+const seasonProfiles=()=>state.seasonPlayerIds.map(id=>profile(id)).filter(Boolean);
+const seasonNames=()=>seasonProfiles().map(p=>p.displayName);
+const totalMatches=()=>state.seasonPlayerIds.length*(state.seasonPlayerIds.length-1)/2;
+const isAdmin=()=>profile(currentUserId)?.role==="admin";
 const mid=(r,m)=>`r${r}m${m}`;
 
-function shuffled(source){
-  const a=[...source];
-  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
-  return a;
+function deterministicId(name,i){return `legacy_${i+1}_${encodeURIComponent(name).replace(/%/g,"").slice(0,12)}`}
+function migrateLegacy(){
+ let legacy=null;
+ for(const k of LEGACY_KEYS){try{const x=JSON.parse(localStorage.getItem(k)||"null");if(x&&x.players){legacy=x;break}}catch(e){}}
+ const names=legacy?.players?.length?legacy.players:["พี่โช็ค","กิฟท์","กอล์ฟ","มังกร","พฤษ","เฟิร์น","มอส"];
+ names.forEach((name,i)=>{const id=deterministicId(name,i);state.profiles[id]={id,displayName:name,pin:"1234",role:name===ADMIN_NAME?"admin":"player",active:true,createdAt:new Date().toISOString()}});
+ state.seasonPlayerIds=names.map((n,i)=>deterministicId(n,i));
+ state.rounds=legacy?.rounds||makeRoundRobin(state.seasonPlayerIds);
+ state.results=legacy?.results||{};
+ state.rankHistory=legacy?.rankHistory||[];
+ state.currentSeason=legacy?.currentSeason||1;
+ saveLocal();
 }
-function makeRoundRobin(source){
-  const rotation=shuffled(source); if(rotation.length%2) rotation.push(null);
-  const output=[], size=rotation.length;
-  for(let round=0;round<size-1;round++){
-    const matches=[]; let rest=null;
-    for(let i=0;i<size/2;i++){
-      const a=rotation[i], b=rotation[size-1-i];
-      if(a&&b) matches.push(round%2?[b,a]:[a,b]); else rest=a||b;
-    }
-    output.push({rest,m:matches});
-    rotation.splice(1,0,rotation.pop());
-  }
-  return output;
+function loadLocal(){try{const x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&x.profiles){state=x;return}}catch(e){}migrateLegacy()}
+function saveLocal(){localStorage.setItem(KEY,JSON.stringify(state))}
+function makeRoundRobin(ids){
+ const a=[...ids];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}if(a.length%2)a.push(null);
+ const out=[],size=a.length;
+ for(let r=0;r<size-1;r++){let rest=null,m=[];for(let i=0;i<size/2;i++){const x=a[i],y=a[size-1-i];if(x&&y)m.push(r%2?[y,x]:[x,y]);else rest=x||y}out.push({rest,m});a.splice(1,0,a.pop())}
+ return out;
 }
+function setSync(text,status=""){const e=document.getElementById("syncStatus");e.textContent=text;e.className=`pill sync ${status}`}
+async function cloudRequest(method="GET",body=null){const o={method,headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}};if(body){o.headers["Content-Type"]="application/json";o.headers.Prefer="return=representation";o.body=JSON.stringify(body)}const r=await fetch(`${CLOUD_ENDPOINT}&select=league,updated_at`,o);if(!r.ok)throw new Error(r.status);return r.json()}
+function cloudPayload(){return {uidLeague:state}}
+function saveState(){saveLocal();if(!cloudReady)return;dirty=true;setSync("กำลังบันทึก...");clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,400)}
+async function pushCloud(){if(!cloudReady||cloudSaving)return;cloudSaving=true;try{const now=new Date().toISOString(),rows=await cloudRequest("PATCH",{league:cloudPayload(),updated_at:now});lastCloudUpdate=rows[0]?.updated_at||now;dirty=false;setSync("ออนไลน์ • บันทึกแล้ว","online")}catch(e){setSync("ออฟไลน์ • เก็บในเครื่อง","offline")}finally{cloudSaving=false}}
+async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal()}lastCloudUpdate=row?.updated_at||"";render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pullCloud,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
+async function pullCloud(){if(!cloudReady||dirty||cloudSaving)return;try{const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal();render()}}catch(e){}}
 
-try{
-  const saved=JSON.parse(localStorage.getItem(KEY)||"null");
-  if(saved&&Array.isArray(saved.players)&&saved.players.length>=2&&Array.isArray(saved.rounds)){
-    players=saved.players; rounds=saved.rounds; results=saved.results||{}; rankHistory=Array.isArray(saved.rankHistory)?saved.rankHistory:[]; currentSeason=Number(saved.currentSeason)||rankHistory.length+1; accounts=saved.accounts||{};
-  }else{
-    rounds=makeRoundRobin(players);
-    results=JSON.parse(localStorage.getItem(OLD_KEY)||"{}")||{};
-  }
-}catch(e){rounds=makeRoundRobin(players);results={}}
-
-
-function ensureAccounts(){
-  players.forEach(name=>{
-    if(!accounts[name])accounts[name]={pin:"1234",role:name===ADMIN_NAME?"admin":"player",createdAt:new Date().toISOString()};
-    if(name===ADMIN_NAME)accounts[name].role="admin";
-  });
+function renderLogin(){const sel=document.getElementById("loginUser");sel.innerHTML=activeProfiles().map(p=>`<option value="${p.id}">${esc(p.displayName)}${p.role==="admin"?" • Admin":""}</option>`).join("")}
+function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!profile(id)||profile(id).pin!==pin){alert("PIN ไม่ถูกต้อง");return}currentUserId=id;localStorage.setItem("pp_user_id",id);document.getElementById("auth").classList.add("hidden");render()}
+function logout(){currentUserId="";localStorage.removeItem("pp_user_id");document.getElementById("auth").classList.remove("hidden");renderLogin()}
+function renderHeader(){const p=profile(currentUserId);document.getElementById("whoami").textContent=p?.displayName||"-";document.getElementById("adminBadge").style.display=isAdmin()?"inline-flex":"none";document.getElementById("adminLink").style.display=isAdmin()?"inline-flex":"none";document.getElementById("leagueInfo").textContent=`Season ${state.currentSeason} • ${state.seasonPlayerIds.length} คน • ${totalMatches()} แมตช์`}
+function renderRoster(){
+ const box=document.getElementById("rosterList");const selected=new Set(state.seasonPlayerIds);
+ box.innerHTML=activeProfiles().map(p=>`<label class="roster-item ${isAdmin()?"":"locked"}"><input type="checkbox" data-roster="${p.id}" ${selected.has(p.id)?"checked":""} ${isAdmin()?"":"disabled"}><div><strong>${esc(p.displayName)}</strong><small>${p.id}${p.role==="admin"?" • Admin":""}</small></div></label>`).join("");
+ document.getElementById("applyRoster").style.display=isAdmin()?"inline-flex":"none";document.getElementById("addAccountLink").style.display=isAdmin()?"inline-flex":"none";
 }
-function isAdmin(){return currentAccount===ADMIN_NAME && accounts[currentAccount]?.role==="admin"}
-function validPinFormat(pin){return /^\d{4,6}$/.test(String(pin||""))}
-function renderLoginOptions(){
-  ensureAccounts();
-  const sel=document.getElementById("loginPlayer"); if(!sel)return;
-  sel.innerHTML=players.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
-  if(players.includes(currentAccount))sel.value=currentAccount;
+function applyRoster(){if(!isAdmin())return;const ids=[...document.querySelectorAll("[data-roster]:checked")].map(x=>x.dataset.roster);if(ids.length<2){alert("ต้องเลือกอย่างน้อย 2 คน");return}if(Object.keys(state.results).length&&!confirm("การเปลี่ยนผู้เล่นจะล้างผล Season ปัจจุบัน ยืนยันหรือไม่?"))return;state.seasonPlayerIds=ids;state.rounds=makeRoundRobin(ids);state.results={};saveState();render()}
+function renderSchedule(){
+ const box=document.getElementById("schedule");box.innerHTML="";
+ state.rounds.forEach((r,ri)=>{const sec=document.createElement("div");sec.className="round";sec.innerHTML=`<div class="rh"><b>รอบ ${ri+1}</b><span class="rest">${r.rest?`พัก: ${esc(profile(r.rest)?.displayName||r.rest)}`:"แข่งครบ"}</span></div>`;
+  r.m.forEach((pair,mi)=>{const id=mid(ri,mi),x=state.results[id]||{},a=profile(pair[0]),b=profile(pair[1]);const row=document.createElement("div");row.className="match";row.innerHTML=`<div class="pair"><b class="left">${esc(a?.displayName||pair[0])}</b><div class="score-control"><button class="minus" data-score="${id}:a:-1">−</button><input id="${id}a" inputmode="numeric" type="number" min="0" value="${x.a??""}"><button class="plus" data-score="${id}:a:1">+</button></div><span class="vs">VS</span><div class="score-control"><button class="minus" data-score="${id}:b:-1">−</button><input id="${id}b" inputmode="numeric" type="number" min="0" value="${x.b??""}"><button class="plus" data-score="${id}:b:1">+</button></div><b>${esc(b?.displayName||pair[1])}</b></div><div class="status" id="${id}s"></div>`;sec.appendChild(row)});box.appendChild(sec)});
+ box.querySelectorAll("[data-score]").forEach(btn=>btn.onclick=()=>{const [id,side,delta]=btn.dataset.score.split(":");const inp=document.getElementById(id+side),v=inp.value===""?0:Number(inp.value);inp.value=Math.max(0,v+Number(delta));updateFromInputs(id)});
+ state.rounds.forEach((r,ri)=>r.m.forEach((p,mi)=>["a","b"].forEach(side=>document.getElementById(mid(ri,mi)+side).oninput=()=>updateFromInputs(mid(ri,mi)))));
+ updateLabels();
 }
-function renderAccountUi(){
-  ensureAccounts();
-  const label=document.getElementById("accountUserLabel"),badge=document.getElementById("adminBadge");
-  if(label)label.textContent=currentAccount||"ยังไม่ได้เข้าสู่ระบบ";
-  if(badge)badge.classList.toggle("hidden",!isAdmin());
-  document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("locked-admin",!isAdmin()));
-  const adminSelect=document.getElementById("adminPinPlayer");
-  if(adminSelect){
-    adminSelect.innerHTML=players.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
-  }
-}
-function showLogin(){renderLoginOptions();document.getElementById("authOverlay")?.classList.remove("hidden");document.body.style.overflow="hidden"}
-function hideLogin(){document.getElementById("authOverlay")?.classList.add("hidden");document.body.style.overflow=""}
-function login(){
-  ensureAccounts();
-  const name=document.getElementById("loginPlayer").value,pin=document.getElementById("loginPin").value;
-  if(!accounts[name]||accounts[name].pin!==pin){alert("ชื่อหรือ PIN ไม่ถูกต้อง");return}
-  currentAccount=name;localStorage.setItem("pp_logged_user",name);document.getElementById("loginPin").value="";
-  hideLogin();renderAccountUi();render();
-}
-function logout(){currentAccount="";localStorage.removeItem("pp_logged_user");showLogin();renderAccountUi()}
-function openPinModal(){if(!currentAccount){showLogin();return}document.getElementById("pinModal").classList.add("open");["oldPin","newPin","confirmPin"].forEach(id=>document.getElementById(id).value="")}
-function closePinModal(){document.getElementById("pinModal").classList.remove("open")}
-function changePin(){
-  const oldPin=document.getElementById("oldPin").value,newPin=document.getElementById("newPin").value,confirm=document.getElementById("confirmPin").value;
-  if(accounts[currentAccount]?.pin!==oldPin){alert("PIN ปัจจุบันไม่ถูกต้อง");return}
-  if(!validPinFormat(newPin)){alert("PIN ใหม่ต้องเป็นตัวเลข 4–6 หลัก");return}
-  if(newPin!==confirm){alert("ยืนยัน PIN ใหม่ไม่ตรงกัน");return}
-  accounts[currentAccount].pin=newPin;saveState();closePinModal();alert("เปลี่ยน PIN สำเร็จ");
-}
-function adminResetPin(){
-  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
-  const name=document.getElementById("adminPinPlayer").value;if(!accounts[name])return;
-  if(!confirm(`รีเซ็ต PIN ของ ${name} เป็น 1234?`))return;
-  accounts[name].pin="1234";saveState();alert(`รีเซ็ต PIN ของ ${name} แล้ว`);
-}
-
-function setSyncStatus(text,status=""){
-  const el=document.getElementById("syncStatus"); if(!el)return;
-  el.textContent=text; el.className=`pill sync ${status}`;
-  el.classList.toggle("saving",text.includes("กำลัง"));
-}
-async function cloudRequest(method="GET",body=null){
-  const options={method,headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}};
-  if(body){options.headers["Content-Type"]="application/json";options.headers.Prefer="return=representation";options.body=JSON.stringify(body)}
-  const response=await fetch(`${CLOUD_ENDPOINT}&select=league,predictions,updated_at`,options);
-  if(!response.ok) throw new Error(`Cloud ${response.status}`);
-  return response.status===204?[]:response.json();
-}
-function saveState(){
-  localStorage.setItem(KEY,JSON.stringify({players,rounds,results,rankHistory,currentSeason,accounts}));
-  if(!cloudReady)return;
-  cloudDirty=true; setSyncStatus("กำลังบันทึก...");
-  clearTimeout(cloudSaveTimer); cloudSaveTimer=setTimeout(pushLeague,450);
-}
-async function pushLeague(){
-  if(!cloudReady||cloudSaving)return; cloudSaving=true;
-  try{
-    const updatedAt=new Date().toISOString();
-    const rows=await cloudRequest("PATCH",{league:{players,rounds,results,rankHistory,currentSeason,accounts},updated_at:updatedAt});
-    lastCloudUpdate=rows[0]?.updated_at||updatedAt; cloudDirty=false;
-    setSyncStatus("ออนไลน์ • บันทึกแล้ว","online");
-  }catch(e){setSyncStatus("ออฟไลน์ • เก็บในเครื่อง","offline")}
-  finally{cloudSaving=false}
-}
-async function pullLeague(){
-  if(!cloudReady||cloudDirty||cloudSaving)return;
-  try{
-    const rows=await cloudRequest(), row=rows[0]; if(!row)return;
-    setSyncStatus("ออนไลน์ • ซิงก์แล้ว","online");
-    if(row.updated_at===lastCloudUpdate)return;
-    lastCloudUpdate=row.updated_at||"";
-    const next=row.league;
-    if(next&&Array.isArray(next.players)&&next.players.length>=2&&Array.isArray(next.rounds)){
-      const changed=JSON.stringify(next)!==JSON.stringify({players,rounds,results,rankHistory,currentSeason,accounts});
-      if(changed){players=next.players;rounds=next.rounds;results=next.results||{};rankHistory=Array.isArray(next.rankHistory)?next.rankHistory:[];currentSeason=Number(next.currentSeason)||rankHistory.length+1;accounts=next.accounts||{};localStorage.setItem(KEY,JSON.stringify(next));render()}
-    }
-  }catch(e){setSyncStatus("ออฟไลน์ • กำลังลองใหม่","offline")}
-}
-async function initCloud(){
-  setSyncStatus("กำลังเชื่อมต่อ...");
-  try{
-    const rows=await cloudRequest(),row=rows[0]; cloudReady=true;
-    if(row){
-      lastCloudUpdate=row.updated_at||"";
-      const next=row.league;
-      if(next&&Array.isArray(next.players)&&next.players.length>=2&&Array.isArray(next.rounds)){
-        players=next.players;rounds=next.rounds;results=next.results||{};rankHistory=Array.isArray(next.rankHistory)?next.rankHistory:[];currentSeason=Number(next.currentSeason)||rankHistory.length+1;accounts=next.accounts||{};
-        localStorage.setItem(KEY,JSON.stringify(next));
-      }
-    }
-    render();setSyncStatus("ออนไลน์ • ข้อมูลร่วมกัน","online");
-    setInterval(pullLeague,3000);
-  }catch(e){setSyncStatus("ยังไม่เชื่อมฐานข้อมูล","offline")}
-}
-
-function hasResults(){return Object.keys(results).length>0}
-function approveReset(msg){return !hasResults()||confirm(msg)}
-function rebuildSchedule(){rounds=makeRoundRobin(players);results={};saveState();render()}
-
-function addPlayer(){
-  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
-  const input=document.getElementById("newPlayer"), name=input.value.trim();
-  if(!name){input.focus();return}
-  if(players.some(p=>p.toLocaleLowerCase("th")===name.toLocaleLowerCase("th"))){alert("มีชื่อผู้เล่นนี้แล้ว");return}
-  if(!approveReset("การเพิ่มผู้เล่นจะสร้างตารางใหม่และล้างผลการแข่งขันเดิม ดำเนินการต่อหรือไม่?"))return;
-  players.push(name); accounts[name]={pin:"1234",role:name===ADMIN_NAME?"admin":"player",createdAt:new Date().toISOString()}; input.value=""; rebuildSchedule();
-}
-function removePlayer(index){
-  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
-  if(players.length<=2){alert("ต้องมีผู้เล่นอย่างน้อย 2 คน");return}
-  if(!approveReset(`ลบ ${players[index]} แล้วสร้างตารางใหม่หรือไม่? ผลการแข่งขันเดิมจะถูกล้าง`))return;
-  players.splice(index,1); rebuildSchedule();
-}
-function renderPlayers(){
-  const box=document.getElementById("playerList"); box.innerHTML="";
-  players.forEach((name,index)=>{
-    const chip=document.createElement("span"); chip.className="chip";
-    const label=document.createElement("span"); label.textContent=name;
-    const remove=document.createElement("button"); remove.type="button"; remove.textContent="×";
-    remove.setAttribute("aria-label",`ลบ ${name}`); remove.onclick=()=>removePlayer(index);
-    chip.append(label,remove); box.appendChild(chip);
-  });
-}
-
-function inputValue(el){return el.value===""?null:Number(el.value)}
-function adjustScore(ri,mi,side,delta){
-  const input=document.getElementById(mid(ri,mi)+side);
-  const current=inputValue(input);
-  input.value=Math.max(0,(validScore(current)?current:0)+delta);
-  input.classList.remove("score-pop"); void input.offsetWidth; input.classList.add("score-pop");
-  updateMatch(ri,mi);
-}
-function updateMatch(ri,mi){
-  const id=mid(ri,mi);
-  const a=inputValue(document.getElementById(id+"a")), b=inputValue(document.getElementById(id+"b"));
-  if(a===null&&b===null) delete results[id]; else results[id]={a,b};
-  saveState(); label(ri,mi); calc();
-}
-function matchResult(pair,score){
-  if(!score||!validScore(score.a)||!validScore(score.b))return "ยังไม่กรอกผล";
-  return score.a>score.b?`${pair[0]} ชนะ ${score.a}-${score.b}`:
-         score.b>score.a?`${pair[1]} ชนะ ${score.b}-${score.a}`:
-         `เสมอ ${score.a}-${score.b}`;
-}
-function label(ri,mi){
-  const id=mid(ri,mi),x=results[id],pair=rounds[ri].m[mi],el=document.getElementById(id+"s");
-  el.classList.remove("invalid");
-  if(!x||x.a===null||x.b===null){el.textContent="ยังไม่กรอกผล";return}
-  if(!validScore(x.a)||!validScore(x.b)){el.textContent="กรุณากรอกเลขจำนวนเต็มตั้งแต่ 0 ขึ้นไป";el.classList.add("invalid");return}
-  el.textContent=matchResult(pair,x);
-}
-
-const RP_BY_RANK=[100,80,65,50,40,30,20,10,5];
-function rpForRank(rank){return RP_BY_RANK[rank-1]??Math.max(1,5-(rank-9))}
-function tierForRp(rp){
-  if(rp>=1000)return "Master";
-  if(rp>=700)return "Diamond";
-  if(rp>=450)return "Platinum";
-  if(rp>=250)return "Gold";
-  if(rp>=100)return "Silver";
-  return "Bronze";
-}
-function rankingProfiles(){
-  const map={};
-  const ensure=name=>map[name]||(map[name]={name,rp:0,seasons:0,titles:0,best:null,last:null,sumRank:0,history:[]});
-  players.forEach(ensure);
-  rankHistory.forEach(season=>{
-    (season.standings||[]).forEach(row=>{
-      const p=ensure(row.name),award=Number(row.rpAward)||0;
-      p.rp+=award;p.seasons++;p.sumRank+=row.rank;p.last=row.rank;
-      p.best=p.best===null?row.rank:Math.min(p.best,row.rank);
-      if(row.rank===1)p.titles++;
-      p.history.push({season:season.season,rank:row.rank,rp:award,date:season.finishedAt});
-    });
-  });
-  return Object.values(map).map(p=>({...p,avg:p.seasons?p.sumRank/p.seasons:null,tier:tierForRp(p.rp)}))
-    .sort((a,b)=>b.rp-a.rp||b.titles-a.titles||(a.avg??999)-(b.avg??999)||a.name.localeCompare(b.name,"th"));
-}
-function renderRanking(){
-  const profiles=rankingProfiles(),list=document.getElementById("rankingList"),select=document.getElementById("rankPlayerSelect");
-  if(!list||!select)return;
-  list.innerHTML=profiles.map((p,i)=>`<div class="rank-row">
-    <div class="rank-pos">${i+1}</div>
-    <div class="rank-person"><strong><button type="button" class="player-link" data-player-profile="${escapeHtml(p.name)}">${escapeHtml(p.name)}</button></strong><small>${p.seasons} Season • ดีสุด ${p.best?`#${p.best}`:"-"}</small></div>
-    <div class="rank-rp">${p.rp} RP<div class="rank-tier"><span class="tier-badge">${p.tier}</span></div></div>
-  </div>`).join("")||'<div class="empty">ยังไม่มีข้อมูลแรงค์</div>';
-  const previous=select.value;
-  select.innerHTML=profiles.map(p=>`<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join("");
-  if(previous&&profiles.some(p=>p.name===previous))select.value=previous;
-  else if(profiles[0])select.value=profiles[0].name;
-  renderPlayerRankHistory();
-}
-function renderPlayerRankHistory(){
-  const select=document.getElementById("rankPlayerSelect"),profiles=rankingProfiles(),p=profiles.find(x=>x.name===select?.value)||profiles[0];
-  if(!p)return;
-  document.getElementById("rankTotalRp").textContent=p.rp;
-  document.getElementById("rankTitles").textContent=p.titles;
-  document.getElementById("rankAvg").textContent=p.avg?p.avg.toFixed(2):"-";
-  document.getElementById("rankHistoryTrack").innerHTML=p.history.length?p.history.map(h=>`<div class="season-chip"><small>S${h.season}</small><b>#${h.rank}</b><small>+${h.rp} RP</small></div>`).join(""):'<div class="muted">ยังไม่มี Season ที่บันทึก</div>';
-}
-function finishSeason(){
-  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return}
-  const {arr,played}=standingsData();
-  if(played!==totalMatches()){alert(`ยังแข่งไม่ครบ เหลือ ${totalMatches()-played} แมตช์`);return}
-  if(!confirm(`ยืนยันจบ Season ${currentSeason} และบันทึกอันดับถาวร?`))return;
-  const snapshot={
-    season:currentSeason,
-    finishedAt:new Date().toISOString(),
-    playerCount:players.length,
-    standings:arr.map((x,i)=>({name:x.name,rank:i+1,rpAward:rpForRank(i+1),pts:x.pts,gd:x.gd,gf:x.gf,ga:x.ga,w:x.w,d:x.d,l:x.l}))
-  };
-  rankHistory.push(snapshot);
-  currentSeason++;
-  rounds=makeRoundRobin(players);results={};
-  saveState();render();
-  document.getElementById("rankingCard")?.scrollIntoView({behavior:"smooth",block:"start"});
-}
-
-
-function profileFor(name){
-  return rankingProfiles().find(p=>p.name===name) || {name,rp:0,seasons:0,titles:0,best:null,last:null,avg:null,tier:"Bronze",history:[]};
-}
-function drawRankChart(profile){
-  const svg=document.getElementById("profileChart");
-  if(!svg)return;
-  const hist=profile.history||[];
-  if(!hist.length){
-    svg.innerHTML='<text x="320" y="112" text-anchor="middle" fill="#91a4be" font-size="14">ยังไม่มีประวัติ Season</text>';
-    return;
-  }
-  const w=640,h=220,padL=42,padR=18,padT=18,padB=30;
-  const maxRank=Math.max(players.length,...hist.map(x=>x.rank));
-  const x=(i)=>hist.length===1?(w/2):(padL+i*((w-padL-padR)/(hist.length-1)));
-  const y=(rank)=>padT+((rank-1)/(Math.max(1,maxRank-1)))*(h-padT-padB);
-  let parts=['<g class="chart-grid">'];
-  for(let r=1;r<=maxRank;r++){
-    const yy=y(r);parts.push(`<line x1="${padL}" y1="${yy}" x2="${w-padR}" y2="${yy}"></line>`);
-    parts.push(`<text class="chart-axis" x="8" y="${yy+3}">#${r}</text>`);
-  }
-  parts.push('</g>');
-  const pts=hist.map((d,i)=>`${x(i)},${y(d.rank)}`).join(" ");
-  parts.push(`<polyline class="chart-line" points="${pts}"></polyline>`);
-  hist.forEach((d,i)=>{
-    const xx=x(i),yy=y(d.rank);
-    parts.push(`<circle class="chart-dot" cx="${xx}" cy="${yy}" r="5"></circle>`);
-    parts.push(`<text class="chart-axis" x="${xx}" y="${h-8}" text-anchor="middle">S${d.season}</text>`);
-  });
-  svg.innerHTML=parts.join("");
-}
-function openPlayerProfile(name){
-  const p=profileFor(name),backdrop=document.getElementById("profileBackdrop");
-  document.getElementById("profileName").textContent=p.name;
-  document.getElementById("profileTier").textContent=`${p.tier} • ${p.rp} RP`;
-  document.getElementById("profileRp").textContent=p.rp;
-  document.getElementById("profileTitles").textContent=p.titles;
-  document.getElementById("profileBest").textContent=p.best?`#${p.best}`:"-";
-  document.getElementById("profileAvg").textContent=p.avg?p.avg.toFixed(2):"-";
-  const history=document.getElementById("profileHistoryList");
-  history.innerHTML=p.history.length?p.history.slice().reverse().map(h=>`<div class="profile-history-row">
-    <div><b>S${h.season}</b><br><small>${h.date?new Date(h.date).toLocaleDateString("th-TH"):""}</small></div>
-    <div><b>จบอันดับ #${h.rank}</b><br><small>${p.name}</small></div>
-    <div class="points">+${h.rp} RP</div>
-  </div>`).join(""):'<div class="muted">ยังไม่มีประวัติการแข่งขัน</div>';
-  drawRankChart(p);
-  backdrop.classList.add("open");backdrop.setAttribute("aria-hidden","false");
-  document.body.style.overflow="hidden";
-}
-function closePlayerProfile(){
-  const backdrop=document.getElementById("profileBackdrop");
-  backdrop.classList.remove("open");backdrop.setAttribute("aria-hidden","true");
-  document.body.style.overflow="";
-}
-function bindProfileButtons(){
-  document.querySelectorAll("[data-player-profile]").forEach(btn=>{
-    if(btn.dataset.bound)return;
-    btn.dataset.bound="1";
-    btn.addEventListener("click",()=>openPlayerProfile(btn.dataset.playerProfile));
-  });
-}
-
-function render(){
-  ensureAccounts();renderAccountUi();
-  renderPlayers();
-  document.getElementById("leagueInfo").textContent=`${players.length} คน • พบกันหมด ${totalMatches()} แมตช์`;
-  const box=document.getElementById("schedule"); box.innerHTML="";
-  rounds.forEach((r,ri)=>{
-    const sec=document.createElement("div"); sec.className="round";
-    sec.innerHTML=`<div class="rh"><b>รอบ ${ri+1}</b><span class="rest">${r.rest?`☕ พัก: ${escapeHtml(r.rest)}`:"แข่งครบทุกคน"}</span></div>`;
-    r.m.forEach((p,mi)=>{
-      const id=mid(ri,mi),x=results[id]||{},row=document.createElement("div");
-      row.className="match";
-      row.innerHTML=`<div class="pair">
-        <b class="left">${escapeHtml(p[0])}</b>
-        <div class="score-control">
-          <button class="score-btn" id="${id}aminus" type="button">−</button>
-          <input type="number" min="0" step="1" inputmode="numeric" id="${id}a" value="${x.a??""}">
-          <button class="score-btn plus" id="${id}aplus" type="button">+</button>
-        </div>
-        <span>VS</span>
-        <div class="score-control">
-          <button class="score-btn" id="${id}bminus" type="button">−</button>
-          <input type="number" min="0" step="1" inputmode="numeric" id="${id}b" value="${x.b??""}">
-          <button class="score-btn plus" id="${id}bplus" type="button">+</button>
-        </div>
-        <b>${escapeHtml(p[1])}</b>
-      </div><div class="status" id="${id}s">ยังไม่กรอกผล</div>`;
-      sec.appendChild(row);
-    });
-    box.appendChild(sec);
-  });
-  rounds.forEach((r,ri)=>r.m.forEach((p,mi)=>{
-    ["a","b"].forEach(side=>{
-      document.getElementById(mid(ri,mi)+side).addEventListener("input",()=>updateMatch(ri,mi));
-      document.getElementById(mid(ri,mi)+side+"plus").onclick=()=>adjustScore(ri,mi,side,1);
-      document.getElementById(mid(ri,mi)+side+"minus").onclick=()=>adjustScore(ri,mi,side,-1);
-    });
-    label(ri,mi);
-  }));
-  calc();
-  renderRanking();
-  bindProfileButtons();
-  const {played}=standingsData();
-  const finish=document.getElementById("finishSeason"),hint=document.getElementById("finishHint");
-  if(finish){finish.disabled=played!==totalMatches();finish.textContent=`🏁 จบ Season ${currentSeason} / บันทึกแรงค์`}
-  if(hint)hint.textContent=played===totalMatches()?"แข่งครบแล้ว พร้อมบันทึกแรงค์":`เหลือ ${totalMatches()-played} แมตช์`;
-}
-let previousRanks={};
-function standingsData(){
-  const s={}; players.forEach(n=>s[n]={name:n,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});
-  let played=0;
-  rounds.forEach((r,ri)=>r.m.forEach((p,mi)=>{
-    const x=results[mid(ri,mi)]; if(!x||!validScore(x.a)||!validScore(x.b))return;
-    played++; const A=s[p[0]],B=s[p[1]];
-    A.p++;B.p++;A.gf+=x.a;A.ga+=x.b;B.gf+=x.b;B.ga+=x.a;
-    if(x.a>x.b){A.w++;A.pts+=3;B.l++}
-    else if(x.b>x.a){B.w++;B.pts+=3;A.l++}
-    else{A.d++;B.d++;A.pts++;B.pts++}
-  }));
-  Object.values(s).forEach(x=>x.gd=x.gf-x.ga);
-  const arr=Object.values(s).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||b.w-a.w||a.name.localeCompare(b.name,"th"));
-  return {arr,played};
-}
-function calc(){
-  const {arr,played}=standingsData();
-  const nextRanks={};
-  arr.forEach((x,i)=>nextRanks[x.name]=i+1);
-  document.getElementById("standings").innerHTML=arr.map((x,i)=>{
-    const rank=i+1, old=previousRanks[x.name], moved=old&&old!==rank;
-    const move=moved?`<span class="rank-move ${rank<old?"up":"down"}">${rank<old?"▲":"▼"}${Math.abs(old-rank)}</span>`:"";
-    return `<tr class="${moved?"rank-up":""}">
-      <td>${rank}${move}</td><td class="name">${i===0&&played?"👑 ":""}<button type="button" class="player-link" data-player-profile="${escapeHtml(x.name)}">${escapeHtml(x.name)}</button></td>
-      <td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td>
-      <td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td class="points">${x.pts}</td>
-    </tr>`;
-  }).join("");
-  previousRanks=nextRanks;
-  document.getElementById("played").textContent=played;
-  document.getElementById("remain").textContent=totalMatches()-played;
-  document.getElementById("leader").textContent=played?arr[0].name:"-";
-}
-function exportDocument(){
-  const {arr,played}=standingsData();
-  const rows=arr.map((x,i)=>`${i+1}. ${x.name} | แข่ง ${x.p} | ชนะ ${x.w} | เสมอ ${x.d} | แพ้ ${x.l} | ได้ ${x.gf} | เสีย ${x.ga} | +/- ${x.gd} | ${x.pts} คะแนน`).join("\n");
-  const w=window.open("","_blank");
-  if(!w){alert("กรุณาอนุญาตป๊อปอัป");return}
-  w.document.write(`<meta charset="utf-8"><title>ตารางคะแนน</title><style>body{font-family:system-ui;padding:24px;white-space:pre-wrap}button{padding:10px;margin-bottom:20px}</style><button onclick="print()">พิมพ์ / บันทึก PDF</button><h1>ตีให้สุด หยุดที่เบ้าตา</h1><p>แข่งแล้ว ${played}/${totalMatches()}</p><pre>${escapeHtml(rows)}</pre>`);
-  w.document.close();
-}
-
-document.getElementById("addPlayer").onclick=addPlayer;
-document.getElementById("newPlayer").addEventListener("keydown",e=>{if(e.key==="Enter")addPlayer()});
-document.getElementById("shuffle").onclick=()=>{if(approveReset("สุ่มตารางใหม่และล้างผลการแข่งขันเดิมหรือไม่?"))rebuildSchedule()};
-document.getElementById("save").onclick=()=>{saveState();alert("บันทึกแล้ว")};
-document.getElementById("exportDocument").onclick=exportDocument;
-document.getElementById("reset").onclick=()=>{if(confirm("ล้างผลทั้งหมด?")){results={};saveState();render()}};
-document.getElementById("finishSeason").onclick=finishSeason;
-document.getElementById("loginBtn").onclick=login;
-document.getElementById("loginPin").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
-document.getElementById("logoutBtn").onclick=logout;
-document.getElementById("changePinBtn").onclick=openPinModal;
-document.getElementById("cancelPin").onclick=closePinModal;
-document.getElementById("savePin").onclick=changePin;
-document.getElementById("adminResetPin").onclick=adminResetPin;
-document.getElementById("rankPlayerSelect").addEventListener("change",renderPlayerRankHistory);
-
-document.getElementById("profileClose").onclick=closePlayerProfile;
-document.getElementById("profileBackdrop").addEventListener("click",event=>{if(event.target.id==="profileBackdrop")closePlayerProfile()});
-document.addEventListener("keydown",event=>{if(event.key==="Escape")closePlayerProfile()});
-
-
-ensureAccounts();
-if(currentAccount&&accounts[currentAccount])hideLogin();else showLogin();
-render();
-initCloud();
-
-// Smooth bottom navigation + active section tracking
-const sectionLinks=[...document.querySelectorAll(".mobile-nav [data-scroll-target]")];
-sectionLinks.forEach(link=>{
-  link.addEventListener("click",event=>{
-    event.preventDefault();
-    const target=document.getElementById(link.dataset.scrollTarget);
-    if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
-  });
-});
-if("IntersectionObserver" in window){
-  const observer=new IntersectionObserver(entries=>{
-    const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
-    if(!visible)return;
-    sectionLinks.forEach(link=>link.classList.toggle("active",link.dataset.scrollTarget===visible.target.id));
-  },{rootMargin:"-20% 0px -55% 0px",threshold:[0.05,.25,.5]});
-  ["matches","standingsCard","rankingCard"].forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el)});
-}
-
-
-// Motion enhancements
-document.querySelectorAll(".card,.round").forEach(el=>el.classList.add("reveal"));
-if("IntersectionObserver" in window){
-  const revealObs=new IntersectionObserver(entries=>{
-    entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("in-view");revealObs.unobserve(entry.target)}});
-  },{threshold:.08});
-  document.querySelectorAll(".reveal").forEach(el=>revealObs.observe(el));
-}else document.querySelectorAll(".reveal").forEach(el=>el.classList.add("in-view"));
-
-window.addEventListener("scroll",()=>document.body.classList.toggle("scrolled",window.scrollY>24),{passive:true});
-
-function addRipple(event){
-  const target=event.currentTarget;
-  const rect=target.getBoundingClientRect(),size=Math.max(rect.width,rect.height);
-  const span=document.createElement("span");span.className="ripple";
-  span.style.width=span.style.height=size+"px";
-  span.style.left=(event.clientX-rect.left-size/2)+"px";
-  span.style.top=(event.clientY-rect.top-size/2)+"px";
-  target.appendChild(span);setTimeout(()=>span.remove(),500);
-}
-document.querySelectorAll("button,.quick-nav a,.mobile-nav a").forEach(el=>el.addEventListener("pointerdown",addRipple));
-
+function updateFromInputs(id){const a=document.getElementById(id+"a").value,b=document.getElementById(id+"b").value;if(a===""&&b==="")delete state.results[id];else state.results[id]={a:a===""?null:Number(a),b:b===""?null:Number(b)};saveState();updateLabels();calc()}
+function updateLabels(){state.rounds.forEach((r,ri)=>r.m.forEach((pair,mi)=>{const id=mid(ri,mi),x=state.results[id],el=document.getElementById(id+"s");if(!el)return;if(!x||!valid(x.a)||!valid(x.b)){el.textContent="ยังไม่กรอกผล";return}const an=profile(pair[0])?.displayName||pair[0],bn=profile(pair[1])?.displayName||pair[1];el.textContent=x.a>x.b?`${an} ชนะ ${x.a}-${x.b}`:x.b>x.a?`${bn} ชนะ ${x.b}-${x.a}`:`เสมอ ${x.a}-${x.b}`}) ) }
+function standingsData(){const s={};state.seasonPlayerIds.forEach(id=>s[id]={id,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});let played=0;state.rounds.forEach((r,ri)=>r.m.forEach((pair,mi)=>{const x=state.results[mid(ri,mi)];if(!x||!valid(x.a)||!valid(x.b))return;played++;const A=s[pair[0]],B=s[pair[1]];if(!A||!B)return;A.p++;B.p++;A.gf+=x.a;A.ga+=x.b;B.gf+=x.b;B.ga+=x.a;if(x.a>x.b){A.w++;A.pts+=3;B.l++}else if(x.b>x.a){B.w++;B.pts+=3;A.l++}else{A.d++;B.d++;A.pts++;B.pts++}}));Object.values(s).forEach(x=>x.gd=x.gf-x.ga);const arr=Object.values(s).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||b.w-a.w||(profile(a.id)?.displayName||"").localeCompare(profile(b.id)?.displayName||"","th"));return {arr,played}}
+function calc(){const {arr,played}=standingsData();document.getElementById("standings").innerHTML=arr.map((x,i)=>`<tr><td>${i+1}</td><td class="name">${i===0&&played?"👑 ":""}${esc(profile(x.id)?.displayName||x.id)}</td><td>${x.p}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.gd>0?"+":""}${x.gd}</td><td class="points">${x.pts}</td></tr>`).join("");document.getElementById("played").textContent=played;document.getElementById("remain").textContent=totalMatches()-played;document.getElementById("leader").textContent=played?(profile(arr[0]?.id)?.displayName||"-"):"-";const btn=document.getElementById("finishSeason");btn.disabled=!isAdmin()||played!==totalMatches();document.getElementById("finishHint").textContent=played===totalMatches()?(isAdmin()?"พร้อมบันทึกแรงค์":"รอ Admin จบ Season"):`เหลือ ${totalMatches()-played} แมตช์`}
+const RP=[100,80,65,50,40,30,20,10,5];const tier=rp=>rp>=1000?"Master":rp>=700?"Diamond":rp>=450?"Platinum":rp>=250?"Gold":rp>=100?"Silver":"Bronze";
+function rankingProfiles(){const m={};Object.keys(state.profiles).forEach(id=>m[id]={id,rp:0,seasons:0,titles:0,best:null});state.rankHistory.forEach(season=>(season.standings||[]).forEach(row=>{const id=row.userId||Object.keys(state.profiles).find(k=>state.profiles[k].displayName===row.name);if(!id)return;if(!m[id])m[id]={id,rp:0,seasons:0,titles:0,best:null};m[id].rp+=row.rpAward||0;m[id].seasons++;m[id].best=m[id].best===null?row.rank:Math.min(m[id].best,row.rank);if(row.rank===1)m[id].titles++}));return Object.values(m).sort((a,b)=>b.rp-a.rp||b.titles-a.titles)}
+function renderRanking(){document.getElementById("rankingList").innerHTML=rankingProfiles().filter(x=>x.seasons||state.seasonPlayerIds.includes(x.id)).map((x,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}</div><div><strong>${esc(profile(x.id)?.displayName||x.id)}</strong><div class="tier">${x.seasons} Season • ดีสุด ${x.best?`#${x.best}`:"-"} • ${tier(x.rp)}</div></div><div class="rank-rp">${x.rp} RP</div></div>`).join("")}
+function finishSeason(){if(!isAdmin())return;const {arr,played}=standingsData();if(played!==totalMatches())return;if(!confirm(`จบ Season ${state.currentSeason} และบันทึกแรงค์?`))return;state.rankHistory.push({season:state.currentSeason,finishedAt:new Date().toISOString(),standings:arr.map((x,i)=>({userId:x.id,name:profile(x.id)?.displayName||x.id,rank:i+1,rpAward:RP[i]??5,pts:x.pts,gd:x.gd}))});state.currentSeason++;state.rounds=makeRoundRobin(state.seasonPlayerIds);state.results={};saveState();render()}
+function render(){renderHeader();renderRoster();renderSchedule();calc();renderRanking()}
+document.getElementById("applyRoster").onclick=applyRoster;document.getElementById("saveBtn").onclick=()=>{saveState();alert("บันทึกแล้ว")};document.getElementById("clearScores").onclick=()=>{if(!isAdmin()){alert("เฉพาะ Admin");return}if(confirm("ล้างคะแนนทั้งหมด?")){state.results={};saveState();render()}};document.getElementById("finishSeason").onclick=finishSeason;document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;
+loadLocal();renderLogin();if(currentUserId&&profile(currentUserId))document.getElementById("auth").classList.add("hidden");render();initCloud();
 </script>
 </body>
 </html>
