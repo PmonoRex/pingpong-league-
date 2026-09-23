@@ -76,7 +76,7 @@ input:focus{outline:2px solid #5aa0ff;outline-offset:1px;border-color:#5aa0ff}
 .score-btn.plus{background:linear-gradient(180deg,#25b966,#1c9f56);border-color:#35cf7a}
 .status{text-align:center;color:#a4b5cc;font-size:12px;margin-top:7px;min-height:18px}
 .status.invalid{color:#ff9d9d}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:13px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
 .stat{background:linear-gradient(180deg,#101d31,#0d1828);border:1px solid #2a3d59;border-radius:14px;padding:12px 8px;text-align:center}
 .stat b{display:block;font-size:22px}.stat small{color:var(--muted)}
 .wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #263a57;border-radius:14px}
@@ -100,7 +100,7 @@ button{border:0;border-radius:11px;padding:11px 14px;min-height:44px;font-weight
 .mobile-nav a{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:12px;color:#a8b8ce;text-decoration:none;font-size:11px;font-weight:800}
 .mobile-nav a span{font-size:19px;line-height:1}
 .mobile-nav a.active{background:#17335a;color:#fff}
-#matches,#standingsCard{scroll-margin-top:16px}
+#matches,#standingsCard,#rankingCard{scroll-margin-top:16px}
 @media(max-width:820px){
   .grid{grid-template-columns:1fr}.hero,.card{padding:14px}
   .pair{grid-template-columns:minmax(46px,1fr) 138px 20px 138px minmax(46px,1fr);gap:5px}
@@ -135,6 +135,30 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
 
+
+/* Ranking & history */
+.rank-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.finish-season{background:linear-gradient(180deg,#f7d765,#efc13d);color:#17120a}
+.finish-season[disabled]{opacity:.45;cursor:not-allowed;filter:grayscale(.3)}
+.rank-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:12px;margin-top:12px}
+.rank-list,.history-panel{background:linear-gradient(180deg,#101d31,#0d1828);border:1px solid #2a3d59;border-radius:16px;padding:12px}
+.rank-row{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:10px 8px;border-bottom:1px solid #263851}
+.rank-row:last-child{border-bottom:0}
+.rank-pos{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:#132844;border:1px solid #2d4b72;font-weight:900}
+.rank-row:first-child .rank-pos{background:linear-gradient(180deg,#f7d765,#dca72c);color:#201706;border-color:#ffe187}
+.rank-person strong{display:block}.rank-person small{color:var(--muted)}
+.rank-rp{text-align:right;font-weight:900;color:#ffd76a}.rank-tier{font-size:11px;color:#a9bad0;margin-top:2px}
+.history-panel select{margin:8px 0 10px}
+.history-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.history-summary .mini{border:1px solid #2b405f;border-radius:12px;padding:9px 5px;text-align:center;background:#0b1728}
+.history-summary .mini b{display:block;font-size:17px}.history-summary .mini small{color:var(--muted);font-size:10px}
+.history-track{display:flex;gap:7px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
+.season-chip{min-width:92px;border:1px solid #2d4666;border-radius:12px;padding:8px;background:#10203a;text-align:center}
+.season-chip b{display:block;font-size:16px}.season-chip small{color:var(--muted)}
+.tier-badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:850;border:1px solid #3a4d69;background:#13243a}
+.season-note{color:var(--muted);font-size:12px;line-height:1.45;margin-top:8px}
+@media(max-width:760px){.rank-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -151,6 +175,7 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
   <nav class="quick-nav" aria-label="เมนูหลัก">
     <a class="primary" href="#matches">🏓 การแข่งขัน</a>
     <a href="#standingsCard">🏆 ตารางคะแนน</a>
+    <a href="#rankingCard">📈 แรงค์</a>
     <a href="predictions.html">🎯 ทายผล / ลงทุน</a>
   </nav>
 </section>
@@ -194,13 +219,41 @@ body.scrolled .mobile-nav{box-shadow:0 20px 60px rgba(0,0,0,.48)}
       <tbody id="standings"></tbody>
     </table>
   </div>
+  <div class="rank-toolbar">
+    <button class="finish-season" id="finishSeason" type="button">🏁 จบการแข่งขัน / บันทึกแรงค์</button>
+    <span class="section-kicker" id="finishHint">ต้องแข่งครบทุกแมตช์ก่อน</span>
+  </div>
 </section>
+
+<section class="card" id="rankingCard">
+  <div class="section-head">
+    <div><h2>📈 แรงค์สะสมผู้เล่น</h2><div class="section-kicker">คำนวณจากอันดับจบการแข่งขันของแต่ละ Season</div></div>
+  </div>
+  <div class="rank-grid">
+    <div class="rank-list">
+      <div id="rankingList"></div>
+    </div>
+    <div class="history-panel">
+      <strong>ประวัติรายบุคคล</strong>
+      <select id="rankPlayerSelect" aria-label="เลือกผู้เล่นดูประวัติ"></select>
+      <div class="history-summary">
+        <div class="mini"><b id="rankTotalRp">0</b><small>RP สะสม</small></div>
+        <div class="mini"><b id="rankTitles">0</b><small>แชมป์</small></div>
+        <div class="mini"><b id="rankAvg">-</b><small>อันดับเฉลี่ย</small></div>
+      </div>
+      <div class="history-track" id="rankHistoryTrack"></div>
+      <div class="season-note">RP: อันดับ 1 = 100, 2 = 80, 3 = 65, 4 = 50, 5 = 40, 6 = 30, 7 = 20, 8 = 10, 9 = 5</div>
+    </div>
+  </div>
+</section>
+
 </div>
 </main>
 
 <nav class="mobile-nav" aria-label="ทางลัด">
   <a class="active" data-scroll-target="matches" href="#matches"><span>🏓</span>การแข่งขัน</a>
   <a data-scroll-target="standingsCard" href="#standingsCard"><span>🏆</span>ตารางคะแนน</a>
+  <a data-scroll-target="rankingCard" href="#rankingCard"><span>📈</span>แรงค์</a>
   <a href="predictions.html"><span>🎯</span>ทายผล</a>
 </nav>
 
@@ -211,7 +264,7 @@ const SUPABASE_URL="https://gqlfqoeejgtjpsdvngbh.supabase.co";
 const SUPABASE_KEY="sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z";
 const CLOUD_ENDPOINT=`${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
 
-let players=[...defaultPlayers], rounds=[], results={};
+let players=[...defaultPlayers], rounds=[], results={}, rankHistory=[], currentSeason=1;
 let cloudReady=false,cloudDirty=false,cloudSaving=false,cloudSaveTimer=null,lastCloudUpdate="";
 
 const escapeHtml=v=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
@@ -242,7 +295,7 @@ function makeRoundRobin(source){
 try{
   const saved=JSON.parse(localStorage.getItem(KEY)||"null");
   if(saved&&Array.isArray(saved.players)&&saved.players.length>=2&&Array.isArray(saved.rounds)){
-    players=saved.players; rounds=saved.rounds; results=saved.results||{};
+    players=saved.players; rounds=saved.rounds; results=saved.results||{}; rankHistory=Array.isArray(saved.rankHistory)?saved.rankHistory:[]; currentSeason=Number(saved.currentSeason)||rankHistory.length+1;
   }else{
     rounds=makeRoundRobin(players);
     results=JSON.parse(localStorage.getItem(OLD_KEY)||"{}")||{};
@@ -262,7 +315,7 @@ async function cloudRequest(method="GET",body=null){
   return response.status===204?[]:response.json();
 }
 function saveState(){
-  localStorage.setItem(KEY,JSON.stringify({players,rounds,results}));
+  localStorage.setItem(KEY,JSON.stringify({players,rounds,results,rankHistory,currentSeason}));
   if(!cloudReady)return;
   cloudDirty=true; setSyncStatus("กำลังบันทึก...");
   clearTimeout(cloudSaveTimer); cloudSaveTimer=setTimeout(pushLeague,450);
@@ -271,7 +324,7 @@ async function pushLeague(){
   if(!cloudReady||cloudSaving)return; cloudSaving=true;
   try{
     const updatedAt=new Date().toISOString();
-    const rows=await cloudRequest("PATCH",{league:{players,rounds,results},updated_at:updatedAt});
+    const rows=await cloudRequest("PATCH",{league:{players,rounds,results,rankHistory,currentSeason},updated_at:updatedAt});
     lastCloudUpdate=rows[0]?.updated_at||updatedAt; cloudDirty=false;
     setSyncStatus("ออนไลน์ • บันทึกแล้ว","online");
   }catch(e){setSyncStatus("ออฟไลน์ • เก็บในเครื่อง","offline")}
@@ -286,8 +339,8 @@ async function pullLeague(){
     lastCloudUpdate=row.updated_at||"";
     const next=row.league;
     if(next&&Array.isArray(next.players)&&next.players.length>=2&&Array.isArray(next.rounds)){
-      const changed=JSON.stringify(next)!==JSON.stringify({players,rounds,results});
-      if(changed){players=next.players;rounds=next.rounds;results=next.results||{};localStorage.setItem(KEY,JSON.stringify(next));render()}
+      const changed=JSON.stringify(next)!==JSON.stringify({players,rounds,results,rankHistory,currentSeason});
+      if(changed){players=next.players;rounds=next.rounds;results=next.results||{};rankHistory=Array.isArray(next.rankHistory)?next.rankHistory:[];currentSeason=Number(next.currentSeason)||rankHistory.length+1;localStorage.setItem(KEY,JSON.stringify(next));render()}
     }
   }catch(e){setSyncStatus("ออฟไลน์ • กำลังลองใหม่","offline")}
 }
@@ -299,7 +352,7 @@ async function initCloud(){
       lastCloudUpdate=row.updated_at||"";
       const next=row.league;
       if(next&&Array.isArray(next.players)&&next.players.length>=2&&Array.isArray(next.rounds)){
-        players=next.players;rounds=next.rounds;results=next.results||{};
+        players=next.players;rounds=next.rounds;results=next.results||{};rankHistory=Array.isArray(next.rankHistory)?next.rankHistory:[];currentSeason=Number(next.currentSeason)||rankHistory.length+1;
         localStorage.setItem(KEY,JSON.stringify(next));
       }
     }
@@ -362,6 +415,72 @@ function label(ri,mi){
   if(!validScore(x.a)||!validScore(x.b)){el.textContent="กรุณากรอกเลขจำนวนเต็มตั้งแต่ 0 ขึ้นไป";el.classList.add("invalid");return}
   el.textContent=matchResult(pair,x);
 }
+
+const RP_BY_RANK=[100,80,65,50,40,30,20,10,5];
+function rpForRank(rank){return RP_BY_RANK[rank-1]??Math.max(1,5-(rank-9))}
+function tierForRp(rp){
+  if(rp>=1000)return "Master";
+  if(rp>=700)return "Diamond";
+  if(rp>=450)return "Platinum";
+  if(rp>=250)return "Gold";
+  if(rp>=100)return "Silver";
+  return "Bronze";
+}
+function rankingProfiles(){
+  const map={};
+  const ensure=name=>map[name]||(map[name]={name,rp:0,seasons:0,titles:0,best:null,last:null,sumRank:0,history:[]});
+  players.forEach(ensure);
+  rankHistory.forEach(season=>{
+    (season.standings||[]).forEach(row=>{
+      const p=ensure(row.name),award=Number(row.rpAward)||0;
+      p.rp+=award;p.seasons++;p.sumRank+=row.rank;p.last=row.rank;
+      p.best=p.best===null?row.rank:Math.min(p.best,row.rank);
+      if(row.rank===1)p.titles++;
+      p.history.push({season:season.season,rank:row.rank,rp:award,date:season.finishedAt});
+    });
+  });
+  return Object.values(map).map(p=>({...p,avg:p.seasons?p.sumRank/p.seasons:null,tier:tierForRp(p.rp)}))
+    .sort((a,b)=>b.rp-a.rp||b.titles-a.titles||(a.avg??999)-(b.avg??999)||a.name.localeCompare(b.name,"th"));
+}
+function renderRanking(){
+  const profiles=rankingProfiles(),list=document.getElementById("rankingList"),select=document.getElementById("rankPlayerSelect");
+  if(!list||!select)return;
+  list.innerHTML=profiles.map((p,i)=>`<div class="rank-row">
+    <div class="rank-pos">${i+1}</div>
+    <div class="rank-person"><strong>${escapeHtml(p.name)}</strong><small>${p.seasons} Season • ดีสุด ${p.best?`#${p.best}`:"-"}</small></div>
+    <div class="rank-rp">${p.rp} RP<div class="rank-tier"><span class="tier-badge">${p.tier}</span></div></div>
+  </div>`).join("")||'<div class="empty">ยังไม่มีข้อมูลแรงค์</div>';
+  const previous=select.value;
+  select.innerHTML=profiles.map(p=>`<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join("");
+  if(previous&&profiles.some(p=>p.name===previous))select.value=previous;
+  else if(profiles[0])select.value=profiles[0].name;
+  renderPlayerRankHistory();
+}
+function renderPlayerRankHistory(){
+  const select=document.getElementById("rankPlayerSelect"),profiles=rankingProfiles(),p=profiles.find(x=>x.name===select?.value)||profiles[0];
+  if(!p)return;
+  document.getElementById("rankTotalRp").textContent=p.rp;
+  document.getElementById("rankTitles").textContent=p.titles;
+  document.getElementById("rankAvg").textContent=p.avg?p.avg.toFixed(2):"-";
+  document.getElementById("rankHistoryTrack").innerHTML=p.history.length?p.history.map(h=>`<div class="season-chip"><small>S${h.season}</small><b>#${h.rank}</b><small>+${h.rp} RP</small></div>`).join(""):'<div class="muted">ยังไม่มี Season ที่บันทึก</div>';
+}
+function finishSeason(){
+  const {arr,played}=standingsData();
+  if(played!==totalMatches()){alert(`ยังแข่งไม่ครบ เหลือ ${totalMatches()-played} แมตช์`);return}
+  if(!confirm(`ยืนยันจบ Season ${currentSeason} และบันทึกอันดับถาวร?`))return;
+  const snapshot={
+    season:currentSeason,
+    finishedAt:new Date().toISOString(),
+    playerCount:players.length,
+    standings:arr.map((x,i)=>({name:x.name,rank:i+1,rpAward:rpForRank(i+1),pts:x.pts,gd:x.gd,gf:x.gf,ga:x.ga,w:x.w,d:x.d,l:x.l}))
+  };
+  rankHistory.push(snapshot);
+  currentSeason++;
+  rounds=makeRoundRobin(players);results={};
+  saveState();render();
+  document.getElementById("rankingCard")?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
 function render(){
   renderPlayers();
   document.getElementById("leagueInfo").textContent=`${players.length} คน • พบกันหมด ${totalMatches()} แมตช์`;
@@ -400,6 +519,11 @@ function render(){
     label(ri,mi);
   }));
   calc();
+  renderRanking();
+  const {played}=standingsData();
+  const finish=document.getElementById("finishSeason"),hint=document.getElementById("finishHint");
+  if(finish){finish.disabled=played!==totalMatches();finish.textContent=`🏁 จบ Season ${currentSeason} / บันทึกแรงค์`}
+  if(hint)hint.textContent=played===totalMatches()?"แข่งครบแล้ว พร้อมบันทึกแรงค์":`เหลือ ${totalMatches()-played} แมตช์`;
 }
 let previousRanks={};
 function standingsData(){
@@ -450,6 +574,8 @@ document.getElementById("shuffle").onclick=()=>{if(approveReset("สุ่มต
 document.getElementById("save").onclick=()=>{saveState();alert("บันทึกแล้ว")};
 document.getElementById("exportDocument").onclick=exportDocument;
 document.getElementById("reset").onclick=()=>{if(confirm("ล้างผลทั้งหมด?")){results={};saveState();render()}};
+document.getElementById("finishSeason").onclick=finishSeason;
+document.getElementById("rankPlayerSelect").addEventListener("change",renderPlayerRankHistory);
 
 render();
 initCloud();
@@ -469,7 +595,7 @@ if("IntersectionObserver" in window){
     if(!visible)return;
     sectionLinks.forEach(link=>link.classList.toggle("active",link.dataset.scrollTarget===visible.target.id));
   },{rootMargin:"-20% 0px -55% 0px",threshold:[0.05,.25,.5]});
-  ["matches","standingsCard"].forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el)});
+  ["matches","standingsCard","rankingCard"].forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el)});
 }
 
 
