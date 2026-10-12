@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="motion.css?v=20261012-1">
 <link rel="stylesheet" href="suite.css?v=20261012">
 <link rel="stylesheet" href="sport-theme.css?v=20261012-1">
+<link rel="stylesheet" href="mobile-fit.css?v=20261013-1">
+<link rel="stylesheet" href="final-polish.css?v=20261013-1">
 </head>
 <body>
 <main>
@@ -27,13 +29,13 @@
 <section class="card"><h2>📊 สรุปยอด Season <span id="settlementSeason">-</span></h2><div class="stats"><div class="stat"><b id="dealerReceives">0</b><small>เจ้ามือรับ</small></div><div class="stat"><b id="dealerPays">0</b><small>เจ้ามือจ่าย</small></div><div class="stat"><b id="dealerNet">0</b><small>สุทธิเจ้ามือ</small></div></div><div class="actions"><button class="blue" id="exportSettlement" type="button">📤 ส่งออกยอดที่ต้องจ่าย</button></div><div class="muted" id="exportSettlementHint" style="margin:8px 0 10px">ส่งออกยอดสุทธิที่ต้องชำระของ Season ปัจจุบัน</div><div class="wrap"><table class="history"><thead><tr><th>ผู้เล่น</th><th>ยอดลง</th><th>ชนะ</th><th>แพ้</th><th>สุทธิ</th></tr></thead><tbody id="settlement"></tbody></table></div></section>
 <section class="card" id="historySection"><h2>🧾 ประวัติการทาย</h2><div class="wrap"><table class="history"><thead><tr><th>#</th><th>ผู้ทาย</th><th>คู่</th><th>เลือก</th><th>ยอด</th><th>สถานะ</th><th>สุทธิ</th></tr></thead><tbody id="history"></tbody></table></div></section>
 </main>
-<nav class="bottom-nav"><a href="index.html"><span>🏓</span>การแข่งขัน</a><a class="active" data-scroll="bettingPanel" href="#bettingPanel"><span>🎯</span>ทายผล</a><a data-scroll="dealerPanel" href="#dealerPanel" id="dealerNav"><span>🛠</span>เจ้ามือ</a><a data-scroll="historySection" href="#historySection"><span>🧾</span>ประวัติ</a></nav>
-<div class="profile-backdrop" id="profileBackdrop" aria-hidden="true"><div class="profile-sheet" role="dialog" aria-modal="true"><div class="profile-head"><div class="profile-title"><div class="profile-avatar">🏓</div><div><h2 id="profileName" style="margin:0">ผู้เล่น</h2><div class="muted" id="profileMeta">-</div></div></div><button class="profile-close" id="profileClose">×</button></div><div class="profile-metrics"><div class="profile-metric"><b id="profileRp">0</b><small>RP สะสม</small></div><div class="profile-metric"><b id="profileTitles">0</b><small>แชมป์</small></div><div class="profile-metric"><b id="profileBest">-</b><small>อันดับดีที่สุด</small></div><div class="profile-metric"><b id="profileAvg">-</b><small>อันดับเฉลี่ย</small></div></div><div><strong>ประวัติ Season</strong><div id="profileHistory"></div></div></div></div>
+<nav class="bottom-nav" aria-label="เมนูทายผล"><a href="index.html"><span>🏓</span>การแข่งขัน</a><a class="active" data-scroll="bettingPanel" href="#bettingPanel"><span>🎯</span>ทายผล</a><a data-scroll="dealerPanel" href="#dealerPanel" id="dealerNav"><span>🛠</span>เจ้ามือ</a><a data-scroll="historySection" href="#historySection"><span>🧾</span>ประวัติ</a></nav>
+<div class="profile-backdrop" id="profileBackdrop" aria-hidden="true"><div class="profile-sheet" role="dialog" aria-modal="true"><div class="profile-head"><div class="profile-title"><div class="profile-avatar">🏓</div><div><h2 id="profileName" style="margin:0">ผู้เล่น</h2><div class="muted" id="profileMeta">-</div></div></div><button class="profile-close" id="profileClose" aria-label="ปิดโปรไฟล์">×</button></div><div class="profile-metrics"><div class="profile-metric"><b id="profileRp">0</b><small>RP สะสม</small></div><div class="profile-metric"><b id="profileTitles">0</b><small>แชมป์</small></div><div class="profile-metric"><b id="profileBest">-</b><small>อันดับดีที่สุด</small></div><div class="profile-metric"><b id="profileAvg">-</b><small>อันดับเฉลี่ย</small></div></div><div><strong>ประวัติ Season</strong><div id="profileHistory"></div></div></div></div>
 <div class="auth" id="auth"><div class="auth-card"><h2>🏓 เข้าสู่ลีก</h2><div class="muted">เลือกบัญชีเดียวกับหน้าหลัก</div><div class="field"><label>ผู้เล่น</label><select id="loginUser"></select></div><div class="field"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div><button class="blue" id="loginBtn" style="width:100%;margin-top:10px">เข้าสู่ระบบ</button></div></div>
-<script src="shared.js?v=20261012-2" defer></script>
-<script src="predictions.js?v=hide-id-20260924" defer></script>
+<script src="shared.js?v=20261013-1" defer></script>
+<script src="predictions.js?v=20261013-1" defer></script>
 <script src="predictions-realtime.js?v=20261012" defer></script>
 <script src="predictions-export.js?v=20261012-1" defer></script>
 <script src="suite.js?v=20261012" defer></script>
-<script src="sport-ui.js?v=20261012-1" defer></script>
+<script src="sport-ui.js?v=20261013-1" defer></script>
 </body></html>
