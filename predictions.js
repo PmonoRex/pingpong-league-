@@ -21,8 +21,10 @@ async function mutatePred(change){
   if(change()===false){render();return false}
   setSync("กำลังบันทึก...");
   const now=new Date().toISOString();
-  const saved=await cloudRequest("PATCH",{predictions:{...(row.predictions||{}),uidPredictions:pred},updated_at:now});
-  if(!saved?.length)throw new Error("บันทึกไม่สำเร็จ");
+  const expected=row?.updated_at||"";
+  const filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:"";
+  const saved=await cloudRequest("PATCH",{predictions:{...(row.predictions||{}),uidPredictions:pred},updated_at:now},filter);
+  if(!saved?.length)throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง กรุณาลองใหม่อีกครั้ง");
   localStorage.setItem(PRED_KEY,JSON.stringify(pred));
   lastCloudUpdate=saved[0]?.updated_at||now;
   render();setSync("ออนไลน์ • บันทึกแล้ว","online");
@@ -30,7 +32,7 @@ async function mutatePred(change){
  }catch(error){league=loadLeague();pred=loadPred();reconcileSession();renderLogin();render();setSync("บันทึกไม่ได้ • โปรดลองใหม่","offline");alert(`บันทึกไม่ได้: ${error.message}`);return false}
  finally{predSaving=false}
 }
-const cloudRequest=(method="GET",body=null)=>LeagueShared.cloudRequest("league,predictions,updated_at",method,body);
+const cloudRequest=(method="GET",body=null,extraQuery="")=>LeagueShared.cloudRequest("league,predictions,updated_at",method,body,extraQuery);
 function setSync(t,s=""){const e=document.getElementById("syncStatus");e.textContent=t;e.className=`sync ${s}`}
 function reconcileSession(){currentUserId=LeagueShared.sessionUserId(league);document.getElementById("auth").classList.toggle("hidden",Boolean(currentUserId))}
 async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){league=remote;LeagueShared.saveLocalLeague(league)}const rp=row?.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pull,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
