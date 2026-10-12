@@ -1,29 +1,33 @@
 (() => {
   const qs=(s,r=document)=>r.querySelector(s);
   const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+  const HERO_CACHE_KEY='pp_hero_data_20261013';
 
-  function ensureMobileFit(){
-    if(document.querySelector('link[data-mobile-fit]')) return;
-    const link=document.createElement('link');
-    link.rel='stylesheet';
-    link.href='mobile-fit.css?v=20261012-1';
-    link.dataset.mobileFit='1';
-    document.head.appendChild(link);
+  function ensureStyles(){
+    const required=[['mobile-fit.css?v=20261013-1','mobileFit'],['final-polish.css?v=20261013-1','finalPolish']];
+    required.forEach(([href,key])=>{
+      if(document.querySelector(`link[data-${key.replace(/[A-Z]/g,m=>'-'+m.toLowerCase())}]`)) return;
+      const link=document.createElement('link');
+      link.rel='stylesheet';link.href=href;link.dataset[key]='1';document.head.appendChild(link);
+    });
   }
 
-  ensureMobileFit();
+  ensureStyles();
   document.body.classList.add('sport-redesign',`sport-page-${page.replace(/\W+/g,'-')}`);
 
   function league(){try{return window.LeagueShared?.readLocalLeague?.()||null}catch{return null}}
 
   async function loadEmbeddedHero(){
+    try{const cached=sessionStorage.getItem(HERO_CACHE_KEY);if(cached?.startsWith('data:image/jpeg;base64,'))return cached}catch{}
     const urls=['hero_b64_1.txt?v=20261012-4','hero_b64_2.txt?v=20261012-4','hero_b64_3.txt?v=20261012-4','hero_b64_4.txt?v=20261012-4'];
     const parts=await Promise.all(urls.map(async url=>{
-      const response=await fetch(url,{cache:'no-store'});
+      const response=await fetch(url,{cache:'force-cache'});
       if(!response.ok) throw new Error(`Hero part failed ${response.status}`);
       return (await response.text()).trim();
     }));
-    return `data:image/jpeg;base64,${parts.join('')}`;
+    const src=`data:image/jpeg;base64,${parts.join('')}`;
+    try{sessionStorage.setItem(HERO_CACHE_KEY,src)}catch{}
+    return src;
   }
 
   function addHeroPhoto(){
@@ -60,6 +64,23 @@
     }
   }
 
+  function setupMobileTools(){
+    if(page!=='index.html') return;
+    const bar=qs('.account-bar'),actions=bar&&qs('.actions',bar);
+    if(!bar||!actions||qs('.sport-tools-toggle',bar))return;
+    actions.classList.add('sport-tools-actions');
+    const toggle=document.createElement('button');
+    toggle.type='button';toggle.className='secondary sport-tools-toggle';toggle.textContent='☰ เครื่องมือ';
+    toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','เปิดเมนูเครื่องมือ');
+    bar.insertBefore(toggle,actions);
+    const close=()=>{actions.classList.remove('open');toggle.setAttribute('aria-expanded','false')};
+    toggle.addEventListener('click',event=>{event.stopPropagation();const open=actions.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});
+    actions.addEventListener('click',event=>event.stopPropagation());
+    document.addEventListener('click',()=>{if(matchMedia('(max-width:640px)').matches)close()});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape')close()});
+    matchMedia('(min-width:641px)').addEventListener?.('change',event=>{if(event.matches)close()});
+  }
+
   function restyleExistingTabs(){
     const nav=qs('.bottom-nav'); if(!nav) return;
     const links=[...nav.querySelectorAll('a')];
@@ -76,12 +97,13 @@
   function addUniversalTabs(){
     if(qs('.bottom-nav,.sport-tabbar')) return;
     const active=page==='stats.html'?'profile':page==='dashboard.html'?'home':'';
-    const nav=document.createElement('nav');nav.className='sport-tabbar';
+    const nav=document.createElement('nav');nav.className='sport-tabbar';nav.setAttribute('aria-label','เมนูหลัก');
     nav.innerHTML=`<a class="${active==='home'?'active':''}" href="dashboard.html"><span>⌂</span>Home</a><a href="index.html#standingsCard"><span>🏆</span>Ranking</a><a href="predictions.html"><span>🎯</span>Predict</a><a class="${active==='profile'?'active':''}" href="stats.html"><span>●</span>Profile</a>`;
     document.body.appendChild(nav);
   }
 
   function ripple(){
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     document.addEventListener('pointerdown',e=>{
       const el=e.target.closest('button,a.btn,.bottom-nav a,.sport-tabbar a,.quick-tile');
       if(!el||el.disabled) return;
@@ -93,6 +115,6 @@
     ['#standingsCard','#bettingPanel','#dealerPanel','.rank-card'].forEach(sel=>qs(sel)?.classList.add('sport-feature-card'));
   }
 
-  function boot(){addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();elevateImportantCards();ripple();document.body.classList.add('sport-ready')}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,60));else setTimeout(boot,60);
+  function boot(){addHeroPhoto();addBrand();setupMobileTools();restyleExistingTabs();addUniversalTabs();elevateImportantCards();ripple();document.body.classList.add('sport-ready')}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
 })();
