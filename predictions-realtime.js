@@ -1,3 +1,21 @@
+function latestOutcomeForBet(bet){
+  if(bet?.season!==league.currentSeason)return null;
+  const match=allMatches().find(item=>item.id===bet.matchId&&item.season===bet.season);
+  if(!match||!hasResult(match))return null;
+  if(!Array.isArray(bet.pair)||bet.pair.length!==2||!bet.pair.every((id,index)=>id===match.pair?.[index]))return null;
+
+  let favoriteId=bet.favoriteId;
+  let handicap=Number(bet.handicap);
+  const currentMarket=pred.markets?.[LeagueShared.marketKey(bet.season,bet.matchId)];
+
+  // Legacy bets may not contain a complete market snapshot. Only then fall back to the current market.
+  if(!match.pair.includes(favoriteId)&&match.pair.includes(currentMarket?.favoriteId))favoriteId=currentMarket.favoriteId;
+  if(!Number.isFinite(handicap)&&Number.isFinite(Number(currentMarket?.handicap)))handicap=Number(currentMarket.handicap);
+  if(!match.pair.includes(favoriteId)||!Number.isFinite(handicap)||handicap<0)return null;
+
+  return LeagueShared.predictionOutcome(match.pair,match.score,{favoriteId,handicap});
+}
+
 async function refreshLeagueAndSettle(){
   if(!(isAdmin()||isDealer()))return alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");
   const btn=document.getElementById("settleAll");
@@ -25,28 +43,41 @@ async function refreshLeagueAndSettle(){
     renderLogin();
     render();
 
-    let count=0;
+    let checked=0,settledNew=0,corrected=0;
     const saved=await mutatePred(()=>{
       if(!(isAdmin()||isDealer())){alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");return false}
-      count=0;
+
       pred.bets.forEach(b=>{
-        if(b.status!=="pending")return;
-        const m=allMatches().find(x=>x.id===b.matchId);
-        const r=LeagueShared.settlementOutcome(league.currentSeason,b,m);
+        const r=latestOutcomeForBet(b);
         if(!r)return;
-        if(r.type==="push"){b.status="push";b.net=0}
-        else if(r.winnerId===b.sideId){b.status="won";b.net=b.stake}
-        else{b.status="lost";b.net=-b.stake}
+        checked++;
+
+        const oldStatus=b.status;
+        const oldNet=Number(b.net)||0;
+        let nextStatus="push",nextNet=0;
+        if(r.type!=="push"){
+          if(r.winnerId===b.sideId){nextStatus="won";nextNet=b.stake}
+          else{nextStatus="lost";nextNet=-b.stake}
+        }
+
+        if(oldStatus==="pending")settledNew++;
+        if(oldStatus!=="pending"&&(oldStatus!==nextStatus||oldNet!==nextNet))corrected++;
+
+        b.status=nextStatus;
+        b.net=nextNet;
         b.settledAt=new Date().toISOString();
-        count++;
       });
+
+      return checked>0;
     });
-    if(saved===false)throw new Error("บันทึกผลไม่สำเร็จ");
+    if(saved===false&&checked>0)throw new Error("บันทึกผลไม่สำเร็จ");
 
     const completed=allMatches().filter(hasResult).length;
-    status.textContent=`อัปเดตแล้ว • มีผลการแข่งขัน ${completed} คู่ • ตัดสินรายการใหม่ ${Number(count)||0} รายการ`;
+    status.textContent=`อัปเดตแล้ว • มีผล ${completed} คู่ • ตรวจ ${checked} รายการ • ใหม่ ${settledNew} • แก้ผล ${corrected}`;
     status.className="realtime-state ok";
-    if(!count)alert("ดึงคะแนนล่าสุดแล้ว แต่ยังไม่มีรายการทายที่พร้อมตัดสินผล");
+
+    if(corrected>0)alert(`อัปเดตคะแนนล่าสุดแล้ว และแก้ผลทายที่เคยคำนวณผิด/คะแนนถูกแก้ ${corrected} รายการ`);
+    else if(!checked)alert("ดึงคะแนนล่าสุดแล้ว แต่ยังไม่มีรายการทายที่มีผลการแข่งขัน");
   }catch(error){
     console.error(error);
     status.textContent="ดึงคะแนนล่าสุดไม่สำเร็จ กรุณาตรวจการเชื่อมต่อแล้วลองอีกครั้ง";
