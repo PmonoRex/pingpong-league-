@@ -5,17 +5,34 @@
 
   function league(){try{return window.LeagueShared?.readLocalLeague?.()||null}catch{return null}}
 
+  async function loadEmbeddedHero(){
+    const urls=['hero_b64_1.txt?v=20261012-4','hero_b64_2.txt?v=20261012-4','hero_b64_3.txt?v=20261012-4','hero_b64_4.txt?v=20261012-4'];
+    const parts=await Promise.all(urls.map(async url=>{
+      const response=await fetch(url,{cache:'no-store'});
+      if(!response.ok) throw new Error(`Hero part failed ${response.status}`);
+      return (await response.text()).trim();
+    }));
+    return `data:image/jpeg;base64,${parts.join('')}`;
+  }
+
   function addHeroPhoto(){
     if(page!=='index.html') return;
     const hero=qs('.hero');
     if(!hero||qs('.hero-player-photo',hero)) return;
     const img=document.createElement('img');
     img.className='hero-player-photo';
-    img.src='hero-player.jpg?v=20261012-3';
     img.alt='นักกีฬาปิงปองกำลังตีลูก';
     img.decoding='async';
     img.fetchPriority='high';
+    img.style.opacity='0';
+    img.addEventListener('load',()=>{img.style.opacity='1';hero.classList.add('hero-photo-ready')},{once:true});
+    img.addEventListener('error',()=>{img.remove();hero.classList.add('hero-photo-error')},{once:true});
     hero.prepend(img);
+    loadEmbeddedHero().then(src=>{img.src=src}).catch(error=>{
+      console.error('Hero image load failed',error);
+      img.remove();
+      hero.classList.add('hero-photo-error');
+    });
   }
 
   function addBrand(){
@@ -23,7 +40,8 @@
     const brand=document.createElement('div');
     brand.className='sport-brand';
     brand.innerHTML='<div class="sport-mark">🏓</div><div><b>ตีให้สุด หยุดที่เบ้าตา</b><small>THAI PING PONG LEAGUE</small></div>';
-    hero.insertBefore(brand,hero.firstChild?.nextSibling||hero.firstChild);
+    const photo=qs('.hero-player-photo',hero);
+    if(photo) photo.insertAdjacentElement('afterend',brand); else hero.insertBefore(brand,hero.firstChild);
     const l=league();
     if(page==='index.html'&&l){
       const badge=document.createElement('div');badge.className='sport-season-badge';badge.innerHTML=`SEASON <span>${Number(l.currentSeason)||1}</span><small>LIVE LEAGUE</small>`;
