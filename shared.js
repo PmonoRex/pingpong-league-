@@ -1,8 +1,10 @@
-// Shared account, permission and cloud rules for every page.
+// Shared account, permission, validation and cloud rules for every page.
 const LeagueShared = (() => {
   const LEAGUE_KEY = "pp_league_v7_uid";
   const PRED_KEY = "pp_predictions_v3_uid";
   const SESSION_KEY = "pp_user_id";
+  const LOGIN_GUARD_KEY = "pp_login_guard_v1";
+  const SCHEMA_VERSION = 2;
   const SUPABASE_URL = "https://gqlfqoeejgtjpsdvngbh.supabase.co";
   const SUPABASE_KEY = "sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z";
   const CLOUD_ENDPOINT = `${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
@@ -21,6 +23,35 @@ const LeagueShared = (() => {
   const isDealer = (league, predictions, id) => Boolean(activeProfile(league, id) && predictions?.dealerId === id);
   const canManageMarket = (league, predictions, id) => isDealer(league, predictions, id);
   const marketKey = (season, matchId) => `s${season}:${matchId}`;
+
+  function validateLeague(league) {
+    const issues = [];
+    if (!league || typeof league !== "object") return ["league missing"];
+    if (!league.profiles || typeof league.profiles !== "object") issues.push("profiles invalid");
+    if (!Array.isArray(league.seasonPlayerIds)) issues.push("seasonPlayerIds invalid");
+    if (!Array.isArray(league.rounds)) issues.push("rounds invalid");
+    if (!league.results || typeof league.results !== "object") issues.push("results invalid");
+    (league.seasonPlayerIds || []).forEach(id => { if (!league.profiles?.[id]) issues.push(`missing profile:${id}`); });
+    Object.entries(league.results || {}).forEach(([id, score]) => {
+      if (score?.a != null && (!Number.isInteger(score.a) || score.a < 0)) issues.push(`invalid score:${id}.a`);
+      if (score?.b != null && (!Number.isInteger(score.b) || score.b < 0)) issues.push(`invalid score:${id}.b`);
+    });
+    return issues;
+  }
+  function normalizeLeague(league) {
+    if (!league || typeof league !== "object") return league;
+    if (!league.schemaVersion || league.schemaVersion < SCHEMA_VERSION) league.schemaVersion = SCHEMA_VERSION;
+    if (!Array.isArray(league.rankHistory)) league.rankHistory = [];
+    if (!Array.isArray(league.seasonArchives)) league.seasonArchives = [];
+    if (!Array.isArray(league.auditLog)) league.auditLog = [];
+    return league;
+  }
+  function audit(league, action, actorId = "", meta = {}) {
+    normalizeLeague(league);
+    league.auditLog.unshift({ at:new Date().toISOString(), action, actorId, meta });
+    league.auditLog = league.auditLog.slice(0, 200);
+  }
+
   function predictionOutcome(pair, score, market) {
     if (!Array.isArray(pair) || pair.length !== 2 || !pair.includes(market?.favoriteId) ||
         !Number.isInteger(score?.a) || score.a < 0 || !Number.isInteger(score?.b) || score.b < 0 ||
@@ -36,16 +67,13 @@ const LeagueShared = (() => {
         !bet.pair.every((id, index) => id === match.pair?.[index])) return null;
     return predictionOutcome(match.pair, match.score, { favoriteId: bet.favoriteId, handicap: bet.handicap });
   }
-
   function betEligibility(league, predictions, id, match) {
     if (!activeProfile(league, id)) return { allowed: false, reason: "กรุณาเข้าสู่ระบบด้วยบัญชีที่เปิดใช้งาน" };
     if (isDealer(league, predictions, id)) return { allowed: false, reason: "เจ้ามือไม่สามารถทายผลได้" };
     if (!match?.pair || match.pair.includes(id)) return { allowed: false, reason: "ทายคู่ตัวเองไม่ได้" };
     const market = predictions?.markets?.[marketKey(match.season, match.id)];
     if (!market?.open || match.hasResult) return { allowed: false, reason: "คู่นี้ไม่ได้เปิดรับทาย" };
-    if (predictions?.bets?.some(bet => bet.season === match.season && bet.matchId === match.id && bet.userId === id)) {
-      return { allowed: false, reason: "คุณทายคู่นี้แล้ว" };
-    }
+    if (predictions?.bets?.some(bet => bet.season === match.season && bet.matchId === match.id && bet.userId === id)) return { allowed: false, reason: "คุณทายคู่นี้แล้ว" };
     return { allowed: true, reason: "" };
   }
 
@@ -55,11 +83,17 @@ const LeagueShared = (() => {
     if (id) localStorage.removeItem(SESSION_KEY);
     return "";
   }
+  function guardMap(){try{return JSON.parse(localStorage.getItem(LOGIN_GUARD_KEY)||"{}")||{}}catch{return{}}}
+  function loginGuardStatus(id){const map=guardMap(),g=map[id]||{fails:0,lockedUntil:0};const remain=Math.max(0,Number(g.lockedUntil||0)-Date.now());return{fails:Number(g.fails||0),locked:remain>0,remainingMs:remain}}
   function login(league, id, pin) {
-    const person = activeProfile(league, id);
-    if (!person || person.pin !== pin) return false;
-    localStorage.setItem(SESSION_KEY, id);
-    return true;
+    const person = activeProfile(league, id), map=guardMap(), g=map[id]||{fails:0,lockedUntil:0};
+    if (Number(g.lockedUntil||0) > Date.now()) return false;
+    if (!person || person.pin !== pin) {
+      g.fails=Number(g.fails||0)+1;
+      if(g.fails>=5){g.lockedUntil=Date.now()+60000;g.fails=0}
+      map[id]=g;localStorage.setItem(LOGIN_GUARD_KEY,JSON.stringify(map));return false;
+    }
+    delete map[id];localStorage.setItem(LOGIN_GUARD_KEY,JSON.stringify(map));localStorage.setItem(SESSION_KEY, id);return true;
   }
   function logout() { localStorage.removeItem(SESSION_KEY); }
   function renderLoginOptions(select, league, selectedId = "") {
@@ -70,12 +104,10 @@ const LeagueShared = (() => {
     if (selectedId && activeProfile(league, selectedId)) select.value = selectedId;
   }
   function readLocalLeague() {
-    try {
-      const value = JSON.parse(localStorage.getItem(LEAGUE_KEY) || "null");
-      return value?.profiles ? value : null;
-    } catch { return null; }
+    try { const value = JSON.parse(localStorage.getItem(LEAGUE_KEY) || "null"); return value?.profiles ? normalizeLeague(value) : null; }
+    catch { return null; }
   }
-  function saveLocalLeague(league) { localStorage.setItem(LEAGUE_KEY, JSON.stringify(league)); }
+  function saveLocalLeague(league) { localStorage.setItem(LEAGUE_KEY, JSON.stringify(normalizeLeague(league))); }
 
   let scrollFrame = null;
   function smoothScrollTo(target) {
@@ -88,28 +120,18 @@ const LeagueShared = (() => {
     if (Math.abs(distance) < 2) return;
     const duration = Math.min(650, Math.max(320, Math.abs(distance) * 0.5));
     const started = performance.now();
-    const step = now => {
-      const progress = Math.min(1, (now - started) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      window.scrollTo(0, start + distance * eased);
-      scrollFrame = progress < 1 ? requestAnimationFrame(step) : null;
-    };
+    const step = now => { const progress = Math.min(1, (now - started) / duration), eased = 1 - Math.pow(1 - progress, 3); window.scrollTo(0, start + distance * eased); scrollFrame = progress < 1 ? requestAnimationFrame(step) : null; };
     scrollFrame = requestAnimationFrame(step);
   }
-
   async function cloudRequest(columns, method = "GET", body = null) {
     const options = { method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } };
-    if (body !== null) {
-      options.headers["Content-Type"] = "application/json";
-      options.headers.Prefer = "return=representation";
-      options.body = JSON.stringify(body);
-    }
+    if (body !== null) { options.headers["Content-Type"] = "application/json"; options.headers.Prefer = "return=representation"; options.body = JSON.stringify(body); }
     const response = await fetch(`${CLOUD_ENDPOINT}&select=${columns}`, options);
     if (!response.ok) throw new Error(`Cloud request failed: ${response.status}`);
     return response.json();
   }
 
-  return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, escapeHtml, newAccountId, profile,
+  return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
-    sessionUserId, login, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, smoothScrollTo, cloudRequest });
+    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, cloudRequest });
 })();
