@@ -4,12 +4,26 @@
   document.body.classList.add('sport-redesign',`sport-page-${page.replace(/\W+/g,'-')}`);
 
   function league(){try{return window.LeagueShared?.readLocalLeague?.()||null}catch{return null}}
+
+  function addHeroPhoto(){
+    if(page!=='index.html') return;
+    const hero=qs('.hero');
+    if(!hero||qs('.hero-player-photo',hero)) return;
+    const img=document.createElement('img');
+    img.className='hero-player-photo';
+    img.src='hero-player.jpg?v=20261012-3';
+    img.alt='นักกีฬาปิงปองกำลังตีลูก';
+    img.decoding='async';
+    img.fetchPriority='high';
+    hero.prepend(img);
+  }
+
   function addBrand(){
     const hero=qs('.hero'); if(!hero||qs('.sport-brand',hero)) return;
     const brand=document.createElement('div');
     brand.className='sport-brand';
     brand.innerHTML='<div class="sport-mark">🏓</div><div><b>ตีให้สุด หยุดที่เบ้าตา</b><small>THAI PING PONG LEAGUE</small></div>';
-    hero.insertBefore(brand,hero.firstChild);
+    hero.insertBefore(brand,hero.firstChild?.nextSibling||hero.firstChild);
     const l=league();
     if(page==='index.html'&&l){
       const badge=document.createElement('div');badge.className='sport-season-badge';badge.innerHTML=`SEASON <span>${Number(l.currentSeason)||1}</span><small>LIVE LEAGUE</small>`;
@@ -50,6 +64,6 @@
     ['#standingsCard','#bettingPanel','#dealerPanel','.rank-card'].forEach(sel=>qs(sel)?.classList.add('sport-feature-card'));
   }
 
-  function boot(){addBrand();restyleExistingTabs();addUniversalTabs();elevateImportantCards();ripple();document.body.classList.add('sport-ready')}
+  function boot(){addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();elevateImportantCards();ripple();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,60));else setTimeout(boot,60);
 })();
