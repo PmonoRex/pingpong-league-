@@ -38,7 +38,7 @@ function makeRoundRobin(ids){
  return out;
 }
 function setSync(text,status=""){const e=document.getElementById("syncStatus");e.textContent=text;e.className=`pill sync ${status}`}
-const cloudRequest=(method="GET",body=null)=>LeagueShared.cloudRequest("league,updated_at",method,body);
+const cloudRequest=(method="GET",body=null,extraQuery="")=>LeagueShared.cloudRequest("league,updated_at",method,body,extraQuery);
 function cloudPayload(){return {uidLeague:state}}
 function saveState(){if(!isAdmin())return;saveLocal();if(!cloudReady)return;dirty=true;changeVersion++;setSync("กำลังบันทึก...");clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,400)}
 async function pushCloud(){
@@ -57,8 +57,16 @@ async function pushCloud(){
    }
   }
   const now=new Date().toISOString();
-  const rows=await cloudRequest("PATCH",{league:{...(latest?.league||{}),...cloudPayload()},updated_at:now});
-  if(!rows?.length)throw new Error("บันทึกไม่สำเร็จ");
+  const expected=latest?.updated_at||"";
+  const filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:"";
+  const rows=await cloudRequest("PATCH",{league:{...(latest?.league||{}),...cloudPayload()},updated_at:now},filter);
+  if(!rows?.length){
+   try{localStorage.setItem("pp_conflict_draft_v1",JSON.stringify({savedAt:now,league:state}))}catch{}
+   const refreshed=(await cloudRequest())[0];
+   const newest=refreshed?.league?.uidLeague;
+   if(newest?.profiles){state=newest;lastCloudUpdate=refreshed?.updated_at||"";dirty=false;saveLocal();reconcileSession();renderLogin();render();setSync("มีข้อมูลใหม่จากอีกเครื่อง • โหลดล่าสุดแล้ว","offline");return}
+   throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง");
+  }
   lastCloudUpdate=rows[0]?.updated_at||now;dirty=changeVersion!==startedVersion;saved=true;saveLocal();setSync("ออนไลน์ • บันทึกแล้ว","online");
  }catch(e){setSync("ออฟไลน์ • เก็บในเครื่อง","offline")}finally{cloudSaving=false;if(saved&&dirty)saveTimer=setTimeout(pushCloud,400)}
 }
