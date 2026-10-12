@@ -1,5 +1,5 @@
 async function refreshLeagueAndSettle(){
-  if(!isAdmin())return alert("เฉพาะ Admin เท่านั้น");
+  if(!(isAdmin()||isDealer()))return alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");
   const btn=document.getElementById("settleAll");
   const status=document.getElementById("realtimeState");
   if(!btn||!status)return;
@@ -24,7 +24,25 @@ async function refreshLeagueAndSettle(){
     reconcileSession();
     renderLogin();
     render();
-    const count=await settleAll();
+
+    let count=0;
+    const saved=await mutatePred(()=>{
+      if(!(isAdmin()||isDealer())){alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");return false}
+      count=0;
+      pred.bets.forEach(b=>{
+        if(b.status!=="pending")return;
+        const m=allMatches().find(x=>x.id===b.matchId);
+        const r=LeagueShared.settlementOutcome(league.currentSeason,b,m);
+        if(!r)return;
+        if(r.type==="push"){b.status="push";b.net=0}
+        else if(r.winnerId===b.sideId){b.status="won";b.net=b.stake}
+        else{b.status="lost";b.net=-b.stake}
+        b.settledAt=new Date().toISOString();
+        count++;
+      });
+    });
+    if(saved===false)throw new Error("บันทึกผลไม่สำเร็จ");
+
     const completed=allMatches().filter(hasResult).length;
     status.textContent=`อัปเดตแล้ว • มีผลการแข่งขัน ${completed} คู่ • ตัดสินรายการใหม่ ${Number(count)||0} รายการ`;
     status.className="realtime-state ok";
