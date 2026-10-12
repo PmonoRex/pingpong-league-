@@ -1,0 +1,71 @@
+/* Shared motion system — subtle, fast, mobile-friendly */
+:root{
+  --motion-fast:140ms;
+  --motion-base:220ms;
+  --motion-slow:320ms;
+  --motion-ease:cubic-bezier(.2,.8,.2,1);
+  --motion-spring:cubic-bezier(.2,.9,.25,1.15);
+}
+
+html{scroll-behavior:smooth}
+body{animation:pageEnter var(--motion-slow) var(--motion-ease) both}
+
+button,a.btn,.bottom-nav a,.pill,.tag,.roster-item,.match,.card,.stat,.rank-row,.season-item,.dealer-current-card,
+input,select,.account,.market,.profile-metric,.recovery-item{
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    opacity var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease);
+}
+
+button:not(:disabled):active,a.btn:active,.bottom-nav a:active{transform:scale(.96)}
+button:not(:disabled):hover,a.btn:hover{filter:brightness(1.06)}
+button:disabled{transition:opacity var(--motion-fast) var(--motion-ease),filter var(--motion-fast) var(--motion-ease)}
+
+input:focus,select:focus{
+  transform:translateY(-1px);
+  box-shadow:0 0 0 3px rgba(59,130,246,.16);
+}
+
+.card,.hero{animation:cardEnter var(--motion-slow) var(--motion-ease) both}
+.card:nth-of-type(2){animation-delay:35ms}
+.card:nth-of-type(3){animation-delay:70ms}
+.card:nth-of-type(4){animation-delay:105ms}
+
+.match,.market,.rank-row,.season-item,.account{animation:itemEnter var(--motion-base) var(--motion-ease) both}
+
+.bottom-nav{transition:transform var(--motion-base) var(--motion-ease),box-shadow var(--motion-base) var(--motion-ease),background-color var(--motion-base) var(--motion-ease)}
+.bottom-nav a.active{animation:navPop var(--motion-base) var(--motion-spring)}
+
+.profile-backdrop,.recovery-backdrop,.auth,.auth-overlay{
+  transition:opacity var(--motion-base) var(--motion-ease),visibility var(--motion-base) var(--motion-ease);
+}
+.profile-sheet,.recovery-sheet,.auth-card{
+  transform-origin:center bottom;
+  animation:sheetEnter var(--motion-slow) var(--motion-ease) both;
+}
+
+.realtime-state,.sync,#adminStatus,#archiveStatus{transition:color var(--motion-base) var(--motion-ease),opacity var(--motion-base) var(--motion-ease)}
+
+@keyframes pageEnter{from{opacity:.55}to{opacity:1}}
+@keyframes cardEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes itemEnter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes navPop{0%{transform:scale(.97)}70%{transform:scale(1.025)}100%{transform:scale(1)}}
+@keyframes sheetEnter{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+
+@media (hover:hover){
+  .card:hover{border-color:color-mix(in srgb,currentColor 0%,#3d5878 100%)}
+  .match:hover,.market:hover,.season-item:hover{transform:translateY(-1px)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}
