@@ -1,6 +1,17 @@
 (() => {
   const qs=(s,r=document)=>r.querySelector(s);
   const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+
+  function ensureMobileFit(){
+    if(document.querySelector('link[data-mobile-fit]')) return;
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='mobile-fit.css?v=20261012-1';
+    link.dataset.mobileFit='1';
+    document.head.appendChild(link);
+  }
+
+  ensureMobileFit();
   document.body.classList.add('sport-redesign',`sport-page-${page.replace(/\W+/g,'-')}`);
 
   function league(){try{return window.LeagueShared?.readLocalLeague?.()||null}catch{return null}}
