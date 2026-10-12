@@ -1,0 +1,34 @@
+/* Generated ping-pong hero image treatment matching the approved mockup */
+body.sport-redesign.sport-page-index-html .hero{
+  min-height:410px;
+  background:
+    linear-gradient(90deg,rgba(5,8,12,.99) 0%,rgba(5,8,12,.94) 39%,rgba(5,8,12,.52) 63%,rgba(5,8,12,.12) 100%),
+    url("hero-player.jpg?v=20261012") 68% 44%/cover no-repeat,
+    #06090e!important;
+}
+body.sport-redesign.sport-page-index-html .hero:before{
+  background:linear-gradient(118deg,transparent 40%,rgba(255,35,43,.08),transparent 68%)!important;
+}
+@media(max-width:840px){
+  body.sport-redesign.sport-page-index-html .hero{
+    min-height:520px;
+    background:
+      linear-gradient(90deg,rgba(5,8,12,.99) 0%,rgba(5,8,12,.96) 34%,rgba(5,8,12,.60) 58%,rgba(5,8,12,.16) 100%),
+      url("hero-player.jpg?v=20261012") 64% 44%/cover no-repeat,
+      #06090e!important;
+  }
+}
+@media(max-width:520px){
+  body.sport-redesign.sport-page-index-html .hero{
+    min-height:560px;
+    padding:20px 18px 22px;
+    background:
+      linear-gradient(90deg,rgba(5,8,12,.99) 0%,rgba(5,8,12,.965) 31%,rgba(5,8,12,.62) 55%,rgba(5,8,12,.17) 100%),
+      url("hero-player.jpg?v=20261012") 62% 42%/cover no-repeat,
+      #06090e!important;
+  }
+  body.sport-redesign.sport-page-index-html .hero h1{max-width:76%;font-size:42px}
+  body.sport-redesign.sport-page-index-html .hero .sub{max-width:74%}
+  body.sport-redesign.sport-page-index-html .sport-brand{margin-bottom:48px}
+  body.sport-redesign.sport-page-index-html .hero .account-bar{margin-top:18px;background:rgba(5,9,14,.84)}
+}
