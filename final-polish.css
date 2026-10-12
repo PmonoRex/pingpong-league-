@@ -1,0 +1,68 @@
+/* Final cross-page polish: mobile fit, safe areas, touch feedback and accessibility */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:#05070b}
+body{overscroll-behavior-x:none;-webkit-font-smoothing:antialiased}
+body.sport-redesign *{min-width:0}
+body.sport-redesign button,body.sport-redesign a,body.sport-redesign input,body.sport-redesign select{-webkit-tap-highlight-color:transparent}
+body.sport-redesign button,body.sport-redesign a.btn,body.sport-redesign .bottom-nav a,body.sport-redesign .sport-tabbar a{touch-action:manipulation}
+body.sport-redesign button:focus-visible,body.sport-redesign a:focus-visible,body.sport-redesign input:focus-visible,body.sport-redesign select:focus-visible{outline:2px solid #ff6469!important;outline-offset:3px}
+body.sport-redesign button:disabled,body.sport-redesign input:disabled,body.sport-redesign select:disabled{opacity:.5;cursor:not-allowed}
+body.sport-redesign .wrap,body.sport-redesign .table-wrap{scrollbar-width:thin;overscroll-behavior-inline:contain}
+body.sport-redesign .wrap:focus-within,body.sport-redesign .table-wrap:focus-within{box-shadow:0 0 0 2px rgba(255,70,75,.12)}
+body.sport-redesign .sport-tools-toggle{display:none}
+body.sport-redesign .hero-player-photo{transition:opacity .35s ease,transform .55s cubic-bezier(.2,.8,.2,1)}
+body.sport-redesign .hero-photo-ready .hero-player-photo{transform:scale(1.001)}
+body.sport-redesign .status,body.sport-redesign .muted,body.sport-redesign .hint{overflow-wrap:anywhere}
+body.sport-redesign .pair>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.sport-redesign .card,body.sport-redesign .hero,body.sport-redesign .workflow-card{contain:layout paint style}
+body.sport-redesign .bottom-nav,body.sport-redesign .sport-tabbar{padding-bottom:max(7px,env(safe-area-inset-bottom))}
+
+@media(max-width:840px){
+  body.sport-redesign main{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
+  body.sport-redesign .hero{min-height:auto!important}
+  body.sport-redesign .dashboard-grid,body.sport-redesign .grid{grid-template-columns:minmax(0,1fr)!important}
+  body.sport-redesign .card,body.sport-redesign .workflow-card{box-shadow:0 14px 40px rgba(0,0,0,.28)}
+  body.sport-redesign .table-wrap table,body.sport-redesign .wrap table{max-width:none}
+}
+
+@media(max-width:640px){
+  body.sport-redesign main{padding-left:8px!important;padding-right:8px!important}
+  body.sport-redesign .hero{padding:18px 16px 20px!important;border-radius:24px!important}
+  body.sport-redesign .sport-brand{margin-bottom:30px!important}
+  body.sport-redesign .hero h1{font-size:clamp(34px,10.3vw,44px)!important;max-width:78%!important;line-height:1!important}
+  body.sport-redesign .hero .sub,body.sport-redesign .hero p{max-width:82%!important}
+  body.sport-redesign .hero .rules{gap:6px!important}
+  body.sport-redesign .hero .pill{padding:7px 9px!important;font-size:11px!important}
+  body.sport-redesign .account-bar{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center!important;gap:8px!important;width:100%!important;padding:10px!important}
+  body.sport-redesign .account-bar .account-user{min-height:40px}
+  body.sport-redesign .sport-tools-toggle{display:inline-flex!important;grid-column:2;grid-row:1;min-height:40px!important;padding:8px 11px!important;white-space:nowrap}
+  body.sport-redesign .account-bar .sport-tools-actions{display:none!important;grid-column:1/-1;grid-row:2;width:100%!important;max-width:100%!important;margin-top:2px!important;padding-top:8px;border-top:1px solid rgba(255,255,255,.07)}
+  body.sport-redesign .account-bar .sport-tools-actions.open{display:flex!important;animation:toolsOpen .2s cubic-bezier(.2,.8,.2,1)}
+  body.sport-redesign .account-bar .sport-tools-actions>*{flex:1 1 calc(50% - 5px)!important;min-width:120px!important}
+  body.sport-redesign .card{padding:14px!important;border-radius:20px!important}
+  body.sport-redesign .section-head{gap:6px!important}
+  body.sport-redesign .section-head h2,body.sport-redesign .card h2{font-size:clamp(19px,5.8vw,25px)!important}
+  body.sport-redesign .actions{gap:7px!important}
+  body.sport-redesign .actions>button,body.sport-redesign .actions>a{max-width:100%;white-space:normal;text-align:center}
+  body.sport-redesign .stats,body.sport-redesign .summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.sport-redesign .stat{padding:11px 6px!important}
+  body.sport-redesign .quick-grid{grid-template-columns:1fr!important}
+  body.sport-redesign .pair{gap:3px!important;grid-template-columns:minmax(38px,1fr) minmax(82px,96px) 12px minmax(82px,96px) minmax(38px,1fr)!important}
+  body.sport-redesign .pair>b{font-size:11px!important}
+  body.sport-redesign .score-control{grid-template-columns:28px minmax(0,1fr) 28px!important;gap:3px!important}
+  body.sport-redesign .score-control button{min-height:40px!important;font-size:18px!important}
+  body.sport-redesign .score-control input{min-height:40px!important;padding:0 2px!important;font-size:15px!important}
+  body.sport-redesign .bottom-nav,body.sport-redesign .sport-tabbar{left:7px!important;right:7px!important;width:auto!important;transform:none!important;bottom:max(6px,env(safe-area-inset-bottom))!important}
+  body.sport-redesign .bottom-nav a,body.sport-redesign .sport-tabbar a{min-height:50px!important;font-size:9px!important}
+}
+
+@media(max-width:390px){
+  body.sport-redesign .hero h1{font-size:34px!important;max-width:82%!important}
+  body.sport-redesign .sport-brand b{font-size:12px!important}
+  body.sport-redesign .sport-brand small{font-size:8px!important}
+  body.sport-redesign .pair{grid-template-columns:minmax(32px,1fr) 86px 10px 86px minmax(32px,1fr)!important}
+  body.sport-redesign .score-control{grid-template-columns:26px minmax(0,1fr) 26px!important}
+  body.sport-redesign .account-bar .sport-tools-actions>*{flex-basis:100%!important}
+}
+
+@keyframes toolsOpen{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){body.sport-redesign .hero-player-photo,body.sport-redesign .account-bar .sport-tools-actions.open{transition:none!important;animation:none!important}}
