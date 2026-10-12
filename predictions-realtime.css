@@ -1,0 +1,1 @@
+.realtime-state{margin-top:8px;font-size:12px;color:#91a4be}.realtime-state.loading{color:#8fc5ff}.realtime-state.ok{color:#9ff0bf}.realtime-state.error{color:#ffb7a3}#settleAll[disabled]{opacity:.6;cursor:wait}
