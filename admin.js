@@ -6,7 +6,7 @@ let saving = false;
 
 const profile = id => LeagueShared.profile(state, id);
 const isAdmin = () => LeagueShared.isAdmin(state, currentUserId);
-const cloudRequest = (method = "GET", body = null) => LeagueShared.cloudRequest("league,updated_at", method, body);
+const cloudRequest = (method = "GET", body = null, extraQuery = "") => LeagueShared.cloudRequest("league,updated_at", method, body, extraQuery);
 const statusElement = document.getElementById("adminStatus");
 function setStatus(message) { statusElement.textContent = message; }
 function leaveIfNotAdmin() { if (isAdmin()) return false; location.replace("index.html"); return true; }
@@ -31,10 +31,12 @@ async function mutate(change) {
     if (change(updated) === false) { setStatus("ออนไลน์ • ไม่มีการเปลี่ยนแปลง"); return false; }
     setStatus("กำลังบันทึก...");
     const now = new Date().toISOString();
-    const saved = await cloudRequest("PATCH", { league: { ...(row.league || {}), uidLeague: updated }, updated_at: now });
-    if (!saved?.length) throw new Error("บันทึกไม่สำเร็จ");
+    const expected = row?.updated_at || "";
+    const filter = expected ? `updated_at=eq.${encodeURIComponent(expected)}` : "";
+    const saved = await cloudRequest("PATCH", { league: { ...(row.league || {}), uidLeague: updated }, updated_at: now }, filter);
+    if (!saved?.length) throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง กรุณาลองใหม่");
     state = updated; LeagueShared.saveLocalLeague(state); render(); setStatus("ออนไลน์ • บันทึกแล้ว"); return true;
-  } catch (error) { setStatus(`บันทึกไม่ได้: ${error.message}`); return false; }
+  } catch (error) { setStatus(`บันทึกไม่ได้: ${error.message}`); await loadCloud(); return false; }
   finally { saving = false; }
 }
 
