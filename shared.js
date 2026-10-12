@@ -123,10 +123,11 @@ const LeagueShared = (() => {
     const step = now => { const progress = Math.min(1, (now - started) / duration), eased = 1 - Math.pow(1 - progress, 3); window.scrollTo(0, start + distance * eased); scrollFrame = progress < 1 ? requestAnimationFrame(step) : null; };
     scrollFrame = requestAnimationFrame(step);
   }
-  async function cloudRequest(columns, method = "GET", body = null) {
+  async function cloudRequest(columns, method = "GET", body = null, extraQuery = "") {
     const options = { method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } };
     if (body !== null) { options.headers["Content-Type"] = "application/json"; options.headers.Prefer = "return=representation"; options.body = JSON.stringify(body); }
-    const response = await fetch(`${CLOUD_ENDPOINT}&select=${columns}`, options);
+    const suffix = extraQuery ? (extraQuery.startsWith("&") ? extraQuery : `&${extraQuery}`) : "";
+    const response = await fetch(`${CLOUD_ENDPOINT}${suffix}&select=${columns}`, options);
     if (!response.ok) throw new Error(`Cloud request failed: ${response.status}`);
     return response.json();
   }
