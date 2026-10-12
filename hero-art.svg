@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 650" role="img" aria-label="Stylized table tennis player">
+<defs>
+ <linearGradient id="red" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#ff3b30"/><stop offset="1" stop-color="#c90820"/></linearGradient>
+ <linearGradient id="skin" x1="0" x2="1"><stop stop-color="#8d96a3"/><stop offset="1" stop-color="#222b35"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#ff2d2d" stop-opacity=".55"/><stop offset="1" stop-color="#ff2d2d" stop-opacity="0"/></radialGradient>
+ <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+</defs>
+<ellipse cx="690" cy="335" rx="250" ry="205" fill="url(#glow)" filter="url(#blur)"/>
+<g opacity=".32" fill="none" stroke="#66717f" stroke-width="3">
+ <path d="M540 35h330v575H540z"/><path d="M590 35v575M640 35v575M690 35v575M740 35v575M790 35v575"/>
+</g>
+<g transform="translate(470 85)">
+ <circle cx="190" cy="88" r="64" fill="#111923"/>
+ <path d="M150 69c9-50 93-57 119-4-18-13-41-16-58-10-26 9-34 33-35 57-22-9-31-24-26-43z" fill="#05080c"/>
+ <path d="M159 145c40 31 89 36 135 17l78 103-74 91-134-84-56-85z" fill="#0d151f" stroke="#27313e" stroke-width="7"/>
+ <path d="M140 181c-43 19-83 48-118 87l38 34c45-34 85-50 124-59z" fill="url(#skin)"/>
+ <path d="M319 199c78 12 142 42 193 92l-31 43c-63-37-126-52-190-44z" fill="url(#skin)"/>
+ <path d="M470 286c61 3 110 13 146 31l-19 31c-46-9-92-13-140-11z" fill="#111923"/>
+ <circle cx="642" cy="330" r="93" fill="url(#red)" stroke="#ff6a61" stroke-width="8" transform="rotate(-22 642 330)"/>
+ <rect x="576" y="405" width="36" height="112" rx="16" fill="#111923" transform="rotate(22 594 461)"/>
+ <path d="M183 274c-27 92-23 172 11 241h92c-17-88-6-158 32-210z" fill="#080f17"/>
+ <path d="M284 309c41 77 90 134 149 170l62-67c-68-52-115-100-141-146z" fill="#0a111a"/>
+ <path d="M179 169c37 12 74 10 111-7" fill="none" stroke="#d01727" stroke-width="11"/>
+</g>
+<circle cx="430" cy="198" r="19" fill="#f4f7fb"/><circle cx="430" cy="198" r="34" fill="#fff" opacity=".09"/>
+<g fill="#ffffff" opacity=".045" font-family="Arial Black, sans-serif" font-size="92" font-weight="900"><text x="35" y="585">PING PONG</text><text x="118" y="635">LEAGUE</text></g>
+</svg>
