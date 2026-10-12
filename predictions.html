@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#07111f">
 <title>ทายผลการแข่งขัน</title>
 <link rel="stylesheet" href="predictions.css?v=season-market-20260924">
+<link rel="stylesheet" href="predictions-realtime.css?v=20261012">
 </head>
 <body>
 <main>
@@ -46,7 +47,8 @@
      <div class="muted" id="dealerHint" style="margin-top:8px">เลือกผู้เล่น 1 คนเป็นเจ้ามือ</div>
    </div>
    <div class="dealer-market-controls">
-     <div class="actions"><button class="green" id="settleAll">✓ คำนวณผลล่าสุด</button></div>
+     <div class="actions"><button class="green" id="settleAll">↻ ดึงคะแนนล่าสุด + คำนวณผล</button></div>
+     <div class="realtime-state" id="realtimeState">กดปุ่มเพื่อดึงคะแนนล่าสุดจากหน้าการแข่งขันก่อนคำนวณ</div>
      <div id="dealerMarkets"></div>
    </div>
  </div>
@@ -75,7 +77,6 @@
   <a data-scroll="dealerPanel" href="#dealerPanel" id="dealerNav"><span>🛠</span>เจ้ามือ</a>
   <a data-scroll="historySection" href="#historySection"><span>🧾</span>ประวัติ</a>
 </nav>
-
 
 <div class="profile-backdrop" id="profileBackdrop" aria-hidden="true">
  <div class="profile-sheet" role="dialog" aria-modal="true">
@@ -108,5 +109,6 @@
 
 <script src="shared.js?v=season-market-20260924" defer></script>
 <script src="predictions.js?v=hide-id-20260924" defer></script>
+<script src="predictions-realtime.js?v=20261012" defer></script>
 </body>
 </html>
