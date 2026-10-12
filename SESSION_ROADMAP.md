@@ -70,16 +70,32 @@ Goal: ส่งข้อมูลออกจากเว็บได้ง่�
 - Share Sheet บน iPhone
 - PDF / CSV สำหรับเก็บย้อนหลัง
 
-## Session 7 — UI / Performance Polish
-Goal: ทำให้เว็บลื่นและดูเป็นแอปมากขึ้น
+## Session 7 — UI / Motion / Performance Polish 🚧 Foundation Started
+Goal: ทำให้เว็บลื่น ดูเป็นแอป และทุกการกดมี feedback ที่ชัดเจนโดยไม่หนักเครื่อง
 
+### Motion system
+- ใช้ transition กลางร่วมกันทั้งเว็บผ่าน `motion.css`
+- ปุ่มมี press feedback (`scale`) ตอนแตะ
+- Bottom navigation มี active animation แบบเบา
+- Card / match / market / account มี entrance animation ที่สั้นและไม่รบกวน
+- Modal / profile / recovery sheet เปิดด้วย slide + fade
+- Input / select มี focus transition
+- Status เช่น sync / realtime เปลี่ยนสีอย่างลื่นไหล
+- รองรับ `prefers-reduced-motion` สำหรับผู้ใช้ที่ลด animation ในเครื่อง
+- กำหนด motion duration กลาง: fast / base / slow เพื่อให้ทุกหน้าใช้จังหวะเดียวกัน
+
+### UX polish ต่อใน Session นี้
 - Skeleton loading
 - Toast แทน alert บางจุด
 - Sticky navigation ที่สม่ำเสมอ
-- Animation แบบเบา
-- ปรับ mobile spacing
-- ลดการ render ซ้ำ
+- Loading state ของปุ่มระหว่างบันทึก/ซิงก์
+- Success feedback หลังบันทึกคะแนน / ตั้งเจ้ามือ / ส่งออก
+- Smooth number update สำหรับคะแนนและยอดต่าง ๆ
+- ปรับ mobile spacing และ touch target
+- ลดการ render ซ้ำเพื่อไม่ให้ animation กระตุก
 - cache busting / version strategy
+
+> Foundation ของ Motion System เริ่มแล้ว: `motion.css` ถูกเชื่อมกับ `index.html`, `predictions.html`, `admin.html`, และ `archive.html`
 
 ## Session 8 — Data Integrity / Security
 Goal: ทำให้ระบบแข็งแรงขึ้น
@@ -92,3 +108,5 @@ Goal: ทำให้ระบบแข็งแรงขึ้น
 
 ## Current focus
 กำลังทำ **Session 1 — Season Archive** ก่อน แล้วจะต่อ Session 2 เมื่อ Archive ผ่านการทดสอบ
+
+ระบบ Motion Foundation ของ Session 7 ถูกวางไว้ล่วงหน้าแล้ว เพื่อให้หน้าที่เพิ่มใน Session ถัด ๆ ไปใช้ transition และ interaction แบบเดียวกันตั้งแต่แรก
