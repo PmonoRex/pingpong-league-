@@ -31,7 +31,7 @@
   }
 
   function addHeroPhoto(){
-    if(page!=='index.html') return;
+    if(!['index.html','dashboard.html'].includes(page)) return;
     const hero=qs('.hero');
     if(!hero||qs('.hero-player-photo',hero)) return;
     const img=document.createElement('img');
