@@ -1,11 +1,13 @@
 /* Generated ping-pong hero image treatment matching the approved mockup */
-body.sport-redesign.sport-page-index-html .hero{
+body.sport-redesign.sport-page-index-html .hero,
+body.sport-redesign.sport-page-dashboard-html .hero{
   min-height:430px;
   background:#06090e!important;
   position:relative;
   overflow:hidden;
 }
-body.sport-redesign.sport-page-index-html .hero-player-photo{
+body.sport-redesign.sport-page-index-html .hero-player-photo,
+body.sport-redesign.sport-page-dashboard-html .hero-player-photo{
   position:absolute;
   inset:0;
   width:100%;
@@ -17,7 +19,8 @@ body.sport-redesign.sport-page-index-html .hero-player-photo{
   pointer-events:none;
   user-select:none;
 }
-body.sport-redesign.sport-page-index-html .hero:before{
+body.sport-redesign.sport-page-index-html .hero:before,
+body.sport-redesign.sport-page-dashboard-html .hero:before{
   content:"";
   position:absolute;
   inset:0;
@@ -27,29 +30,46 @@ body.sport-redesign.sport-page-index-html .hero:before{
     linear-gradient(180deg,rgba(5,8,12,.08),rgba(5,8,12,.10) 56%,rgba(5,8,12,.70) 100%)!important;
   pointer-events:none;
 }
-body.sport-redesign.sport-page-index-html .hero:after{z-index:1!important}
-body.sport-redesign.sport-page-index-html .hero > *:not(.hero-player-photo){position:relative;z-index:2}
+body.sport-redesign.sport-page-index-html .hero:after,
+body.sport-redesign.sport-page-dashboard-html .hero:after{z-index:1!important}
+body.sport-redesign.sport-page-index-html .hero > *:not(.hero-player-photo),
+body.sport-redesign.sport-page-dashboard-html .hero > *:not(.hero-player-photo){position:relative;z-index:2}
 body.sport-redesign.sport-page-index-html .hero .account-bar{background:rgba(5,9,14,.82);backdrop-filter:blur(14px)}
+
+/* Dashboard keeps the same artwork but slightly shorter and cleaner */
+body.sport-redesign.sport-page-dashboard-html .hero{min-height:400px}
+body.sport-redesign.sport-page-dashboard-html .hero-player-photo{object-position:70% 42%;opacity:.94}
+body.sport-redesign.sport-page-dashboard-html .hero .actions{max-width:68%}
 
 @media(max-width:840px){
   body.sport-redesign.sport-page-index-html .hero{min-height:540px}
-  body.sport-redesign.sport-page-index-html .hero-player-photo{object-position:64% 42%;opacity:.98}
-  body.sport-redesign.sport-page-index-html .hero:before{
+  body.sport-redesign.sport-page-dashboard-html .hero{min-height:500px}
+  body.sport-redesign.sport-page-index-html .hero-player-photo,
+  body.sport-redesign.sport-page-dashboard-html .hero-player-photo{object-position:64% 42%;opacity:.98}
+  body.sport-redesign.sport-page-index-html .hero:before,
+  body.sport-redesign.sport-page-dashboard-html .hero:before{
     background:
       linear-gradient(90deg,rgba(5,8,12,.99) 0%,rgba(5,8,12,.91) 30%,rgba(5,8,12,.42) 55%,rgba(5,8,12,.08) 100%),
       linear-gradient(180deg,rgba(5,8,12,.03),rgba(5,8,12,.10) 56%,rgba(5,8,12,.76) 100%)!important;
   }
+  body.sport-redesign.sport-page-dashboard-html .hero .actions{max-width:76%}
 }
 @media(max-width:520px){
   body.sport-redesign.sport-page-index-html .hero{
     min-height:580px;
     padding:20px 18px 22px;
   }
-  body.sport-redesign.sport-page-index-html .hero-player-photo{
+  body.sport-redesign.sport-page-dashboard-html .hero{
+    min-height:540px;
+    padding:20px 18px 22px;
+  }
+  body.sport-redesign.sport-page-index-html .hero-player-photo,
+  body.sport-redesign.sport-page-dashboard-html .hero-player-photo{
     object-position:61% 40%;
     opacity:1;
   }
-  body.sport-redesign.sport-page-index-html .hero:before{
+  body.sport-redesign.sport-page-index-html .hero:before,
+  body.sport-redesign.sport-page-dashboard-html .hero:before{
     background:
       linear-gradient(90deg,rgba(5,8,12,.98) 0%,rgba(5,8,12,.88) 28%,rgba(5,8,12,.38) 53%,rgba(5,8,12,.05) 100%),
       linear-gradient(180deg,rgba(5,8,12,.03),rgba(5,8,12,.08) 50%,rgba(5,8,12,.80) 100%)!important;
@@ -58,4 +78,9 @@ body.sport-redesign.sport-page-index-html .hero .account-bar{background:rgba(5,9
   body.sport-redesign.sport-page-index-html .hero .sub{max-width:72%}
   body.sport-redesign.sport-page-index-html .sport-brand{margin-bottom:48px}
   body.sport-redesign.sport-page-index-html .hero .account-bar{margin-top:18px;background:rgba(5,9,14,.84)}
+
+  body.sport-redesign.sport-page-dashboard-html .hero h1{max-width:70%;font-size:42px}
+  body.sport-redesign.sport-page-dashboard-html .hero .actions{max-width:72%;display:grid!important;grid-template-columns:1fr 1fr!important}
+  body.sport-redesign.sport-page-dashboard-html .hero .actions>*{width:100%!important}
+  body.sport-redesign.sport-page-dashboard-html .sport-brand{margin-bottom:38px}
 }
