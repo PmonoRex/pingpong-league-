@@ -1,4 +1,5 @@
-// Export/share the net settlement for the current Season.
+// Export/share the net settlement for the Season shown in the settlement card (QA P1/P2: follows the current score,
+// includes players closed since and lists bets still waiting from a finished Season).
 (function(){
   const button=document.getElementById("exportSettlement");
   const hint=document.getElementById("exportSettlementHint");
@@ -8,20 +9,13 @@
     return typeof isAdmin==="function"&&typeof isDealer==="function"&&(isAdmin()||isDealer());
   }
 
+  const shownSeason=()=>typeof settlementSeasonShown==="function"?settlementSeasonShown():league.currentSeason;
   function settlementRows(){
-    const season=league.currentSeason;
-    return activeProfiles()
-      .filter(person=>person.id!==pred.dealerId)
-      .map(person=>{
-        const bets=pred.bets.filter(bet=>bet.season===season&&bet.userId===person.id&&bet.status!=="pending");
-        const won=bets.filter(bet=>bet.status==="won").reduce((sum,bet)=>sum+Number(bet.stake||0),0);
-        const lost=bets.filter(bet=>bet.status==="lost").reduce((sum,bet)=>sum+Number(bet.stake||0),0);
-        return {id:person.id,name:person.displayName,won,lost,net:won-lost};
-      });
+    return BetSettle.summary(league,pred,shownSeason()).rows.map(row=>({...row,name:row.inactive?`${row.name} (ปิดบัญชีแล้ว)`:row.name}));
   }
 
   function makeText(){
-    const season=league.currentSeason;
+    const season=shownSeason();
     const dealer=profile(pred.dealerId)?.displayName||"ยังไม่ได้ตั้ง";
     const rows=settlementRows();
     const dealerPays=rows.filter(row=>row.net>0);
@@ -29,7 +23,7 @@
     const payTotal=dealerPays.reduce((sum,row)=>sum+row.net,0);
     const receiveTotal=dealerReceives.reduce((sum,row)=>sum+Math.abs(row.net),0);
     const dealerNet=receiveTotal-payTotal;
-    const pending=pred.bets.filter(bet=>bet.season===season&&bet.status==="pending").length;
+    const summary=BetSettle.summary(league,pred,season),pending=summary.pending.length;
     const lines=[
       `🏓 สรุปยอดชำระ Season ${season}`,
       `เจ้ามือ: ${dealer}`,
@@ -49,6 +43,8 @@
     lines.push("");
     lines.push(`💰 สุทธิเจ้ามือ: ${dealerNet>0?"+":""}${credits(dealerNet)}`);
     if(pending>0)lines.push(`⚠️ ยังมีรายการรอผล ${pending} รายการ`);
+    if(Number(season)!==Number(league.currentSeason))summary.pending.forEach(bet=>lines.push(`  • #${bet.id} ${profile(bet.userId)?.displayName||bet.userId}: ${credits(bet.stake)} (${bet.matchId})`));
+    if(summary.stale>0)lines.push(`⚠️ คะแนนถูกแก้หลังคำนวณ ${summary.stale} รายการ (ยอดนี้คิดตามคะแนนล่าสุดแล้ว)`);
     lines.push(`อัปเดต: ${new Date().toLocaleString("th-TH")}`);
     return lines.join("\n");
   }
@@ -59,7 +55,7 @@
       return;
     }
     const text=makeText();
-    const title=`สรุปยอดชำระ Season ${league.currentSeason}`;
+    const title=`สรุปยอดชำระ Season ${shownSeason()}`;
     try{
       if(navigator.share){
         await navigator.share({title,text});
@@ -73,7 +69,7 @@
       const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
       const url=URL.createObjectURL(blob);
       const link=document.createElement("a");
-      link.href=url;link.download=`settlement-season-${league.currentSeason}.txt`;
+      link.href=url;link.download=`settlement-season-${shownSeason()}.txt`;
       document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
     }catch(error){
       if(error?.name!=="AbortError")alert(`ส่งออกไม่สำเร็จ: ${error?.message||error}`);
