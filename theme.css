@@ -232,3 +232,115 @@ body.sport-redesign .bottom-nav a.active,body.sport-redesign .sport-tabbar a.act
  body.sport-redesign .score-control{grid-template-columns:26px minmax(0,1fr) 26px}
  body.sport-redesign .account-bar .sport-tools-actions>*{flex-basis:100%}
 }
+
+/* ===== Visual redesign 2026-10: type scale, compact headers, player identity, podium, stat cards, empty states ===== */
+:root{
+  --font:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
+  --fs-2xs:10px;--fs-xs:11px;--fs-sm:12.5px;--fs-base:14px;--fs-md:16px;--fs-lg:19px;
+  --fs-xl:clamp(20px,4.8vw,25px);--fs-2xl:clamp(24px,6.2vw,32px);--fs-display:clamp(34px,9.4vw,60px);
+  --lh-tight:1.18;--lh-body:1.55;
+  --medal-gold:#f2c14e;--medal-silver:#c4ccd6;--medal-bronze:#c98a52;
+}
+body.sport-redesign{font-family:var(--font);font-size:var(--fs-base);line-height:var(--lh-body)}
+body.sport-redesign :is(button,input,select,textarea,a.btn){font-family:inherit}
+body.sport-redesign :is(h1,h2,h3){line-height:var(--lh-tight);font-weight:700}
+body.sport-redesign .hero h1{font-size:var(--fs-display);line-height:1.08;font-weight:700}
+body.sport-redesign .card h2,body.sport-redesign .section-head h2{font-size:var(--fs-xl);font-weight:700}
+body.sport-redesign h3{font-size:var(--fs-md);font-weight:600;margin:14px 0 8px}
+body.sport-redesign :is(.muted,.hint){font-size:var(--fs-sm)}
+body.sport-redesign .stat b{font-size:var(--fs-2xl);font-weight:700;line-height:1.2}
+body.sport-redesign .stat small{font-size:var(--fs-xs)}
+body.sport-redesign th{font-size:var(--fs-2xs);font-weight:600}
+body.sport-redesign td{font-size:var(--fs-sm)}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a{font-size:var(--fs-2xs);font-weight:600}
+body.sport-redesign :is(button,a.btn,a.secondary,a.primary){font-weight:600}
+
+/* Compact header for every page except the league home (keeps view-transition-name app-hero) */
+body.hero-compact .hero{min-height:0!important;padding:14px 16px 12px;border-radius:22px;display:flex;flex-direction:column;gap:2px}
+body.hero-compact .hero:after{display:none}
+body.hero-compact .hero:before{background:linear-gradient(90deg,rgba(5,8,12,.98) 0%,rgba(5,8,12,.9) 45%,rgba(5,8,12,.55) 75%,rgba(5,8,12,.3) 100%)}
+body.hero-compact .hero-player-photo{object-position:70% 38%!important;opacity:.75}
+body.hero-compact .sport-brand{position:absolute!important;top:12px;right:12px;margin:0!important}
+body.hero-compact .sport-brand>div:not(.sport-mark){display:none}
+body.hero-compact .sport-mark{width:34px;height:34px;border-radius:11px;font-size:17px}
+body.hero-compact .hero>:is(.eyebrow,.muted:first-of-type){font-size:var(--fs-2xs);margin:0;padding-right:44px}
+body.hero-compact .hero h1{font-size:var(--fs-2xl)!important;max-width:calc(100% - 44px)!important;margin:2px 0!important;line-height:1.15}
+body.hero-compact .hero>:is(.muted,.sub,p){max-width:100%!important;font-size:var(--fs-sm);margin:0}
+body.hero-compact .hero>.actions{max-width:100%!important;display:flex!important;flex-wrap:nowrap;align-items:center;overflow-x:auto;gap:6px;margin-top:6px;scrollbar-width:none}
+body.hero-compact .hero>.actions :is(a,button){display:inline-flex;align-items:center;flex:none;min-height:34px;padding:6px 11px;font-size:var(--fs-xs);border-radius:999px;width:auto!important}
+body.hero-compact .hero .sub{display:none}
+body.hero-compact .hero .notice{max-width:100%!important;margin:6px 0 0;padding:7px 10px;font-size:var(--fs-xs);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+body.hero-compact .hero .notice .sync{margin:0}
+body.hero-compact .hero .account-bar{margin-top:8px!important;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+body.hero-compact .hero .account-bar :is(button,a){min-height:34px;padding:6px 10px;font-size:var(--fs-xs)}
+
+/* Player avatar: initials on a colour derived from the profile id (player-ui.js) */
+.pa{--s:30px;width:var(--s);height:var(--s);border-radius:50%;background:var(--pa,#2b3745);display:inline-grid;place-items:center;flex:none;color:#fff;font-weight:700;font-size:calc(var(--s)*.42);line-height:1;letter-spacing:0;vertical-align:middle;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.2);text-shadow:0 1px 2px rgba(0,0,0,.35);font-family:var(--font)}
+.pa.sm{--s:24px}.pa.lg{--s:52px}.pa.xl{--s:58px}
+.has-pa>.pa{margin-right:7px;vertical-align:-6px}
+.pair>b.has-pa>.pa{margin-right:4px;--s:20px;vertical-align:-5px}
+.pchip{display:inline-flex;align-items:center;gap:7px;min-width:0;max-width:100%;vertical-align:middle}
+.pchip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Podium (dashboard Top 3): 2nd · 1st · 3rd, 1st tallest */
+.podium3{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:8px;padding-top:4px}
+.pod{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;min-width:0;animation:podRise .5s var(--motion-ease,ease) both}
+.pod-1{--medal:var(--medal-gold);animation-delay:.12s}.pod-2{--medal:var(--medal-silver);animation-delay:.04s}.pod-3{--medal:var(--medal-bronze);animation-delay:.2s}
+.pod .pa{box-shadow:0 0 0 3px #0a0f16,0 0 0 5px var(--medal);margin:6px 0 4px}
+.pod-1 .pa{--s:66px}
+.pod-medal{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#17110a;background:var(--medal);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.pod b{font-size:var(--fs-sm);font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pod strong{font-size:var(--fs-md);color:#ff5960;font-weight:700}
+.pod small{font-size:var(--fs-2xs);color:var(--sport-muted)}
+.pod-step{width:100%;margin-top:6px;border-radius:14px 14px 6px 6px;border:1px solid color-mix(in srgb,var(--medal) 40%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--medal) 26%,transparent),rgba(10,15,22,.4))}
+.pod-1 .pod-step{height:88px}.pod-2 .pod-step{height:58px}.pod-3 .pod-step{height:40px}
+@keyframes podRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+body.sport-redesign .form-row{align-items:center}
+
+/* Stats: compact player card with win-rate ring, form strip and season delta */
+body.sport-page-stats-html .card{padding:14px}
+.player-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.player-head h2{margin:0}
+.player-body{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center}
+.ring{--p:0;width:104px;height:104px;border-radius:50%;position:relative;display:grid;place-items:center;background:conic-gradient(var(--sport-red) calc(var(--p)*1%),#1a2330 0)}
+.ring:before{content:"";position:absolute;inset:9px;border-radius:50%;background:#0a0f16}
+.ring>div{position:relative;text-align:center;line-height:1.15}
+.ring b{display:block;font-size:var(--fs-xl);font-weight:700}
+.ring small{font-size:var(--fs-2xs);color:var(--sport-muted)}
+body.sport-redesign .stats.compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+body.sport-redesign .stats.compact .stat{min-height:0;padding:8px 6px;border-radius:14px}
+body.sport-redesign .stats.compact .stat b{font-size:var(--fs-lg)}
+body.sport-page-stats-html .stats:not(.compact){grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+body.sport-page-stats-html .stats:not(.compact) .stat{min-height:0;padding:9px 4px}
+body.sport-page-stats-html .stats:not(.compact) .stat b{font-size:var(--fs-lg)}
+.form-strip{display:flex;gap:4px;flex-wrap:wrap}
+.form-strip .dot{width:26px;height:26px;border-radius:8px;font-size:var(--fs-xs);font-weight:700}
+.delta-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.delta-row:empty{display:none}
+.delta{font-size:var(--fs-xs);font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--sport-line-2);background:#0b1119;color:#dfe5ec}
+.delta.up{color:#62e59a;border-color:#245c3d}.delta.down{color:#ff8a8f;border-color:#5a2028}
+.delta small{color:var(--sport-muted);font-weight:400;margin-left:4px}
+.rival{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rival small{color:var(--sport-muted)}
+.h2h-pair{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.h2h-pair .vs{color:var(--sport-muted);font-size:var(--fs-2xs)}
+
+/* Archive season cards */
+body.sport-redesign .season-btn{display:flex;flex-direction:column;gap:6px;background:linear-gradient(180deg,#101721,#0a1017);border-color:#222e3a;border-radius:16px}
+body.sport-redesign .season-btn.active{border-color:#7a2932;background:linear-gradient(180deg,rgba(255,45,50,.12),#0a1017);box-shadow:inset 0 0 0 1px rgba(255,70,75,.25)}
+.season-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.season-top b{font-size:var(--fs-md)!important}
+.season-champ{display:flex;align-items:center;gap:7px;font-weight:600;font-size:var(--fs-sm);min-width:0}
+.season-champ>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.season-btn small{font-size:var(--fs-xs)}
+.season-btn .tag{font-size:var(--fs-2xs);padding:2px 7px;border-radius:999px;border:1px solid var(--sport-line-2);color:var(--sport-muted);white-space:nowrap}
+
+/* Empty states: illustration + what to do next */
+.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:18px 12px;color:var(--sport-muted);flex:1 1 100%;width:100%;box-sizing:border-box}
+td>.empty-state{position:sticky;left:0;width:calc(min(100vw,1180px) - 64px)}
+.empty-state svg{width:96px;height:64px;margin-bottom:2px}
+.empty-state b{color:#e2e7ed;font-size:var(--fs-md);font-weight:600}
+.empty-state small{font-size:var(--fs-sm);max-width:36ch;line-height:1.5}
+.empty-state .btn{margin-top:6px;min-height:38px;display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:var(--fs-sm);text-decoration:none}
+td:has(>.empty-state){padding:0;text-align:left}
+body.sport-redesign a.quick-tile{display:block}
