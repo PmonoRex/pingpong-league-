@@ -6,7 +6,7 @@
 
   function ensureStyles(){
     const required=[
-      ['theme.css?v=20261015-ux','theme.css'],
+      ['theme.css?v=20261015-design','theme.css'],
       ['motion.css?v=20261015-ux','motion.css']
     ];
     required.forEach(([href,file])=>{
@@ -16,7 +16,8 @@
   }
 
   ensureStyles();
-  document.body.classList.add('sport-redesign',`sport-page-${page.replace(/\W+/g,'-')}`);
+  // Full hero only on the league home; every other page gets a compact header (same view-transition name).
+  document.body.classList.add('sport-redesign',`sport-page-${page.replace(/\W+/g,'-')}`,page==='index.html'?'hero-full':'hero-compact');
 
   function league(){try{return window.LeagueShared?.readLocalLeague?.()||null}catch{return null}}
 
@@ -67,15 +68,15 @@
 
   function restyleExistingTabs(){
     const nav=qs('.bottom-nav');if(!nav)return;const links=[...nav.querySelectorAll('a')];
-    if(page==='index.html'&&links.length>=4){const labels=[['⌂','Home'],['🏆','Ranking'],['📈','Rating'],['🎯','Predict']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
-    if(page==='predictions.html'&&links.length>=4){const labels=[['⌂','Home'],['🎯','Predict'],['🛠','Dealer'],['▤','History']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
+    if(page==='index.html'&&links.length>=4){const labels=[['🏓','Matches'],['🏆','Table'],['🏅','Ranking'],['🎯','Predict']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
+    if(page==='predictions.html'&&links.length>=4){const labels=[['⌂','Home'],['🎯','Predict'],['🛠','Dealer'],['🧾','History']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
   }
 
   // "Home" is always index.html (as on the index/predictions tab bars); the active tab is the one whose link is this page.
   function addUniversalTabs(){
     if(qs('.bottom-nav,.sport-tabbar'))return;
     const nav=document.createElement('nav');nav.className='sport-tabbar';nav.setAttribute('aria-label','เมนูหลัก');
-    nav.innerHTML='<a href="index.html"><span>⌂</span>Home</a><a href="dashboard.html"><span>📊</span>Dashboard</a><a href="predictions.html"><span>🎯</span>Predict</a><a href="stats.html"><span>●</span>Profile</a>';
+    nav.innerHTML='<a href="index.html"><span>⌂</span>Home</a><a href="dashboard.html"><span>📊</span>Dashboard</a><a href="predictions.html"><span>🎯</span>Predict</a><a href="stats.html"><span>📈</span>Stats</a>';
     document.body.appendChild(nav);
   }
   function markActiveNav(){
