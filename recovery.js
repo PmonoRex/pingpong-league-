@@ -111,6 +111,7 @@
     if (!value) return "ไม่ทราบเวลา";
     try { return new Date(value).toLocaleString("th-TH"); } catch { return value; }
   }
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"})[c]);
   function playerNames(ids) {
     return ids.map(id => state.profiles?.[id]?.displayName || id).join(", ");
   }
@@ -124,10 +125,10 @@
       document.getElementById("restoreRecovery").disabled = true;
       return;
     }
-    list.innerHTML = candidates.map((c, i) => `<button type="button" class="recovery-item ${i===selectedIndex?"active":""}" data-recovery-index="${i}"><span><strong>${c.source}</strong><small>${c.season?`Season ${c.season} • `:""}${fmtDate(c.savedAt)}${c.reason?` • ${c.reason}`:""}</small></span><span class="recovery-count">${c.played}/${c.total}</span></button>`).join("");
+    list.innerHTML = candidates.map((c, i) => `<button type="button" class="recovery-item ${i===selectedIndex?"active":""}" data-recovery-index="${i}"><span><strong>${esc(c.source)}</strong><small>${esc(`${c.season?`Season ${c.season} • `:""}${fmtDate(c.savedAt)}${c.reason?` • ${c.reason}`:""}`)}</small></span><span class="recovery-count">${esc(c.played)}/${esc(c.total)}</span></button>`).join("");
     list.querySelectorAll("[data-recovery-index]").forEach(btn => btn.onclick = () => { selectedIndex = Number(btn.dataset.recoveryIndex); renderCandidates(); });
     const c = candidates[selectedIndex];
-    preview.innerHTML = `<strong>ตัวอย่างก่อนกู้</strong><div class="recovery-preview-grid"><div><b>${c.season || "-"}</b><small>Season เดิม</small></div><div><b>${c.played}</b><small>แมตช์ที่มีคะแนน</small></div><div><b>${c.ids.length}</b><small>ผู้เล่น</small></div></div><div class="hint" style="margin-top:9px">${playerNames(c.ids)}</div>`;
+    preview.innerHTML = `<strong>ตัวอย่างก่อนกู้</strong><div class="recovery-preview-grid"><div><b>${esc(c.season || "-")}</b><small>Season เดิม</small></div><div><b>${esc(c.played)}</b><small>แมตช์ที่มีคะแนน</small></div><div><b>${c.ids.length}</b><small>ผู้เล่น</small></div></div><div class="hint" style="margin-top:9px">${esc(playerNames(c.ids))}</div>`;
     document.getElementById("restoreRecovery").disabled = false;
   }
 
