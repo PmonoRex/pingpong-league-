@@ -80,8 +80,8 @@
 
       let next=remoteLeagueChanged?applyResultDelta(syncBase,local,remote):local;
       next=mergeLocalAudit(syncBase,local,next);
-      const now=new Date().toISOString(),expected=latest?.updated_at||'',filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:'';
-      const rows=await cloudRequest('PATCH',{league:{...(latest?.league||{}),uidLeague:next},updated_at:now},filter);
+      const now=new Date().toISOString();
+      const rows=await LeagueShared.saveLeague(next,latest?.updated_at);
       if(!rows?.length){
         saveConflict(local,'ข้อมูลเปลี่ยนระหว่างกำลังบันทึก');
         const refreshed=(await cloudRequest())[0],newest=refreshed?.league?.uidLeague;
@@ -90,7 +90,7 @@
       }
       state=next;lastCloudUpdate=rows[0]?.updated_at||now;baseUpdatedAt=lastCloudUpdate;syncBase=clone(next);
       dirty=changeVersion!==startedVersion;saved=true;saveLocal();setSync('ออนไลน์ • บันทึกแล้ว','online');
-    }catch(error){console.error(error);setSync('ออฟไลน์ • เก็บในเครื่อง','offline')}
+    }catch(error){console.error(error);if(error.code==='28000'||error.code==='28P01'){reconcileSession();renderLogin();render();setSync('กรุณาเข้าสู่ระบบใหม่ • เก็บในเครื่อง','offline');return}setSync(error.code==='42501'?'ไม่มีสิทธิ์บันทึก':'ออฟไลน์ • เก็บในเครื่อง','offline')}
     finally{cloudSaving=false;if(saved&&dirty)saveTimer=setTimeout(pushCloud,400)}
   };
 
