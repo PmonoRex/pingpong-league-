@@ -165,7 +165,7 @@ let settlementPick=null,staleToastKey="";
 function settlementSeasonShown(){return BetSettle.seasons(league,pred).includes(settlementPick)?settlementPick:Number(league.currentSeason)||1}
 function betPairText(b){return b.pair?.length===2?`${profile(b.pair[0])?.displayName||b.pair[0]}–${profile(b.pair[1])?.displayName||b.pair[1]}`:"ตารางเดิม"}
 function renderSettlement(){
- const season=settlementSeasonShown(),sum=BetSettle.summary(league,pred,season),old=pred.bets.filter(b=>BetSettle.isOldPending(league,b)),staff=isAdmin()||isDealer();
+ const season=settlementSeasonShown(),sum=BetSettle.summary(league,pred,season),old=pred.bets.filter(b=>BetSettle.isOldPending(league,b)),staff=isDealer();
  document.getElementById("settlementSeason").textContent=season;
  const sel=document.getElementById("settlementSeasonSelect");
  if(sel){sel.innerHTML=BetSettle.seasons(league,pred).map(s=>`<option value="${s}">Season ${s}${s===Number(league.currentSeason)?" (ปัจจุบัน)":""}${old.some(b=>Number(b.season)===s)?" • มีรายการค้าง":""}</option>`).join("");sel.value=String(season);sel.onchange=()=>{settlementPick=Number(sel.value);renderSettlement();bindProfileLinks()}}

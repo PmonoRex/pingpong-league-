@@ -182,6 +182,24 @@ test('Migration locks app_state to SELECT and keeps every privileged function pi
   assert.match(sql, /interval '60 seconds'/);
 });
 
+test('The newest save_predictions accepts the PR #6 settlement flow', () => {
+  const dir = 'supabase/migrations', files = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort();
+  const owner = files.filter(f => /function public\.save_predictions\(/.test(fs.readFileSync(`${dir}/${f}`, 'utf8'))).at(-1);
+  const sql = fs.readFileSync(`${dir}/${owner}`, 'utf8');
+  assert.equal(owner, files.at(-1), 'the last migration defines save_predictions');
+  assert.match(sql, /private\.resolve_bet\(v_league, v_old_markets, v_ob\)/, 'outcome is recomputed server-side');
+  assert.match(sql, /seasonArchives/, 'finished Seasons settle from the archive');
+  assert.match(sql, /v_to = 'void'/);
+  assert.match(sql, /'settledAt'/);
+  // Same cap and actions as predictions-realtime.js.
+  const realtime = fs.readFileSync('predictions-realtime.js', 'utf8');
+  assert.match(realtime, /SETTLE_LOG_LIMIT=200/);
+  assert.match(sql, /> 200/);
+  for (const action of realtime.match(/action:[^,]*"(bet_\w+)"/g).flatMap(x => x.match(/bet_\w+/g))) assert.match(sql, new RegExp(`'${action}'`), action);
+  // The client gate matches the server rule: only the current dealer settles or voids.
+  assert.doesNotMatch(realtime, /isAdmin\(\)\|\|isDealer\(\)/);
+});
+
 test('Section navigation moves through intermediate positions before reaching target', () => {
   const { shared, context } = loadShared();
   const frames = [];

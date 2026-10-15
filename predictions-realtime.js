@@ -1,4 +1,5 @@
 // The settle button below is the live path (it replaces settleAll from predictions.js); the rules live in bet-settle.js.
+// Only the current dealer settles or voids: save_predictions (supabase/migrations) rejects the same change from anyone else.
 // Covers the current Season and finished Seasons that have a seasonArchives entry (QA P1/P2).
 function latestOutcomeForBet(bet){return BetSettle.outcome(league,pred,bet)}
 
@@ -10,7 +11,7 @@ function logSettle(entry){
 }
 
 async function refreshLeagueAndSettle(){
-  if(!(isAdmin()||isDealer()))return alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");
+  if(!isDealer())return alert("เฉพาะเจ้ามือปัจจุบันเท่านั้น");
   const btn=document.getElementById("settleAll");
   const status=document.getElementById("realtimeState");
   if(!btn||!status)return;
@@ -38,7 +39,7 @@ async function refreshLeagueAndSettle(){
 
     let checked=0,settledNew=0,corrected=0,reverted=0,changed=0;
     const saved=await mutatePred(()=>{
-      if(!(isAdmin()||isDealer())){alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");return false}
+      if(!isDealer()){alert("เฉพาะเจ้ามือปัจจุบันเท่านั้น");return false}
       checked=settledNew=corrected=reverted=changed=0;
 
       pred.bets.forEach(b=>{
@@ -82,12 +83,12 @@ async function refreshLeagueAndSettle(){
 
 // QA P2: a pending bet from a finished Season that has no archive to settle against is voided (stake returned) explicitly.
 async function voidOldBet(betId){
-  if(!(isAdmin()||isDealer()))return alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");
+  if(!isDealer())return alert("เฉพาะเจ้ามือปัจจุบันเท่านั้น");
   const shown=pred.bets.find(b=>String(b.id)===String(betId));
   if(!shown||!BetSettle.isOldPending(league,shown))return;
   if(!confirm(`ยกเลิกรายการทาย #${shown.id} ของ Season ${shown.season} และคืนยอด ${credits(shown.stake)}?`))return;
   const saved=await mutatePred(()=>{
-    if(!(isAdmin()||isDealer())){alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้น");return false}
+    if(!isDealer()){alert("เฉพาะเจ้ามือปัจจุบันเท่านั้น");return false}
     const b=pred.bets.find(x=>String(x.id)===String(betId));
     if(!b||!BetSettle.isOldPending(league,b)){alert("รายการนี้ถูกคำนวณหรือยกเลิกไปแล้ว");return false}
     b.status="void";b.net=0;b.settledAt=new Date().toISOString();
