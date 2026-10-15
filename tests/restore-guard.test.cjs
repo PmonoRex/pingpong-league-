@@ -15,15 +15,21 @@ function fakeElement(id = '') {
   return el;
 }
 
-// Backup page with an in-memory cloud row: GET returns it, PATCH replaces it. No network.
+// Backup page with an in-memory cloud row: GET returns it, the save_league RPC replaces league.uidLeague. No network.
 async function loadBackup({ league, backups, confirmAnswer = true }) {
   const row = { league: { uidLeague: league }, updated_at: '2026-10-15T00:00:00.000Z' };
-  const values = new Map([['pp_league_v7_uid', JSON.stringify(league)], ['pp_user_id', 'a'], ['pp_backup_center_v1', JSON.stringify(backups)]]);
+  const values = new Map([['pp_league_v7_uid', JSON.stringify(league)], ['pp_user_id', 'a'], ['pp_session_token_v1', 'test-token'], ['pp_backup_center_v1', JSON.stringify(backups)]]);
   const localStorage = { getItem: k => values.has(k) ? values.get(k) : null, setItem: (k, v) => values.set(k, String(v)), removeItem: k => values.delete(k) };
   const elements = new Map(), alerts = [], patches = [];
   const document = { getElementById: id => { if (!elements.has(id)) elements.set(id, fakeElement(id)); return elements.get(id); }, querySelectorAll: () => [] };
+  let tick = 0;
   const fetch = async (url, options = {}) => {
-    if (options.method === 'PATCH') { const body = JSON.parse(options.body); patches.push(body); Object.assign(row, body); }
+    if (url.endsWith('/rpc/save_league')) {
+      const body = JSON.parse(options.body); patches.push(body);
+      if (body.p_expected_updated_at && body.p_expected_updated_at !== row.updated_at) return { ok: true, json: async () => [] };
+      row.league = { ...row.league, uidLeague: body.p_league }; row.updated_at = `2026-10-15T00:00:${String(++tick).padStart(2, '0')}.000Z`;
+      return { ok: true, json: async () => [{ updated_at: row.updated_at }] };
+    }
     return { ok: true, json: async () => [JSON.parse(JSON.stringify(row))] };
   };
   const context = { localStorage, document, console, fetch, alert: m => alerts.push(String(m)), confirm: () => confirmAnswer };

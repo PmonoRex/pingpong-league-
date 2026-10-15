@@ -15,7 +15,8 @@ function fakeElement(id = '') {
 }
 
 function loadIndex({ storage = {}, confirmAnswer = true } = {}) {
-  const values = new Map(Object.entries(storage));
+  // A logged-in user also has a server session token (shared.js drops an id without one).
+  const values = new Map(Object.entries(storage.pp_user_id ? { pp_session_token_v1: 'test-token', ...storage } : storage));
   const localStorage = {
     getItem: key => values.has(key) ? values.get(key) : null,
     setItem: (key, value) => values.set(key, String(value)),

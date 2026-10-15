@@ -30,10 +30,7 @@ async function mutate(change) {
     const updated = structuredClone(latest);
     if (change(updated) === false) { setStatus("ออนไลน์ • ไม่มีการเปลี่ยนแปลง"); return false; }
     setStatus("กำลังบันทึก...");
-    const now = new Date().toISOString();
-    const expected = row?.updated_at || "";
-    const filter = expected ? `updated_at=eq.${encodeURIComponent(expected)}` : "";
-    const saved = await cloudRequest("PATCH", { league: { ...(row.league || {}), uidLeague: updated }, updated_at: now }, filter);
+    const saved = await LeagueShared.saveLeague(updated, row?.updated_at);
     if (!saved?.length) throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง กรุณาลองใหม่");
     state = updated; LeagueShared.saveLocalLeague(state); render(); setStatus("ออนไลน์ • บันทึกแล้ว"); return true;
   } catch (error) { setStatus(`บันทึกไม่ได้: ${error.message}`); await loadCloud(); return false; }
@@ -46,8 +43,8 @@ function render() {
     .map(person => `<div class="account ${person.active === false ? "off" : ""}"><div><strong>${esc(person.displayName)} ${person.role === "admin" ? '<span class="badge">ADMIN</span>' : ""}</strong><small>${person.active === false ? "ปิดใช้งาน" : "เปิดใช้งาน"}</small></div><div class="account-actions"><button class="secondary" data-rename="${esc(person.id)}">เปลี่ยนชื่อ</button><button class="blue" data-reset="${esc(person.id)}">รีเซ็ต PIN</button><button class="${person.active === false ? "primary" : "danger"}" data-toggle="${esc(person.id)}">${person.active === false ? "เปิดใช้งาน" : "ปิดใช้งาน"}</button></div></div>`).join("");
 
   document.querySelectorAll("[data-reset]").forEach(button => button.onclick = async () => {
-    const id = button.dataset.reset; if (!confirm(`รีเซ็ต PIN ของ ${profile(id)?.displayName || id} เป็น 1234?`)) return;
-    await mutate(latest => { if (!latest.profiles[id]) return false; latest.profiles[id].pin = "1234"; LeagueShared.audit(latest,"pin_reset",currentUserId,{target:id}); });
+    const id = button.dataset.reset, name = profile(id)?.displayName || id; if (!confirm(`รีเซ็ต PIN ของ ${name}? ระบบจะสุ่ม PIN ชั่วคราวและออกจากระบบทุกเครื่องของบัญชีนี้`)) return;
+    const pin = await issuePin(id); if (pin) alert(`PIN ชั่วคราวของ ${name}: ${pin}\nแจ้งเจ้าของบัญชี ระบบจะให้ตั้ง PIN ใหม่ตอนเข้าสู่ระบบครั้งแรก`);
   });
   document.querySelectorAll("[data-toggle]").forEach(button => button.onclick = async () => {
     const id = button.dataset.toggle;
@@ -62,8 +59,16 @@ function render() {
 document.getElementById("create").onclick = async () => {
   const input = document.getElementById("newName"), name = input.value.trim(), role = document.getElementById("newRole").value;
   if (!name) return alert("กรอกชื่อก่อน"); if (!["player", "admin"].includes(role)) return;
-  const saved = await mutate(latest => { if (Object.values(latest.profiles).some(person => person.displayName.toLowerCase() === name.toLowerCase())) { alert("มีชื่อนี้แล้ว"); return false; } const id = LeagueShared.newAccountId(); latest.profiles[id] = { id, displayName: name, pin: "1234", role, active: true, createdAt: new Date().toISOString() }; LeagueShared.audit(latest,"account_create",currentUserId,{target:id,name,role}); });
-  if (saved) { input.value = ""; alert(`สร้าง ${name} แล้ว • PIN 1234`); }
+  const id = LeagueShared.newAccountId();
+  const saved = await mutate(latest => { if (Object.values(latest.profiles).some(person => person.displayName.toLowerCase() === name.toLowerCase())) { alert("มีชื่อนี้แล้ว"); return false; } latest.profiles[id] = { id, displayName: name, role, active: true, createdAt: new Date().toISOString() }; LeagueShared.audit(latest,"account_create",currentUserId,{target:id,name,role}); });
+  if (!saved) return; input.value = "";
+  const pin = await issuePin(id);
+  alert(pin ? `สร้าง ${name} แล้ว • PIN ชั่วคราว ${pin}\nแจ้งเจ้าของบัญชี ระบบจะให้ตั้ง PIN ใหม่ตอนเข้าสู่ระบบครั้งแรก` : `สร้าง ${name} แล้ว แต่ยังออก PIN ไม่ได้ • กด "รีเซ็ต PIN" อีกครั้ง`);
 };
+// Temporary PINs are generated and hashed server-side; the plain PIN is shown to the admin once and never stored in league JSON.
+async function issuePin(id) {
+  try { const pin = await LeagueShared.resetPin(id); await loadCloud(); return pin; }
+  catch (error) { setStatus(`รีเซ็ต PIN ไม่ได้: ${error.message}`); await loadCloud(); return ""; }
+}
 window.addEventListener("storage", event => { if ([KEY, LeagueShared.SESSION_KEY].includes(event.key)) loadCloud(); });
 setStatus("กำลังโหลดข้อมูลบัญชี..."); loadCloud();

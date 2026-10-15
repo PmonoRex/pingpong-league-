@@ -17,10 +17,11 @@ function fakeElement(id = '') {
   return el;
 }
 
-// The cloud row lives in memory; GET returns it and PATCH replaces it, so nothing leaves the process.
+// The cloud row lives in memory; GET returns it and the save_predictions RPC replaces predictions.uidPredictions,
+// so nothing leaves the process. Server-side rule checks are covered by the SQL scenario, not here.
 function loadPredictions({ league, predictions, userId, confirmAnswer = true }) {
   const row = { league: { uidLeague: league }, predictions: { uidPredictions: predictions }, updated_at: '2026-10-15T00:00:00.000Z' };
-  const values = new Map([['pp_league_v7_uid', JSON.stringify(league)], ['pp_predictions_v3_uid', JSON.stringify(predictions)], ['pp_user_id', userId]]);
+  const values = new Map([['pp_league_v7_uid', JSON.stringify(league)], ['pp_predictions_v3_uid', JSON.stringify(predictions)], ['pp_user_id', userId], ['pp_session_token_v1', 'test-token']]);
   const localStorage = { getItem: k => values.has(k) ? values.get(k) : null, setItem: (k, v) => values.set(k, String(v)), removeItem: k => values.delete(k) };
   const elements = new Map();
   const alerts = [], shared = [];
@@ -31,10 +32,12 @@ function loadPredictions({ league, predictions, userId, confirmAnswer = true }) 
   };
   let tick = 0;
   const fetch = async (url, options = {}) => {
-    const method = options.method || 'GET';
-    if (method === 'PATCH') {
+    if (url.endsWith('/rpc/save_predictions')) {
       const body = JSON.parse(options.body);
-      Object.assign(row, JSON.parse(JSON.stringify(body)), { updated_at: `2026-10-15T00:00:${String(++tick).padStart(2, '0')}.000Z` });
+      if (body.p_expected_updated_at && body.p_expected_updated_at !== row.updated_at) return { ok: true, json: async () => [] };
+      row.predictions = { ...row.predictions, uidPredictions: body.p_predictions };
+      row.updated_at = `2026-10-15T00:00:${String(++tick).padStart(2, '0')}.000Z`;
+      return { ok: true, json: async () => [{ updated_at: row.updated_at }] };
     }
     return { ok: true, json: async () => [JSON.parse(JSON.stringify(row))] };
   };

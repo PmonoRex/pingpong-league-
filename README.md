@@ -48,9 +48,9 @@ npx serve .
 ## ตั้งค่า Supabase
 
 1. สร้างโปรเจกต์ใน [Supabase](https://supabase.com)
-2. เปิด **SQL Editor** แล้วรันไฟล์ใน `supabase/migrations/` ตามลำดับชื่อไฟล์ (ตอนนี้มี `20260919163000_create_shared_state.sql`) ซึ่งจะสร้างตาราง `public.app_state`, เปิด RLS, ตั้ง policy และ insert แถว `main` เริ่มต้น หรือใช้ Supabase CLI: `supabase db push`
+2. เปิด **SQL Editor** แล้วรันไฟล์ใน `supabase/migrations/` ตามลำดับชื่อไฟล์ (`20260919163000_create_shared_state.sql` → `20261015120000_server_side_auth.sql` → `20261016120000_settlement_rules.sql`) ซึ่งจะสร้างตาราง `public.app_state` (anon อ่านได้อย่างเดียว), ตาราง PIN แบบ hash + session ใน schema `private` และ RPC สำหรับ login/บันทึกข้อมูล หรือใช้ Supabase CLI: `supabase db push` • ทดสอบ migration กับ Postgres ในเครื่องได้ด้วย `sh supabase/tests/run-local.sh auth|settlement` (ต้องมี Docker)
 3. แก้ `SUPABASE_URL` และ `SUPABASE_KEY` (publishable/anon key) ที่ต้นไฟล์ `shared.js` ให้เป็นของโปรเจกต์ตัวเอง
-4. เปิดเว็บ — ครั้งแรกบัญชีเริ่มต้นจะถูกสร้างจากรายชื่อผู้เล่นเดิม โดย PIN เริ่มต้นคือ `1234` (Admin เริ่มต้นคือบัญชีชื่อ "มอส") ควรให้ Admin ตรวจและรีเซ็ตที่หน้า Admin
+4. PIN อยู่ฝั่ง server เท่านั้น: ตั้ง PIN ชั่วคราวให้ Admin คนแรกใน SQL Editor ด้วย `select private.set_pin('<profile id>', '<pin>');` แล้วเข้าสู่ระบบ ระบบจะบังคับตั้ง PIN ใหม่ จากนั้น Admin ออก PIN ชั่วคราวให้คนอื่นได้ที่หน้า Admin
 
 โครงสร้างข้อมูลในแถว `main`: คอลัมน์ `league` เก็บ `{ uidLeague: {...} }` (profiles, seasonPlayerIds, rounds, results, rankHistory, seasonArchives, auditLog, schemaVersion), คอลัมน์ `predictions` เก็บ `{ uidPredictions: {...} }` (dealerId, markets, bets), และ `updated_at` ใช้เป็น optimistic lock ตอนเขียน
 
@@ -68,4 +68,4 @@ GitHub Actions (`.github/workflows/test.yml`) รัน `npm test` ทุก pus
 
 ## ⚠️ หมายเหตุด้านความปลอดภัย
 
-ระบบ PIN **ยังเป็น client-side ทั้งหมด**: PIN เก็บเป็นข้อความธรรมดาในข้อมูลลีกที่ใครก็อ่านได้ด้วย publishable key, การตรวจสิทธิ์ admin/dealer ทำในเบราว์เซอร์, และ policy ของตารางอนุญาตให้ `anon` แก้แถว `main` ได้ จึงเหมาะกับกลุ่มเพื่อนที่ไว้ใจกันเท่านั้น **ไม่ควรเปิดใช้งานบนอินเทอร์เน็ตสาธารณะที่มีเงินจริงเกี่ยวข้อง** กำลังมีการปรับระบบ auth ใหม่ (ย้ายการตรวจ PIN/สิทธิ์ไปฝั่ง server) ใน branch อื่น — รายละเอียดช่องโหว่ที่พบดูใน `QA_REPORT.md`
+PIN ถูกตรวจฝั่ง server (hash ด้วย bcrypt, ล็อก 60 วินาทีหลังผิด 5 ครั้ง) และ `anon` แก้ตาราง `app_state` ตรงๆ ไม่ได้แล้ว ทุกการเขียนผ่าน RPC `save_league` (Admin) / `save_predictions` (เจ้ามือ/ผู้เล่นตามกฎ) ที่ตรวจ session token และคำนวณผลทายซ้ำจากคะแนนจริง ข้อมูลลีกและการทายยังอ่านได้สาธารณะด้วย publishable key จึงยังเหมาะกับกลุ่มเพื่อน **ไม่ควรใช้กับเงินจริง** — รายละเอียดดู `QA_REPORT.md`

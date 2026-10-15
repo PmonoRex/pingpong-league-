@@ -21,7 +21,7 @@ function migrateLegacy(){
  let legacy=null;
  for(const k of LEGACY_KEYS){try{const x=JSON.parse(localStorage.getItem(k)||"null");if(x&&x.players){legacy=x;break}}catch(e){}}
  const names=legacy?.players?.length?legacy.players:["พี่โช็ค","กิฟท์","กอล์ฟ","มังกร","พฤษ","เฟิร์น","มอส"];
- names.forEach((name,i)=>{const id=deterministicId(name,i);state.profiles[id]={id,displayName:name,pin:"1234",role:name===ADMIN_NAME?"admin":"player",active:true,createdAt:new Date().toISOString()}});
+ names.forEach((name,i)=>{const id=deterministicId(name,i);state.profiles[id]={id,displayName:name,role:name===ADMIN_NAME?"admin":"player",active:true,createdAt:new Date().toISOString()}});
  state.seasonPlayerIds=names.map((n,i)=>deterministicId(n,i));
  state.rounds=legacy?.rounds||makeRoundRobin(state.seasonPlayerIds);
  state.results=legacy?.results||{};
@@ -57,9 +57,7 @@ async function pushCloud(){
    }
   }
   const now=new Date().toISOString();
-  const expected=latest?.updated_at||"";
-  const filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:"";
-  const rows=await cloudRequest("PATCH",{league:{...(latest?.league||{}),...cloudPayload()},updated_at:now},filter);
+  const rows=await LeagueShared.saveLeague(cloudPayload().uidLeague,latest?.updated_at);
   if(!rows?.length){
    try{localStorage.setItem("pp_conflict_draft_v1",JSON.stringify({savedAt:now,league:state}))}catch{}
    const refreshed=(await cloudRequest())[0];
@@ -68,14 +66,14 @@ async function pushCloud(){
    throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง");
   }
   lastCloudUpdate=rows[0]?.updated_at||now;dirty=changeVersion!==startedVersion;saved=true;saveLocal();setSync("ออนไลน์ • บันทึกแล้ว","online");
- }catch(e){setSync("ออฟไลน์ • เก็บในเครื่อง","offline")}finally{cloudSaving=false;if(saved&&dirty)saveTimer=setTimeout(pushCloud,400)}
+ }catch(e){if(e.code==="28000"||e.code==="28P01"){reconcileSession();renderLogin();render();setSync("กรุณาเข้าสู่ระบบใหม่ • เก็บในเครื่อง","offline");return}setSync(e.code==="42501"?"ไม่มีสิทธิ์บันทึก":"ออฟไลน์ • เก็บในเครื่อง","offline")}finally{cloudSaving=false;if(saved&&dirty)saveTimer=setTimeout(pushCloud,400)}
 }
 function reconcileSession(){currentUserId=LeagueShared.sessionUserId(state);document.getElementById("auth").classList.toggle("hidden",Boolean(currentUserId))}
 async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal()}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pullCloud,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
 async function pullCloud(){if(!cloudReady||dirty||cloudSaving)return;try{const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal();reconcileSession();renderLogin();render()}}catch(e){}}
 
 function renderLogin(){LeagueShared.renderLoginOptions(document.getElementById("loginUser"),state,currentUserId)}
-function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!LeagueShared.login(state,id,pin)){alert("PIN ไม่ถูกต้องหรือบัญชีถูกปิดใช้งาน");return}document.getElementById("loginPin").value="";reconcileSession();render()}
+async function login(){const btn=document.getElementById("loginBtn"),id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(btn.disabled)return;btn.disabled=true;try{const result=await LeagueShared.login(id,pin);if(!result.ok){alert(result.reason);return}document.getElementById("loginPin").value="";reconcileSession();render()}finally{btn.disabled=false}}
 function logout(){LeagueShared.logout();reconcileSession();renderLogin();render()}
 function renderHeader(){const p=profile(currentUserId);document.getElementById("whoami").textContent=p?.displayName||"-";document.getElementById("adminBadge").style.display=isAdmin()?"inline-flex":"none";document.getElementById("adminLink").style.display=isAdmin()?"inline-flex":"none";document.getElementById("leagueInfo").textContent=`Season ${state.currentSeason} • ${state.seasonPlayerIds.length} คน • ${totalMatches()} แมตช์`}
 function renderRoster(){
@@ -101,7 +99,7 @@ function rankingProfiles(){const m={};Object.keys(state.profiles).forEach(id=>m[
 function renderRanking(){document.getElementById("rankingList").innerHTML=rankingProfiles().filter(x=>x.seasons||state.seasonPlayerIds.includes(x.id)).map((x,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}</div><div><strong>${esc(profile(x.id)?.displayName||x.id)}</strong><div class="tier">${x.seasons} Season • ดีสุด ${x.best?`#${esc(x.best)}`:"-"} • ${tier(x.rp)}</div></div><div class="rank-rp">${esc(x.rp)} RP</div></div>`).join("")}
 function finishSeason(){if(!isAdmin())return;const {arr,played}=standingsData();if(played!==totalMatches())return;if(!confirm(`จบ Season ${state.currentSeason} และบันทึกแรงค์?`))return;state.rankHistory.push({season:state.currentSeason,finishedAt:new Date().toISOString(),standings:arr.map((x,i)=>({userId:x.id,name:profile(x.id)?.displayName||x.id,rank:i+1,rpAward:RP[i]??5,pts:x.pts,gd:x.gd}))});state.currentSeason++;state.rounds=makeRoundRobin(state.seasonPlayerIds);state.results={};saveState();render()}
 function render(){renderHeader();renderRoster();renderSchedule();calc();renderRanking();document.getElementById("saveBtn").disabled=!isAdmin();document.getElementById("clearScores").disabled=!isAdmin()}
-document.getElementById("applyRoster").onclick=applyRoster;document.getElementById("saveBtn").onclick=()=>{if(!isAdmin())return alert("เฉพาะ Admin");saveState();alert("บันทึกแล้ว")};document.getElementById("clearScores").onclick=()=>{if(!isAdmin()){alert("เฉพาะ Admin");return}if(confirm("ล้างคะแนนทั้งหมด?")){state.results={};saveState();render()}};document.getElementById("finishSeason").onclick=finishSeason;document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;
+document.getElementById("applyRoster").onclick=applyRoster;document.getElementById("saveBtn").onclick=()=>{if(!isAdmin())return alert("เฉพาะ Admin");saveState();alert("บันทึกแล้ว")};document.getElementById("clearScores").onclick=()=>{if(!isAdmin()){alert("เฉพาะ Admin");return}if(confirm("ล้างคะแนนทั้งหมด?")){state.results={};saveState();render()}};document.getElementById("finishSeason").onclick=finishSeason;document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;document.getElementById("changePin").onclick=async()=>{if(await LeagueShared.changePin())alert("เปลี่ยน PIN แล้ว")};
 loadLocal();reconcileSession();renderLogin();render();initCloud();
 window.addEventListener("storage",event=>{if(event.key===LeagueShared.SESSION_KEY){reconcileSession();renderLogin();render()}});
 document.querySelectorAll('.bottom-nav a[href^="#"]').forEach(link=>link.addEventListener("click",event=>{

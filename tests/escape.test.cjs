@@ -16,7 +16,7 @@ function fakeElement(id = '') {
   return el;
 }
 function load(files, league) {
-  const values = new Map([['pp_league_v7_uid', JSON.stringify(league)], ['pp_user_id', 'a']]);
+  const values = new Map([['pp_league_v7_uid', JSON.stringify(league)], ['pp_user_id', 'a'], ['pp_session_token_v1', 'test-token']]);
   const elements = new Map();
   const document = {
     readyState: 'complete', body: fakeElement('body'),

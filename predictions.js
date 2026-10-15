@@ -21,9 +21,7 @@ async function mutatePred(change){
   if(change()===false){render();return false}
   setSync("กำลังบันทึก...");
   const now=new Date().toISOString();
-  const expected=row?.updated_at||"";
-  const filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:"";
-  const saved=await cloudRequest("PATCH",{predictions:{...(row.predictions||{}),uidPredictions:pred},updated_at:now},filter);
+  const saved=await LeagueShared.savePredictions(pred,row?.updated_at);
   if(!saved?.length)throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง กรุณาลองใหม่อีกครั้ง");
   localStorage.setItem(PRED_KEY,JSON.stringify(pred));
   lastCloudUpdate=saved[0]?.updated_at||now;
@@ -39,7 +37,7 @@ async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloud
 async function pull(){if(predSaving)return;try{const rows=await cloudRequest(),row=rows[0];if(predSaving||!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){league=remote;LeagueShared.saveLocalLeague(league)}const rp=row.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}reconcileSession();renderLogin();render()}catch(e){}}
 function activeProfiles(){return LeagueShared.activeProfiles(league)}
 function renderLogin(){LeagueShared.renderLoginOptions(document.getElementById("loginUser"),league,currentUserId)}
-function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!LeagueShared.login(league,id,pin)){alert("PIN ไม่ถูกต้องหรือบัญชีถูกปิดใช้งาน");return}document.getElementById("loginPin").value="";reconcileSession();render()}
+async function login(){const btn=document.getElementById("loginBtn"),id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(btn.disabled)return;btn.disabled=true;try{const result=await LeagueShared.login(id,pin);if(!result.ok){alert(result.reason);return}document.getElementById("loginPin").value="";reconcileSession();render()}finally{btn.disabled=false}}
 function logout(){LeagueShared.logout();reconcileSession();renderLogin();render()}
 function allMatches(){const out=[];(league.rounds||[]).forEach((r,ri)=>r.m.forEach((pair,mi)=>out.push({id:mid(ri,mi),season:league.currentSeason,ri,mi,pair,score:(league.results||{})[mid(ri,mi)]})));return out}
 function hasResult(m){return m.score&&valid(m.score.a)&&valid(m.score.b)}
@@ -167,7 +165,7 @@ let settlementPick=null,staleToastKey="";
 function settlementSeasonShown(){return BetSettle.seasons(league,pred).includes(settlementPick)?settlementPick:Number(league.currentSeason)||1}
 function betPairText(b){return b.pair?.length===2?`${profile(b.pair[0])?.displayName||b.pair[0]}–${profile(b.pair[1])?.displayName||b.pair[1]}`:"ตารางเดิม"}
 function renderSettlement(){
- const season=settlementSeasonShown(),sum=BetSettle.summary(league,pred,season),old=pred.bets.filter(b=>BetSettle.isOldPending(league,b)),staff=isAdmin()||isDealer();
+ const season=settlementSeasonShown(),sum=BetSettle.summary(league,pred,season),old=pred.bets.filter(b=>BetSettle.isOldPending(league,b)),staff=isDealer();
  document.getElementById("settlementSeason").textContent=season;
  const sel=document.getElementById("settlementSeasonSelect");
  if(sel){sel.innerHTML=BetSettle.seasons(league,pred).map(s=>`<option value="${s}">Season ${s}${s===Number(league.currentSeason)?" (ปัจจุบัน)":""}${old.some(b=>Number(b.season)===s)?" • มีรายการค้าง":""}</option>`).join("");sel.value=String(season);sel.onchange=()=>{settlementPick=Number(sel.value);renderSettlement();bindProfileLinks()}}
