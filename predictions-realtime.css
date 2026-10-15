@@ -3,3 +3,7 @@
 body.is-admin .dealer-market-controls{display:block}
 /* ถ้า Admin ไม่ใช่เจ้ามือ ให้เห็นเฉพาะปุ่มคำนวณ ไม่แสดงการตั้งตลาดของเจ้ามือ */
 body.is-admin:not(.is-dealer) #dealerMarkets{display:none}
+/* QA P1/P2: Season picker, warning and finished-Season bets in the settlement card */
+.settle-alert{white-space:pre-line;padding:9px 10px;border-radius:10px;background:rgba(255,120,90,.1);margin:10px 0 0}.settle-alert.hidden{display:none}
+.settle-season select{max-width:220px}
+.old-bet{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.old-bet button{padding:7px 10px;font-size:12px}

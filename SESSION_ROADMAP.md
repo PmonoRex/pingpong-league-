@@ -101,7 +101,7 @@ Implemented:
 - input / select focus transition
 - sync / realtime status transition
 - `prefers-reduced-motion`
-- `suite.css` / `suite.js`
+- `suite.js` (สไตล์ย้ายไปอยู่ใน `theme.css` / `motion.css` แล้ว)
 - Toast feedback แทน alert ทั่วไปหลายจุด
 - smooth number pulse เมื่อค่าเปลี่ยน
 - reusable skeleton style
@@ -129,7 +129,7 @@ PIN ปัจจุบันยังเป็นระบบ client-side เพ
 
 ## Shared files added in this phase
 - `motion.css`
-- `suite.css`
+- `theme.css` (รวม sport-theme / hero-photo / mobile-fit / final-polish / suite.css เดิม)
 - `suite.js`
 - `stats.html`, `stats.css`, `stats.js`
 - `dashboard.html`, `dashboard.css`, `dashboard.js`

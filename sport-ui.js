@@ -1,14 +1,13 @@
 (() => {
   const qs=(s,r=document)=>r.querySelector(s);
   const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
-  const HERO_CACHE_KEY='pp_hero_data_20261013';
+  const HERO_SRC='hero-player.jpg?v=20261015-ux';
   const HERO_PAGES=new Set(['index.html','dashboard.html','predictions.html','stats.html','archive.html','backup.html','admin.html']);
 
   function ensureStyles(){
     const required=[
-      ['mobile-fit.css?v=20261013-1','mobile-fit.css'],
-      ['final-polish.css?v=20261013-1','final-polish.css'],
-      ['hero-photo.css?v=20261013-allhero1','hero-photo.css']
+      ['theme.css?v=20261015-design','theme.css'],
+      ['motion.css?v=20261015-ux','motion.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -17,22 +16,12 @@
   }
 
   ensureStyles();
-  document.body.classList.add('sport-redesign',`sport-page-${page.replace(/\W+/g,'-')}`);
+  // Full hero only on the league home; every other page gets a compact header (same view-transition name).
+  document.body.classList.add('sport-redesign',`sport-page-${page.replace(/\W+/g,'-')}`,page==='index.html'?'hero-full':'hero-compact');
 
   function league(){try{return window.LeagueShared?.readLocalLeague?.()||null}catch{return null}}
 
-  async function loadEmbeddedHero(){
-    try{const cached=sessionStorage.getItem(HERO_CACHE_KEY);if(cached?.startsWith('data:image/jpeg;base64,'))return cached}catch{}
-    const urls=['hero_b64_1.txt?v=20261012-4','hero_b64_2.txt?v=20261012-4','hero_b64_3.txt?v=20261012-4','hero_b64_4.txt?v=20261012-4'];
-    const parts=await Promise.all(urls.map(async url=>{
-      const response=await fetch(url,{cache:'force-cache'});
-      if(!response.ok)throw new Error(`Hero part failed ${response.status}`);
-      return (await response.text()).trim();
-    }));
-    const src=`data:image/jpeg;base64,${parts.join('')}`;
-    try{sessionStorage.setItem(HERO_CACHE_KEY,src)}catch{}
-    return src;
-  }
+  try{sessionStorage.removeItem('pp_hero_data_20261013')}catch{}
 
   function addHeroPhoto(){
     if(!HERO_PAGES.has(page))return;
@@ -42,10 +31,11 @@
     img.className='hero-player-photo';
     img.alt='นักกีฬาปิงปองกำลังตีลูก';
     img.decoding='async';img.fetchPriority='high';img.style.opacity='0';
-    img.addEventListener('load',()=>{img.style.opacity='1';hero.classList.add('hero-photo-ready')},{once:true});
+    const ready=()=>{img.style.opacity='1';hero.classList.add('hero-photo-ready')};
+    img.addEventListener('load',ready,{once:true});
     img.addEventListener('error',()=>{img.remove();hero.classList.add('hero-photo-error')},{once:true});
-    hero.prepend(img);
-    loadEmbeddedHero().then(src=>{img.src=src}).catch(error=>{console.error('Hero image load failed',error);img.remove();hero.classList.add('hero-photo-error')});
+    img.src=HERO_SRC;hero.prepend(img);
+    if(img.complete&&img.naturalWidth){img.style.transition='none';ready();requestAnimationFrame(()=>img.style.transition='')}
   }
 
   function addBrand(){
@@ -78,24 +68,29 @@
 
   function restyleExistingTabs(){
     const nav=qs('.bottom-nav');if(!nav)return;const links=[...nav.querySelectorAll('a')];
-    if(page==='index.html'&&links.length>=4){const labels=[['⌂','Home'],['🏆','Ranking'],['📈','Rating'],['🎯','Predict']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
-    if(page==='predictions.html'&&links.length>=4){const labels=[['⌂','Home'],['🎯','Predict'],['🛠','Dealer'],['▤','History']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
+    if(page==='index.html'&&links.length>=4){const labels=[['🏓','Matches'],['🏆','Table'],['🏅','Ranking'],['🎯','Predict']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
+    if(page==='predictions.html'&&links.length>=4){const labels=[['⌂','Home'],['🎯','Predict'],['🛠','Dealer'],['🧾','History']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
   }
 
+  // "Home" is always index.html (as on the index/predictions tab bars); the active tab is the one whose link is this page.
   function addUniversalTabs(){
     if(qs('.bottom-nav,.sport-tabbar'))return;
-    const active=page==='stats.html'?'profile':page==='dashboard.html'?'home':'';
     const nav=document.createElement('nav');nav.className='sport-tabbar';nav.setAttribute('aria-label','เมนูหลัก');
-    nav.innerHTML=`<a class="${active==='home'?'active':''}" href="dashboard.html"><span>⌂</span>Home</a><a href="index.html#standingsCard"><span>🏆</span>Ranking</a><a href="predictions.html"><span>🎯</span>Predict</a><a class="${active==='profile'?'active':''}" href="stats.html"><span>●</span>Profile</a>`;
+    nav.innerHTML='<a href="index.html"><span>⌂</span>Home</a><a href="dashboard.html"><span>📊</span>Dashboard</a><a href="predictions.html"><span>🎯</span>Predict</a><a href="stats.html"><span>📈</span>Stats</a>';
     document.body.appendChild(nav);
   }
-
-  function ripple(){
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-    document.addEventListener('pointerdown',e=>{const el=e.target.closest('button,a.btn,.bottom-nav a,.sport-tabbar a,.quick-tile');if(!el||el.disabled)return;el.animate([{transform:'scale(1)'},{transform:'scale(.965)'},{transform:'scale(1)'}],{duration:180,easing:'cubic-bezier(.2,.8,.2,1)'})},{passive:true});
+  function markActiveNav(){
+    document.querySelectorAll('.bottom-nav a,.sport-tabbar a').forEach(a=>{
+      const href=a.getAttribute('href')||'',file=href.split('#')[0].split('?')[0].toLowerCase();
+      if(!file)return;
+      const here=file===page&&!href.includes('#');a.classList.toggle('active',here);
+      if(here)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+    });
   }
 
   function elevateImportantCards(){['#standingsCard','#bettingPanel','#dealerPanel','.rank-card'].forEach(sel=>qs(sel)?.classList.add('sport-feature-card'))}
-  function boot(){addHeroPhoto();addBrand();setupMobileTools();restyleExistingTabs();addUniversalTabs();elevateImportantCards();ripple();document.body.classList.add('sport-ready')}
+  // Hero, brand and tab bar go in before first paint so cross-page view transitions keep them in place.
+  addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();markActiveNav();
+  function boot(){setupMobileTools();elevateImportantCards();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
 })();
