@@ -1,14 +1,24 @@
-/* Shared motion system — subtle, fast, mobile-friendly */
+/* Shared motion + feedback — page transitions, press springs, toasts, skeletons, loading buttons. Mobile-first, honours reduced motion. */
 :root{
   --motion-fast:140ms;
   --motion-base:220ms;
   --motion-slow:320ms;
   --motion-ease:cubic-bezier(.2,.8,.2,1);
   --motion-spring:cubic-bezier(.2,.9,.25,1.15);
+  --motion-release:cubic-bezier(.34,1.56,.64,1);
 }
-
 html{scroll-behavior:smooth}
-body{animation:pageEnter var(--motion-slow) var(--motion-ease) both}
+
+/* Cross-document page transitions (Safari 18.2+/Chrome 126+); other browsers just navigate normally */
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:vtOut 150ms var(--motion-ease) both}
+::view-transition-new(root){animation:vtIn 240ms var(--motion-ease) both}
+::view-transition-group(app-hero),::view-transition-group(app-nav){animation-duration:240ms;animation-timing-function:var(--motion-ease)}
+::view-transition-old(app-hero),::view-transition-new(app-hero){height:100%;object-fit:cover;object-position:left top}
+body.sport-redesign .hero{view-transition-name:app-hero}
+body.sport-redesign .bottom-nav,body.sport-redesign .sport-tabbar{view-transition-name:app-nav}
+@keyframes vtOut{to{opacity:0;transform:translateY(-6px)}}
+@keyframes vtIn{from{opacity:0;transform:translateY(10px)}}
 
 button,a.btn,.bottom-nav a,.pill,.tag,.roster-item,.match,.card,.stat,.rank-row,.season-item,.dealer-current-card,
 input,select,.account,.market,.profile-metric,.recovery-item{
@@ -21,51 +31,70 @@ input,select,.account,.market,.profile-metric,.recovery-item{
     box-shadow var(--motion-base) var(--motion-ease);
 }
 
-button:not(:disabled):active,a.btn:active,.bottom-nav a:active{transform:scale(.96)}
+/* Press: quick scale-down, springy release */
+button,a.btn,.bottom-nav a,.sport-tabbar a,.quick-tile{transition:transform 360ms var(--motion-release),opacity var(--motion-fast) var(--motion-ease),background-color var(--motion-base) var(--motion-ease),border-color var(--motion-base) var(--motion-ease),color var(--motion-base) var(--motion-ease),box-shadow var(--motion-base) var(--motion-ease)}
+button:not(:disabled):active,a.btn:active,.bottom-nav a:active,.sport-tabbar a:active,.quick-tile:active{transform:scale(.96);transition-duration:80ms;transition-timing-function:var(--motion-ease)}
 button:not(:disabled):hover,a.btn:hover{filter:brightness(1.06)}
 button:disabled{transition:opacity var(--motion-fast) var(--motion-ease),filter var(--motion-fast) var(--motion-ease)}
 
-input:focus,select:focus{
-  transform:translateY(-1px);
-  box-shadow:0 0 0 3px rgba(59,130,246,.16);
-}
+/* Cloud wait: spinner + busy (set by suite.js) */
+button[aria-busy="true"]{cursor:progress}
+body.sport-redesign button[aria-busy="true"]:disabled{opacity:.78;cursor:progress}
+button[aria-busy="true"]:before{content:"";flex:none;width:14px;height:14px;margin-right:7px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;box-sizing:border-box;display:inline-block;vertical-align:-2px;animation:spin .7s linear infinite}
 
-.card,.hero{animation:cardEnter var(--motion-slow) var(--motion-ease) both}
+.card{animation:cardEnter var(--motion-slow) var(--motion-ease) both}
 .card:nth-of-type(2){animation-delay:35ms}
 .card:nth-of-type(3){animation-delay:70ms}
 .card:nth-of-type(4){animation-delay:105ms}
-
 .match,.market,.rank-row,.season-item,.account{animation:itemEnter var(--motion-base) var(--motion-ease) both}
 
 .bottom-nav{transition:transform var(--motion-base) var(--motion-ease),box-shadow var(--motion-base) var(--motion-ease),background-color var(--motion-base) var(--motion-ease)}
-.bottom-nav a.active{animation:navPop var(--motion-base) var(--motion-spring)}
+.bottom-nav a.active,.sport-tabbar a.active{animation:navPop var(--motion-base) var(--motion-spring)}
 
-.profile-backdrop,.recovery-backdrop,.auth,.auth-overlay{
-  transition:opacity var(--motion-base) var(--motion-ease),visibility var(--motion-base) var(--motion-ease);
-}
-.profile-sheet,.recovery-sheet,.auth-card{
-  transform-origin:center bottom;
-  animation:sheetEnter var(--motion-slow) var(--motion-ease) both;
-}
-
+.profile-backdrop,.recovery-backdrop,.auth,.auth-overlay{transition:opacity var(--motion-base) var(--motion-ease),visibility var(--motion-base) var(--motion-ease)}
+.profile-sheet,.recovery-sheet,.auth-card{transform-origin:center bottom;animation:sheetEnter var(--motion-slow) var(--motion-ease) both}
 .realtime-state,.sync,#adminStatus,#archiveStatus{transition:color var(--motion-base) var(--motion-ease),opacity var(--motion-base) var(--motion-ease)}
 
-@keyframes pageEnter{from{opacity:.55}to{opacity:1}}
+@media (hover:hover){.match:hover,.market:hover,.season-item:hover{transform:translateY(-1px)}}
+@media(max-width:640px){body.sport-redesign .account-bar .sport-tools-actions.open{animation:toolsOpen .2s var(--motion-ease)}}
+
+/* Toasts: tap or swipe to dismiss, thin bar shows time left */
+.toast-stack{position:fixed;z-index:300;right:12px;top:max(12px,env(safe-area-inset-top));display:grid;gap:8px;width:min(360px,calc(100% - 24px));pointer-events:none}
+.toast{position:relative;overflow:hidden;pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:pan-y;background:#101720;border:1px solid #283542;color:#f7fbff;border-radius:16px;padding:11px 13px 13px;box-shadow:0 18px 48px rgba(0,0,0,.35);animation:toastIn .22s var(--motion-ease);transition:transform .2s var(--motion-ease),opacity .2s var(--motion-ease)}
+.toast small{display:block;color:#9fb0c8;margin-top:2px}
+.toast.dragging{transition:none}
+.toast.leaving{opacity:0;transform:translateY(-6px)}
+.toast-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:#ff464b;opacity:.85;transform-origin:left center;animation:toastTime var(--toast-ms,3200ms) linear forwards}
+.toast.good .toast-progress{background:#45e08a}.toast.warn .toast-progress{background:#ffba45}.toast.bad .toast-progress{background:#ff5960}
+.toast.paused .toast-progress{animation-play-state:paused}
+
+/* Numbers + skeletons */
+.number-pulse{animation:numberPulse .28s var(--motion-ease)}
+.skeleton{position:relative;overflow:hidden;background:#122239!important;color:transparent!important;border-radius:10px;min-height:1.1em}
+.skeleton>*{visibility:hidden}
+.skeleton:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:shimmer 1.1s infinite}
+.skeleton-block{min-height:72px}
+
 @keyframes cardEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes itemEnter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @keyframes navPop{0%{transform:scale(.97)}70%{transform:scale(1.025)}100%{transform:scale(1)}}
 @keyframes sheetEnter{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes toolsOpen{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes toastTime{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@keyframes numberPulse{50%{transform:scale(1.08);color:#ffd76a}}
+@keyframes shimmer{to{transform:translateX(100%)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-@media (hover:hover){
-  .card:hover{border-color:color-mix(in srgb,currentColor 0%,#3d5878 100%)}
-  .match:hover,.market:hover,.season-item:hover{transform:translateY(-1px)}
-}
-
+@media(max-width:560px){.toast-stack{top:max(8px,env(safe-area-inset-top));right:8px;width:calc(100% - 16px)}}
 @media (prefers-reduced-motion:reduce){
+  @view-transition{navigation:none}
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
   *,*::before,*::after{
     animation-duration:.01ms!important;
     animation-iteration-count:1!important;
     transition-duration:.01ms!important;
     scroll-behavior:auto!important;
   }
+  .toast-progress{display:none}
 }
