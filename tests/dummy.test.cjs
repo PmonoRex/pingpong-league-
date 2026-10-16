@@ -83,3 +83,14 @@ test('pairDebts keeps each pair separate and only nets two players who owe each 
   assert.deepEqual(plain(D.pairDebts([{ money: [0.08, 0.07, -0.15] }], 3)), [[2, 0, 0.08, 0.08, 0], [2, 1, 0.07, 0.07, 0]]);
   assert.deepEqual(plain(D.pairDebts([{ money: null }], 2)), []);
 });
+
+test('settlePoints: score ÷ divisor, every pair pays the difference', () => {
+  const D = load();
+  const r = D.settlePoints([100, 40, -20], 10);
+  assert.deepEqual(JSON.parse(JSON.stringify(r)), { vals: [10, 4, -2], money: [18, 0, -18] });
+  const plain = t => JSON.parse(JSON.stringify(t.map(x => [x.from, x.to, x.amount])));
+  assert.deepEqual(plain(D.pairDebts([r], 3)), [[1, 0, 6], [2, 0, 12], [2, 1, 6]]);
+  // two games between the same pair net out pair by pair
+  assert.deepEqual(plain(D.pairDebts([D.settlePoints([100, 40], 10), D.settlePoints([20, 60], 10)], 2)), [[1, 0, 2]]);
+  assert.deepEqual(JSON.parse(JSON.stringify(D.settlePoints([105, 0], 10).vals)), [10.5, 0]);
+});

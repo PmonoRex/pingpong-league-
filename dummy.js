@@ -6,11 +6,11 @@
   const CARD_VALUES = { low: 5, high: 10, ace: 15, special: 50 };
   // Knock styles that double what every loser pays; they stack (มืด + สี = ×4).
   const KNOCK_FLAGS = [["dark", "มืด"], ["dummy", "ดัมมี่"], ["color", "สี"]];
-  const MONEY_MODES = { none: "ไม่คิดเงิน", winner: "คนชนะได้คนเดียว" };
+  const MONEY_MODES = { none: "ไม่คิดเงิน", points: "หารแต้ม หักลบกัน", winner: "คนชนะได้คนเดียว" };
 
   function int(v) { const n = Math.round(Number(v)); return Number.isFinite(n) ? n : 0; }
   function money(v) { const n = Math.round(Number(v) * 100) / 100; return Number.isFinite(n) ? n : 0; }
-  function blank() { return { players: [], rounds: [], target: 0, knockBonus: 50, moneyMode: "none", rates: [10, 20, 30] }; }
+  function blank() { return { players: [], rounds: [], target: 0, knockBonus: 50, moneyMode: "none", rates: [10, 20, 30], divisor: 10 }; }
   function normalize(raw) {
     const s = blank();
     if (!raw || typeof raw !== "object") return s;
@@ -18,6 +18,7 @@
     s.target = Math.max(0, int(raw.target));
     s.knockBonus = Math.max(0, int(raw.knockBonus ?? 50));
     s.moneyMode = Object.hasOwn(MONEY_MODES, raw.moneyMode) ? raw.moneyMode : "none";
+    if (raw.divisor !== undefined) s.divisor = Math.max(0, money(raw.divisor)) || 10;
     if (Array.isArray(raw.rates)) s.rates = [0, 1, 2].map(i => Math.max(0, money(raw.rates[i])));
     const n = s.players.length;
     s.rounds = (Array.isArray(raw.rounds) ? raw.rounds : []).filter(r => r && Array.isArray(r.scores)).map(r => ({
@@ -26,6 +27,7 @@
       flags: Object.fromEntries(KNOCK_FLAGS.map(([k]) => [k, !!r.flags?.[k]])),
       dumb: s.players.map((_, i) => !!r.dumb?.[i]),
       money: Array.isArray(r.money) ? s.players.map((_, i) => money(r.money[i])) : null,
+      vals: Array.isArray(r.vals) ? s.players.map((_, i) => money(r.vals[i])) : null,
       at: int(r.at)
     }));
     return s;
@@ -73,6 +75,15 @@
     return out;
   }
 
+  // Money mode "points": each score is worth score ÷ divisor baht and every pair settles the difference
+  // (100 vs 40 points at ÷10 → the 40 pays the 100 six baht). `vals` keeps each player's baht value for the
+  // pairwise list; `money` is each player's net for the game (their value against everyone else's).
+  function settlePoints(scores, divisor) {
+    const d = Number(divisor) > 0 ? Number(divisor) : 10;
+    const vals = scores.map(v => money(int(v) / d)), sum = vals.reduce((a, b) => a + b, 0);
+    return { vals, money: vals.map(v => money(v * vals.length - sum)) };
+  }
+
   // Who owes whom, pair by pair: in each game every loser owes the winner(s) what they paid (split evenly
   // if the pot was split). Debts are never passed through a third player; only two players who owe each
   // other are netted, and `owed` / `back` keep both sides so the page can show where the number came from.
@@ -80,6 +91,11 @@
   function pairDebts(rounds, n) {
     const owe = Array.from({ length: n }, () => Array(n).fill(0));
     rounds.forEach(r => {
+      if (r.vals) {
+        const c = r.vals.map(v => Math.round(Number(v) * 100) || 0);
+        c.forEach((va, a) => c.forEach((vb, b) => { if (vb > va) owe[a][b] += vb - va; }));
+        return;
+      }
       if (!r.money) return;
       const cents = r.money.map(v => Math.round(Number(v) * 100) || 0);
       const winners = cents.map((v, i) => v > 0 ? i : -1).filter(i => i >= 0);
@@ -99,7 +115,7 @@
     return out.sort((x, y) => x.from - y.from || x.to - y.to);
   }
 
-  window.DummyScore = { normalize, totals, moneyTotals, standings, winner, cardPoints, settleWinner, multiplier, pairDebts, CARD_VALUES };
+  window.DummyScore = { normalize, totals, moneyTotals, standings, winner, cardPoints, settleWinner, settlePoints, multiplier, pairDebts, CARD_VALUES };
 
   const $ = id => document.getElementById(id);
   if (!$("dummyApp")) return;
@@ -109,7 +125,7 @@
   function load() { try { return normalize(JSON.parse(localStorage.getItem(KEY) || "null")); } catch { return blank(); } }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }
   function toast(msg) { const el = $("dToast"); el.textContent = msg; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2200); }
-  const moneyOn = () => state.moneyMode === "winner";
+  const moneyOn = () => state.moneyMode !== "none", winnerMode = () => state.moneyMode === "winner";
 
   // ---- setup ----
   function renderSetup() {
@@ -120,9 +136,10 @@
     $("dKnock").value = state.knockBonus;
     $("dMoneyMode").value = state.moneyMode;
     ["dRate2", "dRate3", "dRate4"].forEach((id, i) => $(id).value = state.rates[i]);
+    $("dDivisor").value = state.divisor;
     toggleRates();
   }
-  function toggleRates() { $("dRates").hidden = $("dMoneyMode").value !== "winner"; }
+  function toggleRates() { $("dRates").hidden = $("dMoneyMode").value !== "winner"; $("dPoints").hidden = $("dMoneyMode").value !== "points"; }
   $("dMoneyMode").addEventListener("change", toggleRates);
   function setupNames() { return [...document.querySelectorAll("[data-name]")].map(i => i.value); }
   $("dNames").addEventListener("click", e => {
@@ -139,7 +156,7 @@
     const samePlayers = names.join("\n") === state.players.join("\n");
     const next = normalize({
       players: names, target: $("dTarget").value, knockBonus: $("dKnock").value, moneyMode: $("dMoneyMode").value,
-      rates: [$("dRate2").value, $("dRate3").value, $("dRate4").value], rounds: samePlayers ? state.rounds : []
+      rates: [$("dRate2").value, $("dRate3").value, $("dRate4").value], divisor: $("dDivisor").value, rounds: samePlayers ? state.rounds : []
     });
     if (!samePlayers && state.rounds.length && !confirm("เปลี่ยนผู้เล่นแล้วแต้มเดิมจะถูกล้าง เริ่มเกมใหม่?")) return;
     state = next; save(); render(); toast(samePlayers && state.rounds.length ? "บันทึกการตั้งค่าแล้ว" : "เริ่มเกมแล้ว 🃏");
@@ -147,9 +164,9 @@
 
   // ---- round entry ----
   function renderEntry() {
-    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon d-sign" data-sign="${i}" aria-pressed="false" aria-label="ติดลบ ${esc(n)}">+</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts"><label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>${moneyOn() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
+    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon d-sign" data-sign="${i}" aria-pressed="false" aria-label="ติดลบ ${esc(n)}">+</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts"><label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>${winnerMode() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
     $("dKnockNone").checked = true;
-    $("dFlags").hidden = !moneyOn();
+    $("dFlags").hidden = !winnerMode();
     $("dFlags").innerHTML = `<span class="muted">น็อคแบบพิเศษ (คนเสียจ่ายคูณ 2 ซ้อนกันได้)</span><div class="d-flag-row">${KNOCK_FLAGS.map(([k, label]) => `<label class="d-flag"><input type="checkbox" data-flag="${k}"> ${label} ×2</label>`).join("")}</div>`;
     $("dCalcPlayer").innerHTML = state.players.map((n, i) => `<option value="${i}">${esc(n)}</option>`).join("");
     updatePreview();
@@ -172,11 +189,18 @@
     return { scores, knock, flags, dumb };
   }
   // Money is ranked on the hand's own scores (before the knock bonus is added).
-  function settle(entry) { return moneyOn() ? settleWinner({ ...entry, rates: state.rates }) : null; }
+  // Points mode counts the score as entered plus the knock bonus.
+  function settle(entry) {
+    if (state.moneyMode === "winner") return { money: settleWinner({ ...entry, rates: state.rates }), vals: null };
+    if (state.moneyMode === "points") return settlePoints(entry.scores.map((v, i) => v + (entry.knock === i ? state.knockBonus : 0)), state.divisor);
+    return { money: null, vals: null };
+  }
   function updatePreview() {
     const el = $("dPreview"); el.hidden = !moneyOn(); if (!moneyOn()) return;
-    const e = readEntry(), m = settle(e), x = e.knock !== null ? multiplier(e.flags) : 1;
-    el.innerHTML = `<b>เงินเกมนี้${x > 1 ? ` (×${x})` : ""}</b>${e.knock === null ? '<small>ยังไม่ได้เลือกคนน็อค — ถ้าไม่มีใครน็อค คนแต้มสูงสุดได้เงิน</small>' : ""}<div class="d-preview-list">${state.players.map((n, i) => `<span class="${m[i] < 0 ? "neg" : m[i] > 0 ? "pos" : ""}">${esc(n)} ${baht(m[i])}</span>`).join("")}</div>`;
+    const e = readEntry(), { money: m, vals } = settle(e), x = winnerMode() && e.knock !== null ? multiplier(e.flags) : 1;
+    const note = vals ? `<small>${state.players.map((n, i) => `${esc(n)} ${baht(vals[i]).replace("+", "")}`).join(" • ")} (แต้ม ÷ ${state.divisor})</small>`
+      : e.knock === null ? '<small>ยังไม่ได้เลือกคนน็อค — ถ้าไม่มีใครน็อค คนแต้มสูงสุดได้เงิน</small>' : "";
+    el.innerHTML = `<b>เงินเกมนี้${x > 1 ? ` (×${x})` : ""}</b>${note}<div class="d-preview-list">${state.players.map((n, i) => `<span class="${m[i] < 0 ? "neg" : m[i] > 0 ? "pos" : ""}">${esc(n)} ${baht(m[i])}</span>`).join("")}</div>`;
   }
   $("dEntryCard").addEventListener("input", updatePreview);
   $("dEntryCard").addEventListener("change", updatePreview);
@@ -185,12 +209,12 @@
     if (sign) { const i = int(sign.dataset.sign), el = scoreInput(i); setNegative(i, sign.getAttribute("aria-pressed") !== "true"); el.value = el.value ? Math.abs(int(el.value)) : ""; updatePreview(); }
   });
   $("dSaveRound").addEventListener("click", () => {
-    const entry = readEntry(), m = settle(entry), scores = [...entry.scores];
+    const entry = readEntry(), { money: m, vals } = settle(entry), scores = [...entry.scores];
     if (entry.knock !== null) scores[entry.knock] += state.knockBonus;
     if (scores.every(v => v === 0) && entry.knock === null) return toast("ยังไม่ได้ใส่แต้ม");
-    state.rounds.push({ scores, knock: entry.knock, flags: entry.flags, dumb: entry.dumb, money: m, at: Date.now() }); save(); render();
-    const w = m ? m.findIndex(v => v > 0) : -1;
-    toast(`บันทึกเกมที่ ${state.rounds.length} แล้ว${w >= 0 ? ` • ${state.players[w]} ได้ ${baht(m[w])}` : ""}`);
+    state.rounds.push({ scores, knock: entry.knock, flags: entry.flags, dumb: entry.dumb, money: m, vals, at: Date.now() }); save(); render();
+    const w = m ? m.indexOf(Math.max(...m)) : -1;
+    toast(`บันทึกเกมที่ ${state.rounds.length} แล้ว${w >= 0 && m[w] > 0 ? ` • ${state.players[w]} ได้ ${baht(m[w])}` : ""}`);
   });
 
   // ---- card calculator ----
@@ -212,7 +236,7 @@
     const top = Math.max(...rows.map(r => r.total)), w = winner(state);
     $("dWinner").hidden = !w;
     if (w) $("dWinner").innerHTML = `🏆 <b>${esc(w.name)}</b> ถึง ${state.target.toLocaleString()} แต้มแล้ว — ชนะเกมนี้!`;
-    $("dMeta").textContent = `เล่นไปแล้ว ${state.rounds.length} เกม${state.target ? ` • เป้า ${state.target.toLocaleString()} แต้ม` : ""} • น็อค +${state.knockBonus}${moneyOn() ? ` • เงิน: ${MONEY_MODES.winner} (${state.rates.slice(0, state.players.length - 1).join(" / ")}฿)` : ""}`;
+    $("dMeta").textContent = `เล่นไปแล้ว ${state.rounds.length} เกม${state.target ? ` • เป้า ${state.target.toLocaleString()} แต้ม` : ""} • น็อค +${state.knockBonus}${winnerMode() ? ` • เงิน: ${MONEY_MODES.winner} (${state.rates.slice(0, state.players.length - 1).join(" / ")}฿)` : state.moneyMode === "points" ? ` • เงิน: แต้ม ÷ ${state.divisor} หักลบกัน` : ""}`;
     $("dBoard").innerHTML = rows.map((r, pos) => {
       const pct = state.target ? Math.max(0, Math.min(100, r.total / state.target * 100)) : 0;
       return `<div class="d-board-row ${pos === 0 && state.rounds.length && (byMoney ? r.money > 0 : r.total === top) ? "lead" : ""}"><span class="d-pos">${pos + 1}</span><div class="d-board-name"><b>${esc(r.name)}</b><small>${[r.knocks ? `น็อค ${r.knocks} ครั้ง` : "", r.total < top ? `ตามแต้มสูงสุด ${(top - r.total).toLocaleString()}` : ""].filter(Boolean).join(" • ") || "&nbsp;"}</small>${state.target ? `<div class="d-bar"><span style="width:${pct}%"></span></div>` : ""}</div><div class="d-board-right"><b class="d-total ${r.total < 0 ? "neg" : ""}">${r.total.toLocaleString()}</b>${showMoney ? `<span class="d-money ${r.money < 0 ? "neg" : r.money > 0 ? "pos" : ""}">${baht(r.money)}</span>` : ""}</div></div>`;
