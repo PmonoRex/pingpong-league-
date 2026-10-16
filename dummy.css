@@ -105,3 +105,6 @@ td .d-icon{min-height:34px;width:34px;min-width:34px;flex:none}
 .d-pay-arrow{color:#8f9aa8;font-size:13px}
 .d-pay-amt{color:#ffba45;font-size:17px;font-variant-numeric:tabular-nums}
 .d-pay-note{grid-column:1/-1;color:#8f9aa8;font-size:12px}
+.d-div-row{display:grid;grid-template-columns:auto 96px 1fr;gap:10px;align-items:center;margin-top:12px;padding:10px 12px;border:1px solid #3a2a0b;border-radius:14px;background:#140f05}
+.d-div-row label{color:#ffd38a;font-size:14px;font-weight:800}
+.d-div-row input{min-height:42px;text-align:center;font-size:18px;font-weight:800}

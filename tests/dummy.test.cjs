@@ -93,5 +93,6 @@ test('settlePoints: score ÷ divisor, every pair pays the difference', () => {
   assert.deepEqual(plain(D.pairDebts([r], 3)), [[1, 0, 6], [2, 0, 12], [2, 1, 6]]);
   // two games between the same pair net out pair by pair
   assert.deepEqual(plain(D.pairDebts([D.settlePoints([100, 40], 10), D.settlePoints([20, 60], 10)], 2)), [[1, 0, 2]]);
-  assert.deepEqual(JSON.parse(JSON.stringify(D.settlePoints([105, 0], 10).vals)), [10.5, 0]);
+  assert.deepEqual(JSON.parse(JSON.stringify(D.settlePoints([105, 0, -25, 14, 4], 10).vals)), [11, 0, -3, 1, 0]);
+  assert.deepEqual(JSON.parse(JSON.stringify(D.settlePoints([100, 40], 20).vals)), [5, 2]);
 });
