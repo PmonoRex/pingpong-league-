@@ -15,8 +15,9 @@ test('normalize trims players, caps at 4 and aligns round scores to players', ()
   const D = load();
   const s = D.normalize({ players: [' A ', '', 'B', 'C', 'D', 'E'], target: '500', knockBonus: -3, rounds: [{ scores: ['10', 'x'], knock: 9 }, null] });
   assert.deepEqual([...s.players], ['A', 'B', 'C', 'D']);
-  assert.equal(s.target, 500);
+  assert.equal(s.target, 0);
   assert.equal(s.knockBonus, 0);
+  assert.equal(s.moneyMode, 'points');
   assert.equal(s.rounds.length, 1);
   assert.deepEqual([...s.rounds[0].scores], [10, 0, 0, 0]);
   assert.equal(s.rounds[0].knock, null);
@@ -29,7 +30,7 @@ test('totals, standings and winner', () => {
   const st = D.standings(s);
   assert.deepEqual(st.map(r => r.name), ['C', 'A', 'B']);
   assert.equal(st[1].knocks, 1);
-  assert.equal(D.winner(s).name, 'C');
+  assert.equal(D.winner({ ...s, target: 100 }).name, 'C');
   assert.equal(D.winner({ ...s, target: 0 }), null);
 });
 
@@ -66,7 +67,7 @@ test('normalize keeps money mode, rates and per-round money', () => {
   assert.deepEqual([...D.moneyTotals(s)], [15, -15]);
   assert.equal(s.rounds[0].dumb[1], true);
   assert.equal(s.rounds[0].flags.dark, true);
-  assert.equal(D.normalize({ moneyMode: 'bogus' }).moneyMode, 'none');
+  assert.equal(D.normalize({ moneyMode: 'bogus' }).moneyMode, 'points');
 });
 
 test('pairDebts keeps each pair separate and only nets two players who owe each other', () => {

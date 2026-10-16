@@ -10,14 +10,15 @@
 
   function int(v) { const n = Math.round(Number(v)); return Number.isFinite(n) ? n : 0; }
   function money(v) { const n = Math.round(Number(v) * 100) / 100; return Number.isFinite(n) ? n : 0; }
-  function blank() { return { players: [], rounds: [], target: 0, knockBonus: 50, moneyMode: "none", rates: [10, 20, 30], divisor: 10 }; }
+  function blank() { return { players: [], rounds: [], target: 0, knockBonus: 0, moneyMode: "points", rates: [10, 20, 30], divisor: 10 }; }
   function normalize(raw) {
     const s = blank();
     if (!raw || typeof raw !== "object") return s;
     s.players = (Array.isArray(raw.players) ? raw.players : []).map(p => String(p ?? "").trim().slice(0, 30)).filter(Boolean).slice(0, 4);
-    s.target = Math.max(0, int(raw.target));
-    s.knockBonus = Math.max(0, int(raw.knockBonus ?? 50));
-    s.moneyMode = Object.hasOwn(MONEY_MODES, raw.moneyMode) ? raw.moneyMode : "none";
+    // Scores are entered already counted (knock bonus included), so there is no target or bonus to add.
+    s.target = 0;
+    s.knockBonus = 0;
+    s.moneyMode = Object.hasOwn(MONEY_MODES, raw.moneyMode) ? raw.moneyMode : "points";
     if (raw.divisor !== undefined) s.divisor = Math.max(0, money(raw.divisor)) || 10;
     if (Array.isArray(raw.rates)) s.rates = [0, 1, 2].map(i => Math.max(0, money(raw.rates[i])));
     const n = s.players.length;
@@ -164,8 +165,8 @@
 
   // ---- round entry ----
   function renderEntry() {
-    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon d-sign" data-sign="${i}" aria-pressed="false" aria-label="ติดลบ ${esc(n)}">+</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts"><label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>${winnerMode() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
-    $("dKnockNone").checked = true;
+    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon d-sign" data-sign="${i}" aria-pressed="false" aria-label="ติดลบ ${esc(n)}">+</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts">${winnerMode() ? `<label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>` : ""}${winnerMode() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
+    $("dKnockNone").checked = true; $("dKnockNoneLabel").hidden = !winnerMode();
     $("dFlags").hidden = !winnerMode();
     $("dFlags").innerHTML = `<span class="muted">น็อคแบบพิเศษ (คนเสียจ่ายคูณ 2 ซ้อนกันได้)</span><div class="d-flag-row">${KNOCK_FLAGS.map(([k, label]) => `<label class="d-flag"><input type="checkbox" data-flag="${k}"> ${label} ×2</label>`).join("")}</div>`;
     $("dCalcPlayer").innerHTML = state.players.map((n, i) => `<option value="${i}">${esc(n)}</option>`).join("");
@@ -236,7 +237,7 @@
     const top = Math.max(...rows.map(r => r.total)), w = winner(state);
     $("dWinner").hidden = !w;
     if (w) $("dWinner").innerHTML = `🏆 <b>${esc(w.name)}</b> ถึง ${state.target.toLocaleString()} แต้มแล้ว — ชนะเกมนี้!`;
-    $("dMeta").textContent = `เล่นไปแล้ว ${state.rounds.length} เกม${state.target ? ` • เป้า ${state.target.toLocaleString()} แต้ม` : ""} • น็อค +${state.knockBonus}${winnerMode() ? ` • เงิน: ${MONEY_MODES.winner} (${state.rates.slice(0, state.players.length - 1).join(" / ")}฿)` : state.moneyMode === "points" ? ` • เงิน: แต้ม ÷ ${state.divisor} หักลบกัน` : ""}`;
+    $("dMeta").textContent = `เล่นไปแล้ว ${state.rounds.length} เกม${state.target ? ` • เป้า ${state.target.toLocaleString()} แต้ม` : ""}${winnerMode() ? ` • เงิน: ${MONEY_MODES.winner} (${state.rates.slice(0, state.players.length - 1).join(" / ")}฿)` : state.moneyMode === "points" ? ` • เงิน: แต้ม ÷ ${state.divisor} หักลบกัน` : ""}`;
     $("dBoard").innerHTML = rows.map((r, pos) => {
       const pct = state.target ? Math.max(0, Math.min(100, r.total / state.target * 100)) : 0;
       return `<div class="d-board-row ${pos === 0 && state.rounds.length && (byMoney ? r.money > 0 : r.total === top) ? "lead" : ""}"><span class="d-pos">${pos + 1}</span><div class="d-board-name"><b>${esc(r.name)}</b><small>${[r.knocks ? `น็อค ${r.knocks} ครั้ง` : "", r.total < top ? `ตามแต้มสูงสุด ${(top - r.total).toLocaleString()}` : ""].filter(Boolean).join(" • ") || "&nbsp;"}</small>${state.target ? `<div class="d-bar"><span style="width:${pct}%"></span></div>` : ""}</div><div class="d-board-right"><b class="d-total ${r.total < 0 ? "neg" : ""}">${r.total.toLocaleString()}</b>${showMoney ? `<span class="d-money ${r.money < 0 ? "neg" : r.money > 0 ? "pos" : ""}">${baht(r.money)}</span>` : ""}</div></div>`;
