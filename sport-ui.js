@@ -6,7 +6,7 @@
 
   function ensureStyles(){
     const required=[
-      ['theme.css?v=20261016-dummy','theme.css'],
+      ['theme.css?v=20261016-kb','theme.css'],
       ['motion.css?v=20261015-ux','motion.css']
     ];
     required.forEach(([href,file])=>{
@@ -98,6 +98,14 @@
   function elevateImportantCards(){['#standingsCard','#bettingPanel','#dealerPanel','.rank-card'].forEach(sel=>qs(sel)?.classList.add('sport-feature-card'))}
   // Hero, brand and tab bar go in before first paint so cross-page view transitions keep them in place.
   addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();addDummyTab();markActiveNav();
+  // On touch screens the fixed tab bar floats above the on-screen keyboard and covers the fields, so hide it while typing.
+  function hideTabsWhileTyping(){
+    if(!matchMedia('(pointer:coarse)').matches)return;
+    const typing=el=>el&&el.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]),textarea,select');
+    document.addEventListener('focusin',e=>{if(typing(e.target))document.body.classList.add('sport-typing')});
+    document.addEventListener('focusout',()=>setTimeout(()=>{if(!typing(document.activeElement))document.body.classList.remove('sport-typing')},60));
+  }
+  hideTabsWhileTyping();
   function boot(){setupMobileTools();elevateImportantCards();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
 })();

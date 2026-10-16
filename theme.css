@@ -344,3 +344,4 @@ td>.empty-state{position:sticky;left:0;width:calc(min(100vw,1180px) - 64px)}
 .empty-state .btn{margin-top:6px;min-height:38px;display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:var(--fs-sm);text-decoration:none}
 td:has(>.empty-state){padding:0;text-align:left}
 body.sport-redesign a.quick-tile{display:block}
+body.sport-typing :is(.bottom-nav,.sport-tabbar){display:none!important}
