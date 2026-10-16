@@ -38,3 +38,33 @@ test('cardPoints uses Dummy card values', () => {
   assert.equal(D.cardPoints({ low: 3, high: 2, ace: 1, special: 1 }), 15 + 20 + 15 + 50);
   assert.equal(D.cardPoints({}), 0);
 });
+
+test('settleWinner: knocker takes all, lower hand score pays more', () => {
+  const D = load();
+  const m = D.settleWinner({ scores: [80, 10, 40, -30], knock: 0, rates: [10, 20, 30] });
+  assert.deepEqual([...m], [60, -20, -10, -30]);
+});
+
+test('settleWinner: equal scores pay the better rank rate; knock flags and โง่ double', () => {
+  const D = load();
+  assert.deepEqual([...D.settleWinner({ scores: [0, 20, 20, 5], knock: 0, rates: [10, 20, 30] })], [50, -10, -10, -30]);
+  const m = D.settleWinner({ scores: [0, 20, 10, 5], knock: 0, flags: { dark: true, color: true }, dumb: [false, false, false, true], rates: [10, 20, 30] });
+  assert.deepEqual([...m], [40 + 80 + 240, -40, -80, -240]);
+});
+
+test('settleWinner: no knock → top hand score wins, split on a tie; flags ignored', () => {
+  const D = load();
+  assert.deepEqual([...D.settleWinner({ scores: [10, 50, 30], knock: null, flags: { dark: true }, rates: [10, 20, 30] })], [-20, 30, -10]);
+  assert.deepEqual([...D.settleWinner({ scores: [50, 50, 30], knock: null, rates: [10, 20, 30] })], [5, 5, -10]);
+});
+
+test('normalize keeps money mode, rates and per-round money', () => {
+  const D = load();
+  const s = D.normalize({ players: ['A', 'B'], moneyMode: 'winner', rates: [15, 'x'], rounds: [{ scores: [1, 2], knock: 0, money: [15, -15], dumb: [0, 1], flags: { dark: 1 } }] });
+  assert.equal(s.moneyMode, 'winner');
+  assert.deepEqual([...s.rates], [15, 0, 0]);
+  assert.deepEqual([...D.moneyTotals(s)], [15, -15]);
+  assert.equal(s.rounds[0].dumb[1], true);
+  assert.equal(s.rounds[0].flags.dark, true);
+  assert.equal(D.normalize({ moneyMode: 'bogus' }).moneyMode, 'none');
+});

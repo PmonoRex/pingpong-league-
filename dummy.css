@@ -67,3 +67,20 @@ td .d-icon{min-height:34px;width:34px;min-width:34px;flex:none}
 .d-toast.show{opacity:1;transform:translate(-50%,0)}
 
 @media(max-width:560px){.d-settings{grid-template-columns:1fr}.d-calc-grid{grid-template-columns:1fr 1fr}.d-total{font-size:22px}}
+
+.d-settings-3{grid-template-columns:repeat(3,1fr)}
+.d-rates{margin-top:12px;padding:12px;border:1px solid #202c38;border-radius:14px;background:#080d13}
+.d-entry-opts{display:inline-flex;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+.d-flags{margin-top:12px}
+.d-flag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.d-flag{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid #3a2a0b;border-radius:12px;background:#140f05;color:#ffd38a;font-size:13px;cursor:pointer}
+.d-flag input,.d-entry-opts input[type=checkbox]{width:18px;min-height:18px;height:18px;margin:0;accent-color:#ffba45}
+.d-preview{margin-top:12px;padding:12px;border-radius:14px;border:1px solid #2b3744;background:#0c121a}
+.d-preview small{display:block;color:#8f9aa8;font-size:11px;margin-top:2px}
+.d-preview-list{display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:6px;font-weight:800}
+.pos{color:#7ff0ad}
+.d-board-right{text-align:right}
+.d-board-right .d-total{display:block}
+.d-money{font-size:13px;font-weight:800}
+.d-cell-money{display:block;font-size:11px;font-weight:800}
+@media(max-width:560px){.d-settings-3{grid-template-columns:1fr 1fr 1fr}.d-settings-3 label{font-size:11px}}
