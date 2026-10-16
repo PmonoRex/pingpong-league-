@@ -81,7 +81,8 @@
   // pairwise list; `money` is each player's net for the game (their value against everyone else's).
   function settlePoints(scores, divisor) {
     const d = Number(divisor) > 0 ? Number(divisor) : 10;
-    const vals = scores.map(v => money(int(v) / d)), sum = vals.reduce((a, b) => a + b, 0);
+    // Whole baht, halves rounded away from zero (25 ÷ 10 → 3, −25 ÷ 10 → −3).
+    const vals = scores.map(v => { const x = int(v) / d; return Math.sign(x) * Math.round(Math.abs(x)) || 0; }), sum = vals.reduce((a, b) => a + b, 0);
     return { vals, money: vals.map(v => money(v * vals.length - sum)) };
   }
 
@@ -166,6 +167,7 @@
   // ---- round entry ----
   function renderEntry() {
     $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon d-sign" data-sign="${i}" aria-pressed="false" aria-label="ติดลบ ${esc(n)}">+</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts">${winnerMode() ? `<label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>` : ""}${winnerMode() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
+    $("dDivRow").hidden = state.moneyMode !== "points"; $("dDivQuick").value = state.divisor;
     $("dKnockNone").checked = true; $("dKnockNoneLabel").hidden = !winnerMode();
     $("dFlags").hidden = !winnerMode();
     $("dFlags").innerHTML = `<span class="muted">น็อคแบบพิเศษ (คนเสียจ่ายคูณ 2 ซ้อนกันได้)</span><div class="d-flag-row">${KNOCK_FLAGS.map(([k, label]) => `<label class="d-flag"><input type="checkbox" data-flag="${k}"> ${label} ×2</label>`).join("")}</div>`;
@@ -199,10 +201,14 @@
   function updatePreview() {
     const el = $("dPreview"); el.hidden = !moneyOn(); if (!moneyOn()) return;
     const e = readEntry(), { money: m, vals } = settle(e), x = winnerMode() && e.knock !== null ? multiplier(e.flags) : 1;
-    const note = vals ? `<small>${state.players.map((n, i) => `${esc(n)} ${baht(vals[i]).replace("+", "")}`).join(" • ")} (แต้ม ÷ ${state.divisor})</small>`
+    const note = vals ? `<small>${state.players.map((n, i) => `${esc(n)} ${baht(vals[i]).replace("+", "")}`).join(" • ")} (แต้ม ÷ ${state.divisor} ปัดเป็นบาทเต็ม)</small>`
       : e.knock === null ? '<small>ยังไม่ได้เลือกคนน็อค — ถ้าไม่มีใครน็อค คนแต้มสูงสุดได้เงิน</small>' : "";
     el.innerHTML = `<b>เงินเกมนี้${x > 1 ? ` (×${x})` : ""}</b>${note}<div class="d-preview-list">${state.players.map((n, i) => `<span class="${m[i] < 0 ? "neg" : m[i] > 0 ? "pos" : ""}">${esc(n)} ${baht(m[i])}</span>`).join("")}</div>`;
   }
+  $("dDivQuick").addEventListener("input", () => {
+    const d = money($("dDivQuick").value); if (!(d > 0)) return;
+    state.divisor = d; save(); renderBoard(); updatePreview();
+  });
   $("dEntryCard").addEventListener("input", updatePreview);
   $("dEntryCard").addEventListener("change", updatePreview);
   $("dEntry").addEventListener("click", e => {
