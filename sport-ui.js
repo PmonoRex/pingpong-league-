@@ -6,7 +6,7 @@
 
   function ensureStyles(){
     const required=[
-      ['theme.css?v=20261015-design','theme.css'],
+      ['theme.css?v=20261016-dummy','theme.css'],
       ['motion.css?v=20261015-ux','motion.css']
     ];
     required.forEach(([href,file])=>{
@@ -79,6 +79,13 @@
     nav.innerHTML='<a href="index.html"><span>⌂</span>Home</a><a href="dashboard.html"><span>📊</span>Dashboard</a><a href="predictions.html"><span>🎯</span>Predict</a><a href="stats.html"><span>📈</span>Stats</a>';
     document.body.appendChild(nav);
   }
+  // Every tab bar (page-owned or universal) ends with the Dummy score keeper.
+  function addDummyTab(){
+    document.querySelectorAll('.bottom-nav,.sport-tabbar').forEach(nav=>{
+      if(nav.querySelector('a[href="dummy.html"]'))return;
+      const a=document.createElement('a');a.href='dummy.html';a.innerHTML='<span>🃏</span>Dummy';nav.appendChild(a);
+    });
+  }
   function markActiveNav(){
     document.querySelectorAll('.bottom-nav a,.sport-tabbar a').forEach(a=>{
       const href=a.getAttribute('href')||'',file=href.split('#')[0].split('?')[0].toLowerCase();
@@ -90,7 +97,7 @@
 
   function elevateImportantCards(){['#standingsCard','#bettingPanel','#dealerPanel','.rank-card'].forEach(sel=>qs(sel)?.classList.add('sport-feature-card'))}
   // Hero, brand and tab bar go in before first paint so cross-page view transitions keep them in place.
-  addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();markActiveNav();
+  addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();addDummyTab();markActiveNav();
   function boot(){setupMobileTools();elevateImportantCards();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
 })();
