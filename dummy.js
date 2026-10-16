@@ -73,7 +73,24 @@
     return out;
   }
 
-  window.DummyScore = { normalize, totals, moneyTotals, standings, winner, cardPoints, settleWinner, multiplier, CARD_VALUES };
+  // Net balances → the fewest "A pays B" transfers: the biggest debtor always pays the biggest creditor.
+  // Works in satang so rounding never leaves a stray 0.01.
+  function transfers(balances) {
+    const cents = balances.map(v => Math.round(Number(v) * 100) || 0);
+    const debt = cents.map((v, i) => ({ i, v: -v })).filter(x => x.v > 0);
+    const cred = cents.map((v, i) => ({ i, v })).filter(x => x.v > 0);
+    const out = [];
+    while (debt.length && cred.length) {
+      debt.sort((a, b) => b.v - a.v || a.i - b.i); cred.sort((a, b) => b.v - a.v || a.i - b.i);
+      const d = debt[0], c = cred[0], amt = Math.min(d.v, c.v);
+      out.push({ from: d.i, to: c.i, amount: amt / 100 });
+      d.v -= amt; c.v -= amt;
+      if (!d.v) debt.shift(); if (!c.v) cred.shift();
+    }
+    return out;
+  }
+
+  window.DummyScore = { normalize, totals, moneyTotals, standings, winner, cardPoints, settleWinner, multiplier, transfers, CARD_VALUES };
 
   const $ = id => document.getElementById(id);
   if (!$("dummyApp")) return;
@@ -215,11 +232,30 @@
   $("dRematch").addEventListener("click", () => { if (!confirm("ล้างผลทุกเกม เริ่มนับใหม่ด้วยผู้เล่นชุดเดิม?")) return; state.rounds = []; save(); render(); });
   $("dEdit").addEventListener("click", () => { $("dSetup").hidden = false; renderSetup(); $("dSetup").scrollIntoView({ behavior: "smooth" }); });
 
+  // ---- who pays whom ----
+  function paymentLines() {
+    return transfers(moneyTotals(state)).map(t => ({ ...t, fromName: state.players[t.from], toName: state.players[t.to] }));
+  }
+  function renderPayments() {
+    const lines = paymentLines(), show = hasMoney(state);
+    $("dPay").hidden = !show; if (!show) return;
+    $("dPayList").innerHTML = lines.length
+      ? lines.map(l => `<div class="d-pay-row"><b>${esc(l.fromName)}</b><span class="d-pay-arrow">จ่าย ➜</span><b>${esc(l.toName)}</b><b class="d-pay-amt">${baht(l.amount).replace("+", "")}</b></div>`).join("")
+      : '<div class="muted">ยังไม่มีใครต้องจ่าย (เจ๊ากันหมด)</div>';
+    $("dPayCopy").hidden = !lines.length;
+  }
+  $("dPayCopy").addEventListener("click", async () => {
+    const lines = paymentLines();
+    const text = [`🃏 สรุปเงินดัมมี่ (${state.rounds.length} เกม)`, ...lines.map(l => `${l.fromName} จ่าย ${l.toName} ${baht(l.amount).replace("+", "")}`)].join("\n");
+    try { await navigator.clipboard.writeText(text); toast("คัดลอกแล้ว วางในไลน์ได้เลย"); }
+    catch { prompt("คัดลอกข้อความนี้", text); }
+  });
+
   function render() {
     const playing = state.players.length >= 2;
     $("dSetup").hidden = playing; $("dGame").hidden = !playing;
     if (!playing) return renderSetup();
-    renderEntry(); renderBoard(); renderHistory(); updateCalc();
+    renderEntry(); renderBoard(); renderPayments(); renderHistory(); updateCalc();
   }
   render();
 })();
