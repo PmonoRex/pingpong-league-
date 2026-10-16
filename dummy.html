@@ -5,8 +5,8 @@
  <div class="muted">ผู้เล่น 2–4 คน</div>
  <div id="dNames" class="d-names"></div>
  <div class="actions"><button type="button" class="secondary" id="dAddPlayer">+ เพิ่มผู้เล่น</button></div>
- <div class="d-settings"><label>เป้าแต้มชนะ <small>(เว้นว่าง = ไม่กำหนด)</small><input type="number" inputmode="numeric" id="dTarget" min="0" placeholder="เช่น 1000"></label><label>โบนัสน็อค<input type="number" inputmode="numeric" id="dKnock" min="0" value="50"></label></div>
- <div class="d-settings"><label>วิธีคิดเงิน<select id="dMoneyMode"><option value="none">ไม่คิดเงิน</option><option value="points">แบบ 1: หารแต้ม หักลบกัน</option><option value="winner">แบบ 2: คนชนะได้คนเดียว</option></select></label></div>
+ <div class="d-settings" hidden><label>เป้าแต้มชนะ <small>(เว้นว่าง = ไม่กำหนด)</small><input type="number" inputmode="numeric" id="dTarget" min="0" placeholder="เช่น 1000"></label><label>โบนัสน็อค<input type="number" inputmode="numeric" id="dKnock" min="0" value="50"></label></div>
+ <div class="d-settings"><label>วิธีคิดเงิน<select id="dMoneyMode"><option value="points">แบบ 1: หารแต้ม หักลบกัน</option><option value="winner">แบบ 2: คนชนะได้คนเดียว</option><option value="none">ไม่คิดเงิน</option></select></label></div>
  <div id="dPoints" class="d-rates" hidden><div class="muted">แต้มของแต่ละคน ÷ ตัวหาร = เงิน แล้วจ่ายส่วนต่างกันเป็นคู่ เช่น ÷10: 100 แต้ม = 10฿, 40 แต้ม = 4฿ → คน 40 จ่ายคน 100 = 6฿</div><div class="d-settings"><label>หารแต้มด้วย<input type="number" inputmode="decimal" id="dDivisor" min="1" value="10"></label></div></div>
  <div id="dRates" class="d-rates" hidden><div class="muted">คนน็อคได้เงินคนเดียว คนที่เหลือเรียงตามแต้มตอนจบเกม แต้มน้อยจ่ายมาก (แต้มเท่ากันจ่ายเท่ากัน)</div><div class="d-settings d-settings-3"><label>อันดับ 2 จ่าย (฿)<input type="number" inputmode="decimal" id="dRate2" min="0"></label><label>อันดับ 3 จ่าย (฿)<input type="number" inputmode="decimal" id="dRate3" min="0"></label><label>อันดับ 4 จ่าย (฿)<input type="number" inputmode="decimal" id="dRate4" min="0"></label></div></div>
  <div class="actions"><button type="button" class="primary" id="dStart">✅ เริ่มเกม / บันทึกการตั้งค่า</button></div>
@@ -22,15 +22,15 @@
 </section>
 
 <section class="card" id="dEntryCard"><h2>จบเกม: ใส่แต้ม</h2>
- <div class="muted">ใส่แต้มตอนจบเกมของแต่ละคน ถ้าติดลบกดปุ่ม + ให้เป็น − (สีแดง) เลือกคนน็อค แล้วกดบันทึก ระบบคิดเงินให้เอง</div>
+ <div class="muted">ใส่แต้มที่คิดมาแล้วของแต่ละคน ถ้าติดลบกดปุ่ม + ให้เป็น − (สีแดง) แล้วกดบันทึก ระบบคิดเงินให้เอง</div>
  <div id="dEntry" class="d-entry"></div>
- <label class="d-knock d-knock-none"><input type="radio" name="dKnockWho" value="" id="dKnockNone" checked> ไม่มีใครน็อค</label>
+ <label class="d-knock d-knock-none" id="dKnockNoneLabel"><input type="radio" name="dKnockWho" value="" id="dKnockNone" checked> ไม่มีใครน็อค</label>
  <div id="dFlags" class="d-flags" hidden></div>
  <div id="dPreview" class="d-preview" hidden></div>
  <div class="actions"><button type="button" class="primary" id="dSaveRound">💾 บันทึกผล & คิดเงิน</button></div>
 </section>
 
-<section class="card"><details class="d-calc"><summary><h2>เครื่องนับแต้มไพ่</h2></summary>
+<section class="card" hidden><details class="d-calc"><summary><h2>เครื่องนับแต้มไพ่</h2></summary>
  <div class="muted">ใส่จำนวนไพ่แต่ละแบบ แล้วกดบวก (ไพ่ที่ลงโต๊ะ) หรือหัก (ไพ่ค้างมือ)</div>
  <div class="d-calc-grid">
   <label>2–9 <small>(5)</small><input type="number" inputmode="numeric" min="0" id="cLow" placeholder="0"></label>
@@ -47,4 +47,4 @@
 </section>
 </div>
 <div class="d-toast" id="dToast" role="status" aria-live="polite"></div>
-</main><script src="dummy.js?v=20261017-1" defer></script><script src="sport-ui.js?v=20261016-kb" defer></script></body></html>
+</main><script src="dummy.js?v=20261017-2" defer></script><script src="sport-ui.js?v=20261016-kb" defer></script></body></html>
