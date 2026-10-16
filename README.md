@@ -15,6 +15,7 @@
 | Season Archive | `archive.html`, `archive.js`, `archive-hook.js`, `archive-export.js` | เปิดดู Season เก่า, ส่งออก CSV / แชร์ |
 | Backup Center | `backup.html`, `backup.js`, `safety-hooks.js`, `recovery.js` | Snapshot ในเครื่อง, Restore คะแนน / ทั้ง Season |
 | Admin | `admin.html`, `admin.js`, `audit-view.js` | สร้าง/เปลี่ยนชื่อ/ปิดบัญชี, รีเซ็ต PIN, Audit Log |
+| นับแต้มดัมมี่ | `dummy.html`, `dummy.js`, `dummy.css` | นับแต้มไพ่ดัมมี่ 2–4 คน แยกจากลีก เก็บใน `localStorage` ของเครื่องเท่านั้น |
 
 ไฟล์ที่ใช้ร่วมกัน:
 
