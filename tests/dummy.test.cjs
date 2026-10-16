@@ -69,11 +69,17 @@ test('normalize keeps money mode, rates and per-round money', () => {
   assert.equal(D.normalize({ moneyMode: 'bogus' }).moneyMode, 'none');
 });
 
-test('transfers turns balances into the fewest payments', () => {
+test('pairDebts keeps each pair separate and only nets two players who owe each other', () => {
   const D = load();
-  const plain = t => JSON.parse(JSON.stringify(t.map(x => [x.from, x.to, x.amount])));
-  assert.deepEqual(plain(D.transfers([30, -5, -10, -15])), [[3, 0, 15], [2, 0, 10], [1, 0, 5]]);
-  assert.deepEqual(plain(D.transfers([40, -60, 20])), [[1, 0, 40], [1, 2, 20]]);
-  assert.deepEqual(plain(D.transfers([0.1, 0.2, -0.3])), [[2, 1, 0.2], [2, 0, 0.1]]);
-  assert.deepEqual(plain(D.transfers([0, 0])), []);
+  const plain = t => JSON.parse(JSON.stringify(t.map(x => [x.from, x.to, x.amount, x.owed, x.back])));
+  // game 1: A knocks (B 5, C 10, D 15); game 2: B knocks (A 5, C 15, D 10)
+  const rounds = [{ money: [30, -5, -10, -15] }, { money: [-5, 30, -15, -10] }];
+  assert.deepEqual(plain(D.pairDebts(rounds, 4)), [[2, 0, 10, 10, 0], [2, 1, 15, 15, 0], [3, 0, 15, 15, 0], [3, 1, 10, 10, 0]]);
+  // B owed A 5 and A owed B 5 → they cancel, so no A–B line
+  assert.equal(D.pairDebts(rounds, 4).some(x => (x.from === 0 && x.to === 1) || (x.from === 1 && x.to === 0)), false);
+  // A owes B 20, B owes A 5 → A pays B 15
+  assert.deepEqual(plain(D.pairDebts([{ money: [-20, 20] }, { money: [5, -5] }], 2)), [[0, 1, 15, 20, 5]]);
+  // split pot: C's 0.15 shared between A and B without losing a satang
+  assert.deepEqual(plain(D.pairDebts([{ money: [0.08, 0.07, -0.15] }], 3)), [[2, 0, 0.08, 0.08, 0], [2, 1, 0.07, 0.07, 0]]);
+  assert.deepEqual(plain(D.pairDebts([{ money: null }], 2)), []);
 });
