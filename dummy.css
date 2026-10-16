@@ -92,3 +92,7 @@ td .d-icon{min-height:34px;width:34px;min-width:34px;flex:none}
 .d-line-opts{display:flex;flex-direction:column;gap:6px}
 .d-line-opts input[type=checkbox]{width:18px;min-height:18px;height:18px;margin:0;accent-color:#ffba45}
 .d-entry{gap:8px}
+
+.d-sign{font-size:22px!important;line-height:1}
+.d-sign.on{background:#3a0f15!important;border-color:#ff5054!important;color:#ff7a7e!important}
+.d-line input.neg{color:#ff7a7e;border-color:#7a2932}

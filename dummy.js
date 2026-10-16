@@ -121,7 +121,7 @@
 
   // ---- round entry ----
   function renderEntry() {
-    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon" data-sign="${i}" aria-label="สลับบวกลบ ${esc(n)}">±</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts"><label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>${moneyOn() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
+    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon d-sign" data-sign="${i}" aria-pressed="false" aria-label="ติดลบ ${esc(n)}">+</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts"><label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>${moneyOn() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
     $("dKnockNone").checked = true;
     $("dFlags").hidden = !moneyOn();
     $("dFlags").innerHTML = `<span class="muted">น็อคแบบพิเศษ (คนเสียจ่ายคูณ 2 ซ้อนกันได้)</span><div class="d-flag-row">${KNOCK_FLAGS.map(([k, label]) => `<label class="d-flag"><input type="checkbox" data-flag="${k}"> ${label} ×2</label>`).join("")}</div>`;
@@ -129,8 +129,16 @@
     updatePreview();
   }
   function scoreInput(i) { return document.querySelector(`[data-score="${i}"]`); }
+  // iPhone number pads have no minus key, so each row carries a +/− toggle and the box holds the size of the score.
+  function signButton(i) { return document.querySelector(`[data-sign="${i}"]`); }
+  function setNegative(i, neg) {
+    const b = signButton(i); b.setAttribute("aria-pressed", String(neg)); b.textContent = neg ? "−" : "+";
+    b.classList.toggle("on", neg); scoreInput(i).classList.toggle("neg", neg);
+  }
+  function getScore(i) { const v = int(scoreInput(i).value); return signButton(i).getAttribute("aria-pressed") === "true" ? -Math.abs(v) : v; }
+  function setScore(i, v) { setNegative(i, v < 0); scoreInput(i).value = v ? Math.abs(v) : ""; }
   function readEntry() {
-    const scores = state.players.map((_, i) => int(scoreInput(i).value));
+    const scores = state.players.map((_, i) => getScore(i));
     const k = document.querySelector('input[name="dKnockWho"]:checked');
     const knock = k && k.value !== "" ? int(k.value) : null;
     const flags = Object.fromEntries(KNOCK_FLAGS.map(([f]) => [f, knock !== null && !!document.querySelector(`[data-flag="${f}"]`)?.checked]));
@@ -148,7 +156,7 @@
   $("dEntryCard").addEventListener("change", updatePreview);
   $("dEntry").addEventListener("click", e => {
     const sign = e.target.closest("[data-sign]");
-    if (sign) { const el = scoreInput(sign.dataset.sign); el.value = -int(el.value); updatePreview(); }
+    if (sign) { const i = int(sign.dataset.sign), el = scoreInput(i); setNegative(i, sign.getAttribute("aria-pressed") !== "true"); el.value = el.value ? Math.abs(int(el.value)) : ""; updatePreview(); }
   });
   $("dSaveRound").addEventListener("click", () => {
     const entry = readEntry(), m = settle(entry), scores = [...entry.scores];
@@ -165,8 +173,8 @@
   ["cLow", "cHigh", "cAce", "cSpecial"].forEach(id => $(id).addEventListener("input", updateCalc));
   document.querySelectorAll("[data-calc]").forEach(b => b.addEventListener("click", () => {
     const pts = cardPoints(calcValues()); if (!pts) return toast("ยังไม่ได้นับไพ่");
-    const el = scoreInput($("dCalcPlayer").value); if (!el) return;
-    el.value = int(el.value) + (b.dataset.calc === "minus" ? -pts : pts);
+    const i = int($("dCalcPlayer").value); if (!scoreInput(i)) return;
+    setScore(i, getScore(i) + (b.dataset.calc === "minus" ? -pts : pts));
     ["cLow", "cHigh", "cAce", "cSpecial"].forEach(id => $(id).value = ""); updateCalc(); updatePreview();
     toast(`${b.dataset.calc === "minus" ? "หัก" : "เพิ่ม"} ${pts} แต้มให้ ${state.players[int($("dCalcPlayer").value)]}`);
   }));
