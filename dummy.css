@@ -104,3 +104,4 @@ td .d-icon{min-height:34px;width:34px;min-width:34px;flex:none}
 .d-pay-row b{overflow-wrap:anywhere}
 .d-pay-arrow{color:#8f9aa8;font-size:13px}
 .d-pay-amt{color:#ffba45;font-size:17px;font-variant-numeric:tabular-nums}
+.d-pay-note{grid-column:1/-1;color:#8f9aa8;font-size:12px}
