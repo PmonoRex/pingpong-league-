@@ -84,3 +84,11 @@ td .d-icon{min-height:34px;width:34px;min-width:34px;flex:none}
 .d-money{font-size:13px;font-weight:800}
 .d-cell-money{display:block;font-size:11px;font-weight:800}
 @media(max-width:560px){.d-settings-3{grid-template-columns:1fr 1fr 1fr}.d-settings-3 label{font-size:11px}}
+
+.d-line{display:grid;grid-template-columns:minmax(52px,1fr) 44px minmax(84px,1.2fr) auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid #202c38;border-radius:14px;background:#080d13}
+.d-line-name{font-size:15px;overflow-wrap:anywhere}
+.d-line .d-icon{width:44px;min-width:44px;min-height:44px}
+.d-line input[type=number]{min-height:44px;font-size:18px;font-weight:800;text-align:center;padding:0 6px}
+.d-line-opts{display:flex;flex-direction:column;gap:6px}
+.d-line-opts input[type=checkbox]{width:18px;min-height:18px;height:18px;margin:0;accent-color:#ffba45}
+.d-entry{gap:8px}

@@ -121,7 +121,7 @@
 
   // ---- round entry ----
   function renderEntry() {
-    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-entry-row"><div class="d-entry-head"><b>${esc(n)}</b><span class="d-entry-opts">${moneyOn() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่ ×2</label>` : ""}<label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label></span></div><div class="d-entry-input"><button type="button" class="secondary d-icon" data-sign="${i}" aria-label="สลับบวกลบ">±</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="0"></div><div class="d-chips">${[5, 10, 15, 50, -5, -10, -15, -50].map(v => `<button type="button" class="d-chip ${v < 0 ? "neg" : ""}" data-add="${i}" data-v="${v}">${v > 0 ? "+" : ""}${v}</button>`).join("")}</div></div>`).join("");
+    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon" data-sign="${i}" aria-label="สลับบวกลบ ${esc(n)}">±</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts"><label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>${moneyOn() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
     $("dKnockNone").checked = true;
     $("dFlags").hidden = !moneyOn();
     $("dFlags").innerHTML = `<span class="muted">น็อคแบบพิเศษ (คนเสียจ่ายคูณ 2 ซ้อนกันได้)</span><div class="d-flag-row">${KNOCK_FLAGS.map(([k, label]) => `<label class="d-flag"><input type="checkbox" data-flag="${k}"> ${label} ×2</label>`).join("")}</div>`;
@@ -142,15 +142,13 @@
   function updatePreview() {
     const el = $("dPreview"); el.hidden = !moneyOn(); if (!moneyOn()) return;
     const e = readEntry(), m = settle(e), x = e.knock !== null ? multiplier(e.flags) : 1;
-    el.innerHTML = `<b>เงินตานี้${x > 1 ? ` (×${x})` : ""}</b>${e.knock === null ? '<small>ยังไม่ได้เลือกคนน็อค — ถ้าไม่มีใครน็อค แต้มสูงสุดได้เงิน</small>' : ""}<div class="d-preview-list">${state.players.map((n, i) => `<span class="${m[i] < 0 ? "neg" : m[i] > 0 ? "pos" : ""}">${esc(n)} ${baht(m[i])}</span>`).join("")}</div>`;
+    el.innerHTML = `<b>เงินเกมนี้${x > 1 ? ` (×${x})` : ""}</b>${e.knock === null ? '<small>ยังไม่ได้เลือกคนน็อค — ถ้าไม่มีใครน็อค คนแต้มสูงสุดได้เงิน</small>' : ""}<div class="d-preview-list">${state.players.map((n, i) => `<span class="${m[i] < 0 ? "neg" : m[i] > 0 ? "pos" : ""}">${esc(n)} ${baht(m[i])}</span>`).join("")}</div>`;
   }
   $("dEntryCard").addEventListener("input", updatePreview);
   $("dEntryCard").addEventListener("change", updatePreview);
   $("dEntry").addEventListener("click", e => {
-    const add = e.target.closest("[data-add]"), sign = e.target.closest("[data-sign]");
-    if (add) { const el = scoreInput(add.dataset.add); el.value = int(el.value) + int(add.dataset.v); }
-    if (sign) { const el = scoreInput(sign.dataset.sign); el.value = -int(el.value); }
-    if (add || sign) updatePreview();
+    const sign = e.target.closest("[data-sign]");
+    if (sign) { const el = scoreInput(sign.dataset.sign); el.value = -int(el.value); updatePreview(); }
   });
   $("dSaveRound").addEventListener("click", () => {
     const entry = readEntry(), m = settle(entry), scores = [...entry.scores];
@@ -158,7 +156,7 @@
     if (scores.every(v => v === 0) && entry.knock === null) return toast("ยังไม่ได้ใส่แต้ม");
     state.rounds.push({ scores, knock: entry.knock, flags: entry.flags, dumb: entry.dumb, money: m, at: Date.now() }); save(); render();
     const w = m ? m.findIndex(v => v > 0) : -1;
-    toast(`บันทึกตาที่ ${state.rounds.length} แล้ว${w >= 0 ? ` • ${state.players[w]} ได้ ${baht(m[w])}` : ""}`);
+    toast(`บันทึกเกมที่ ${state.rounds.length} แล้ว${w >= 0 ? ` • ${state.players[w]} ได้ ${baht(m[w])}` : ""}`);
   });
 
   // ---- card calculator ----
@@ -175,13 +173,15 @@
 
   // ---- board + history ----
   function renderBoard() {
-    const rows = standings(state), top = rows[0]?.total ?? 0, w = winner(state), showMoney = moneyOn() || hasMoney(state);
+    const showMoney = moneyOn() || hasMoney(state), byMoney = moneyOn();
+    const rows = byMoney ? standings(state).sort((a, b) => b.money - a.money || a.index - b.index) : standings(state);
+    const top = Math.max(...rows.map(r => r.total)), w = winner(state);
     $("dWinner").hidden = !w;
     if (w) $("dWinner").innerHTML = `🏆 <b>${esc(w.name)}</b> ถึง ${state.target.toLocaleString()} แต้มแล้ว — ชนะเกมนี้!`;
-    $("dMeta").textContent = `ตาที่เล่นแล้ว ${state.rounds.length}${state.target ? ` • เป้า ${state.target.toLocaleString()} แต้ม` : ""} • น็อค +${state.knockBonus}${moneyOn() ? ` • เงิน: ${MONEY_MODES.winner} (${state.rates.slice(0, state.players.length - 1).join(" / ")}฿)` : ""}`;
+    $("dMeta").textContent = `เล่นไปแล้ว ${state.rounds.length} เกม${state.target ? ` • เป้า ${state.target.toLocaleString()} แต้ม` : ""} • น็อค +${state.knockBonus}${moneyOn() ? ` • เงิน: ${MONEY_MODES.winner} (${state.rates.slice(0, state.players.length - 1).join(" / ")}฿)` : ""}`;
     $("dBoard").innerHTML = rows.map((r, pos) => {
       const pct = state.target ? Math.max(0, Math.min(100, r.total / state.target * 100)) : 0;
-      return `<div class="d-board-row ${pos === 0 && r.total === top && state.rounds.length ? "lead" : ""}"><span class="d-pos">${pos + 1}</span><div class="d-board-name"><b>${esc(r.name)}</b><small>${[r.knocks ? `น็อค ${r.knocks} ครั้ง` : "", pos ? `ตามผู้นำ ${(top - r.total).toLocaleString()}` : ""].filter(Boolean).join(" • ") || "&nbsp;"}</small>${state.target ? `<div class="d-bar"><span style="width:${pct}%"></span></div>` : ""}</div><div class="d-board-right"><b class="d-total ${r.total < 0 ? "neg" : ""}">${r.total.toLocaleString()}</b>${showMoney ? `<span class="d-money ${r.money < 0 ? "neg" : r.money > 0 ? "pos" : ""}">${baht(r.money)}</span>` : ""}</div></div>`;
+      return `<div class="d-board-row ${pos === 0 && state.rounds.length && (byMoney ? r.money > 0 : r.total === top) ? "lead" : ""}"><span class="d-pos">${pos + 1}</span><div class="d-board-name"><b>${esc(r.name)}</b><small>${[r.knocks ? `น็อค ${r.knocks} ครั้ง` : "", r.total < top ? `ตามแต้มสูงสุด ${(top - r.total).toLocaleString()}` : ""].filter(Boolean).join(" • ") || "&nbsp;"}</small>${state.target ? `<div class="d-bar"><span style="width:${pct}%"></span></div>` : ""}</div><div class="d-board-right"><b class="d-total ${r.total < 0 ? "neg" : ""}">${r.total.toLocaleString()}</b>${showMoney ? `<span class="d-money ${r.money < 0 ? "neg" : r.money > 0 ? "pos" : ""}">${baht(r.money)}</span>` : ""}</div></div>`;
     }).join("");
   }
   function roundTags(r, p) {
@@ -191,20 +191,20 @@
     return tags.map(t => ` <span class="d-tag">${t}</span>`).join("");
   }
   function renderHistory() {
-    $("dHistHead").innerHTML = `<tr><th>ตา</th>${state.players.map(n => `<th>${esc(n)}</th>`).join("")}<th></th></tr>`;
+    $("dHistHead").innerHTML = `<tr><th>เกม</th>${state.players.map(n => `<th>${esc(n)}</th>`).join("")}<th></th></tr>`;
     const t = totals(state), m = moneyTotals(state), showMoney = hasMoney(state);
-    $("dHistBody").innerHTML = state.rounds.length ? state.rounds.map((r, i) => `<tr><td>${i + 1}</td>${r.scores.map((v, p) => `<td><span class="${v < 0 ? "neg" : ""}">${v > 0 ? "+" : ""}${v}</span>${roundTags(r, p)}${r.money ? `<small class="d-cell-money ${r.money[p] < 0 ? "neg" : r.money[p] > 0 ? "pos" : ""}">${baht(r.money[p])}</small>` : ""}</td>`).join("")}<td><button type="button" class="secondary d-icon" data-del="${i}" aria-label="ลบตาที่ ${i + 1}">🗑</button></td></tr>`).reverse().join("")
+    $("dHistBody").innerHTML = state.rounds.length ? state.rounds.map((r, i) => `<tr><td>${i + 1}</td>${r.scores.map((v, p) => `<td><span class="${v < 0 ? "neg" : ""}">${v > 0 ? "+" : ""}${v}</span>${roundTags(r, p)}${r.money ? `<small class="d-cell-money ${r.money[p] < 0 ? "neg" : r.money[p] > 0 ? "pos" : ""}">${baht(r.money[p])}</small>` : ""}</td>`).join("")}<td><button type="button" class="secondary d-icon" data-del="${i}" aria-label="ลบเกมที่ ${i + 1}">🗑</button></td></tr>`).reverse().join("")
       + `<tr class="d-sum"><td>รวม</td>${t.map((v, p) => `<td>${v.toLocaleString()}${showMoney ? `<small class="d-cell-money ${m[p] < 0 ? "neg" : m[p] > 0 ? "pos" : ""}">${baht(m[p])}</small>` : ""}</td>`).join("")}<td></td></tr>`
-      : `<tr><td colspan="${state.players.length + 2}" class="empty">ยังไม่มีตาที่บันทึก</td></tr>`;
+      : `<tr><td colspan="${state.players.length + 2}" class="empty">ยังไม่มีเกมที่บันทึก</td></tr>`;
   }
   $("dHistBody").addEventListener("click", e => {
     const b = e.target.closest("[data-del]"); if (!b) return;
     const i = int(b.dataset.del);
-    if (!confirm(`ลบตาที่ ${i + 1}?`)) return;
+    if (!confirm(`ลบเกมที่ ${i + 1}?`)) return;
     state.rounds.splice(i, 1); save(); render();
   });
-  $("dUndo").addEventListener("click", () => { if (!state.rounds.length) return; state.rounds.pop(); save(); render(); toast("ย้อนตาล่าสุดแล้ว"); });
-  $("dRematch").addEventListener("click", () => { if (!confirm("เริ่มเกมใหม่ด้วยผู้เล่นชุดเดิม?")) return; state.rounds = []; save(); render(); });
+  $("dUndo").addEventListener("click", () => { if (!state.rounds.length || !confirm(`ลบผลเกมที่ ${state.rounds.length}?`)) return; state.rounds.pop(); save(); render(); toast("ลบเกมล่าสุดแล้ว"); });
+  $("dRematch").addEventListener("click", () => { if (!confirm("ล้างผลทุกเกม เริ่มนับใหม่ด้วยผู้เล่นชุดเดิม?")) return; state.rounds = []; save(); render(); });
   $("dEdit").addEventListener("click", () => { $("dSetup").hidden = false; renderSetup(); $("dSetup").scrollIntoView({ behavior: "smooth" }); });
 
   function render() {
