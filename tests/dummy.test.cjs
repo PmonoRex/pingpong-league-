@@ -68,3 +68,12 @@ test('normalize keeps money mode, rates and per-round money', () => {
   assert.equal(s.rounds[0].flags.dark, true);
   assert.equal(D.normalize({ moneyMode: 'bogus' }).moneyMode, 'none');
 });
+
+test('transfers turns balances into the fewest payments', () => {
+  const D = load();
+  const plain = t => JSON.parse(JSON.stringify(t.map(x => [x.from, x.to, x.amount])));
+  assert.deepEqual(plain(D.transfers([30, -5, -10, -15])), [[3, 0, 15], [2, 0, 10], [1, 0, 5]]);
+  assert.deepEqual(plain(D.transfers([40, -60, 20])), [[1, 0, 40], [1, 2, 20]]);
+  assert.deepEqual(plain(D.transfers([0.1, 0.2, -0.3])), [[2, 1, 0.2], [2, 0, 0.1]]);
+  assert.deepEqual(plain(D.transfers([0, 0])), []);
+});

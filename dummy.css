@@ -96,3 +96,11 @@ td .d-icon{min-height:34px;width:34px;min-width:34px;flex:none}
 .d-sign{font-size:22px!important;line-height:1}
 .d-sign.on{background:#3a0f15!important;border-color:#ff5054!important;color:#ff7a7e!important}
 .d-line input.neg{color:#ff7a7e;border-color:#7a2932}
+
+.d-pay{margin-top:14px;padding:14px;border:1px solid #2f8a57;border-radius:16px;background:linear-gradient(180deg,rgba(69,224,138,.08),#080d13)}
+.d-pay h3{font-size:18px}
+.d-pay-list{display:grid;gap:8px;margin:10px 0}
+.d-pay-row{display:grid;grid-template-columns:auto auto 1fr auto;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:#0c121a;border:1px solid #202c38;font-size:15px}
+.d-pay-row b{overflow-wrap:anywhere}
+.d-pay-arrow{color:#8f9aa8;font-size:13px}
+.d-pay-amt{color:#ffba45;font-size:17px;font-variant-numeric:tabular-nums}
