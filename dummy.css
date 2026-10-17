@@ -107,7 +107,7 @@ td .d-icon{width:34px;flex:none}
 .hero .pill{display:inline-block;padding:6px 10px;font-size:12px;font-weight:700}
 .d-days{display:grid;gap:8px;margin-top:10px}
 .d-day{padding:12px}
-.d-day summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;min-height:28px}
+.d-day summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;min-height:44px}
 .d-day summary::-webkit-details-marker{display:none}
 .d-day summary b{font-size:15px}
 .d-day .d-pay-list{margin:10px 0 8px}
