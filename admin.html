@@ -12,9 +12,9 @@
 <link rel="preload" href="fonts/chonburi-400-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="fonts.css?v=20261017-1">
 <title>Admin • ตีให้สุด หยุดที่เบ้าตา</title>
 <link rel="stylesheet" href="admin.css?v=20261017-clean">
-<link rel="stylesheet" href="theme.css?v=20261017-clean">
-<link rel="stylesheet" href="motion.css?v=20261017-motion2"><link rel="stylesheet" href="poster.css?v=20261017-motion">
-<script src="player-ui.js?v=20261017-profile" defer></script>
+<link rel="stylesheet" href="theme.css?v=20261017-audit">
+<link rel="stylesheet" href="motion.css?v=20261017-motion2"><link rel="stylesheet" href="poster.css?v=20261017-audit">
+<script src="player-ui.js?v=20261017-profile2" defer></script>
 </head>
 <body>
 <main>
@@ -24,7 +24,7 @@
  <div class="muted" id="adminStatus" role="status">กำลังโหลดข้อมูลบัญชี...</div>
  <div class="actions"><a class="secondary" href="backup.html">Backup Center</a></div>
 </section>
-<section class="card"><h2>เพิ่มบัญชีผู้เล่น</h2><div class="notice">บัญชีใหม่จะมี PIN เริ่มต้น <b>1234</b> และประวัติจะยังอยู่แม้เปลี่ยนชื่อ</div><div class="form"><input id="newName" placeholder="ชื่อผู้เล่น"><select id="newRole"><option value="player">Player</option><option value="admin">Admin</option></select><button class="primary" id="create">สร้างบัญชี</button></div></section>
+<section class="card"><h2>เพิ่มบัญชีผู้เล่น</h2><div class="notice">บัญชีใหม่จะมี PIN เริ่มต้น <b>1234</b> และประวัติจะยังอยู่แม้เปลี่ยนชื่อ</div><div class="form"><input id="newName" placeholder="ชื่อผู้เล่น" aria-label="ชื่อผู้เล่น"><select id="newRole" aria-label="สิทธิ์บัญชี"><option value="player">Player</option><option value="admin">Admin</option></select><button class="primary" id="create">สร้างบัญชี</button></div></section>
 <section class="card"><h2>บัญชีทั้งหมด</h2><div id="accounts"></div></section>
 </main>
 <script src="shared.js?v=20261017-nextup2" defer></script>

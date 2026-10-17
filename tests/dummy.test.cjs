@@ -187,3 +187,33 @@ test('shared.js Dummy cloud helpers read the dummy column and lock on dummy.rev,
   assert.equal(await S.saveDummyCloud({ rev: 3 }, 2), null);
   await assert.rejects(S.loadDummyCloud(), /row missing/);
 });
+
+test('entryCheck flags an all-zero game and scores far above what the sheet usually sees', () => {
+  const D = load();
+  assert.deepEqual(plainJson(D.entryCheck([0, 0, 0])), { allZero: true, big: [], limit: 1000 });
+  assert.deepEqual(plainJson(D.entryCheck([120, -1500, 40])), { allZero: false, big: [1], limit: 1000 });
+  assert.deepEqual(plainJson(D.entryCheck(['5', 0]).allZero), false);
+  // a group that plays big hands: the limit follows 3× the median earlier score
+  const rounds = [{ scores: [400, 500, 0] }, { scores: [600, -450, 700] }];
+  assert.deepEqual(plainJson(D.entryCheck([1200, 1500, 0], rounds)), { allZero: false, big: [], limit: 1500 });
+  assert.deepEqual(plainJson(D.entryCheck([1200, 1600, 0], rounds).big), [1]);
+});
+
+test('undoChange reverses a save, an edit and a delete by content, even after the list moved', () => {
+  const D = load();
+  const g = (at, a) => ({ scores: [a, 0], knock: null, money: null, vals: null, at });
+  const list = [g(1, 10), g(2, 20), g(3, 30)];
+  assert.deepEqual(plainJson(D.undoChange([...list, g(4, 40)], { type: 'add', round: g(4, 40) })), plainJson(list));
+  // another device added a game after ours: ours still comes out, theirs stays
+  assert.deepEqual(plainJson(D.undoChange([...list, g(4, 40), g(5, 50)], { type: 'add', round: g(4, 40) }).map(r => r.at)), [1, 2, 3, 5]);
+  const edited = [g(1, 10), g(2, 99), g(3, 30)];
+  assert.deepEqual(plainJson(D.undoChange(edited, { type: 'edit', before: g(2, 20), after: g(2, 99) })), plainJson(list));
+  assert.deepEqual(plainJson(D.undoChange([g(1, 10), g(3, 30)], { type: 'delete', round: g(2, 20), index: 1 })), plainJson(list));
+  // the index no longer fits the time order (a game was removed elsewhere): fall back to time order
+  assert.deepEqual(plainJson(D.undoChange([g(3, 30)], { type: 'delete', round: g(2, 20), index: 5 }).map(r => r.at)), [2, 3]);
+  assert.deepEqual(plainJson(D.undoChange([g(1, 10)], { type: 'delete', round: g(2, 20), index: 0 }).map(r => r.at)), [1, 2]);
+  // the game is gone (deleted or changed on another device): nothing to undo
+  assert.equal(D.undoChange(list, { type: 'add', round: g(9, 90) }), null);
+  assert.equal(D.undoChange(list, { type: 'edit', before: g(2, 20), after: g(2, 77) }), null);
+  assert.equal(D.undoChange(list, { type: 'bogus' }), null);
+});

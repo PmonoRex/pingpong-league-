@@ -112,3 +112,16 @@ td .d-icon{width:34px;flex:none}
 .d-day summary b{font-size:15px}
 .d-day .d-pay-list{margin:10px 0 8px}
 .d-day summary .muted{margin-left:auto}
+
+/* Fast entry 2026-10-17: gestures on the score box, edit mode, undo toast */
+.d-line input[type=number]{touch-action:manipulation;-webkit-touch-callout:none}
+#dEntryCard.editing{border-color:var(--magenta,#e0147a)}
+#dEntryCard.editing #dEntryTitle{color:var(--magenta-deep,#b40d61)}
+#dEntryCard .actions .primary{flex:1 1 auto;min-height:48px}
+#dHistBody tr[data-edit]{cursor:pointer}
+#dHistBody tr.editing td{background:color-mix(in srgb,var(--magenta,#e0147a) 12%,var(--paper,#fffdf6))!important}
+#dHistBody tr.editing .d-hist-num{color:var(--magenta-deep,#b40d61)}
+.d-hist-num{min-width:34px;min-height:34px;padding:0 6px!important;border:0;background:none;color:inherit;font-weight:800;text-decoration:underline dotted;text-underline-offset:3px}
+.d-toast{bottom:calc(120px + var(--kb,0px));display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100vw - 32px);box-sizing:border-box;box-shadow:0 6px 18px rgba(23,17,15,.28)}
+.d-toast.has-action.show{pointer-events:auto}
+.d-toast-act{flex:none;min-height:36px;padding:6px 12px!important;border:0;border-radius:var(--r,6px);background:var(--poster,#ffd21f);color:var(--ink,#17110f);font-weight:800}

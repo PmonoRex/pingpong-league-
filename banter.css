@@ -30,7 +30,7 @@ body.sport-redesign .match .rivalry{border-top:var(--rule-thin);background:var(-
 body.sport-redesign .season-poster{padding:12px}
 .poster-bill{border:3px solid var(--ink);border-radius:var(--r);background:var(--poster);color:var(--ink);overflow:hidden;text-align:center}
 .poster-band{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 12px 10px;background:var(--magenta);border-bottom:3px solid var(--ink)}
-.poster-league{font-family:var(--display);font-size:clamp(20px,6vw,30px);line-height:1.15;color:var(--poster)}
+.poster-league{font-family:var(--display);font-size:clamp(24px,6vw,30px);line-height:1.15;color:var(--poster)}
 .poster-season{font-family:var(--display);font-size:15px;line-height:1.2;color:#fff}
 .poster-champ{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 14px 18px}
 .poster-champ b{font-family:var(--display);font-weight:400;font-size:clamp(44px,15vw,92px);line-height:1.08;overflow-wrap:anywhere;max-width:100%}

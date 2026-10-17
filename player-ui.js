@@ -2,10 +2,12 @@
 // and a small illustrated empty state. Pages owned by other work (index.js, predictions.js) are decorated after render.
 (() => {
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  // 12 hues spaced around the wheel; saturation/lightness tuned for white text on the dark theme.
+  // 12 hues spaced around the wheel. LMAX caps lightness per hue so the white initials keep >= 4.5:1 contrast
+  // (yellow/green/cyan hues need a darker shade than red/blue/purple).
   const HUES = [4,24,42,88,142,168,192,212,232,262,288,318];
+  const LMAX = [47,42,34,30,31,30,35,47,47,47,47,47];
   function hash(id) { let h = 2166136261; for (const ch of String(id)) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
-  function color(id) { const h = hash(id); return `hsl(${HUES[h % HUES.length]} ${58 + (h >>> 8) % 12}% ${40 + (h >>> 16) % 8}%)`; }
+  function color(id) { const h = hash(id), i = h % HUES.length; return `hsl(${HUES[i]} ${58 + (h >>> 8) % 12}% ${Math.min(40 + (h >>> 16) % 8, LMAX[i])}%)`; }
   const THAI_LEAD = /^[เ-ไ]/, THAI_PREFIX = /^(พี่|น้อง|นาย|นาง|คุณ)\s*/;
   function graphemes(s) { try { return [...new Intl.Segmenter("th", { granularity: "grapheme" }).segment(s)].map(x => x.segment); } catch { return [...s]; } }
   function initials(name) {
