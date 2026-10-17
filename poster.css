@@ -143,6 +143,26 @@ body.sport-redesign .match[data-win=b]:after{right:10px;color:var(--corner-blue)
 body.sport-redesign .match{margin-bottom:12px}
 body.sport-redesign .match[data-win=a],body.sport-redesign .match[data-win=b]{margin-top:26px}
 body.sport-redesign .match[data-win] .pair{padding-top:20px}
+/* "คิวต่อไป": the next 1-2 unplayed bills at the top of the matches panel; the button lands on the full bill, which flashes a magenta cue. */
+.next-up[hidden]{display:none!important}
+body.sport-redesign .next-up{margin:0 0 16px;padding:0 0 14px;border-bottom:var(--rule)}
+body.sport-redesign .next-up-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+body.sport-redesign .next-up-head h2{margin:0}
+body.sport-redesign .next-up-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+body.sport-redesign .next-up-item{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"tag tag" "bill go";gap:4px 8px;align-items:stretch}
+body.sport-redesign .next-up-item+.next-up-item{padding-top:10px;border-top:var(--rule-thin)}
+body.sport-redesign .next-up-tag{grid-area:tag;font-weight:700;font-size:13px;color:var(--ink-2)}
+body.sport-redesign .next-up-item:first-child .next-up-tag{color:var(--magenta-deep)}
+body.sport-redesign .next-up-bill{grid-area:bill;display:grid;grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);align-items:center;gap:6px;min-height:48px;padding:6px 8px;border:1.5px solid var(--ink);border-radius:var(--r);background:linear-gradient(90deg,var(--red-field) 0 50%,var(--blue-field) 50% 100%)}
+body.sport-redesign .next-up-bill b{font-family:var(--display);font-weight:400;font-size:clamp(16px,4.6vw,20px);line-height:1.15;overflow-wrap:anywhere}
+body.sport-redesign .next-up-bill .nu-red{color:var(--corner-red);text-align:right}
+body.sport-redesign .next-up-bill .nu-blue{color:var(--corner-blue);text-align:left}
+body.sport-redesign .next-up-bill .nu-vs{display:grid;place-items:center;width:30px;height:30px;justify-self:center;border-radius:50%;background:var(--ink);color:var(--poster);font-family:var(--display);font-size:11px;line-height:1}
+body.sport-redesign .next-up-go{grid-area:go;min-height:48px;padding:6px 12px;white-space:nowrap}
+body.sport-redesign .next-up-done{padding:10px 12px;border:var(--rule);border-radius:var(--r);background:var(--poster);font-weight:700}
+body.sport-redesign .match.cued{outline:3px solid var(--magenta);outline-offset:3px;transition:outline-color .3s}
+@media (prefers-reduced-motion:no-preference){body.sport-redesign .match.cued{animation:nu-cue 1.8s ease-out}}
+@keyframes nu-cue{0%,55%{outline-color:var(--magenta)}100%{outline-color:transparent}}
 
 /* ---------- Avatars, podium, chips ---------- */
 .pa{box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25);text-shadow:none}
@@ -270,3 +290,11 @@ body.sport-redesign th{border-bottom:2px solid var(--ink)}
 @media (max-width:600px){
  body.sport-redesign td.champ:after{display:block;width:max-content;margin:3px 0 0;font-size:10px}
 }
+
+/* Dummy per-day summary: paper sheets with a thin rule, the open day gets the full ink rule. */
+body.sport-redesign .d-day{background:var(--paper);border:var(--rule-thin);border-radius:var(--r);color:var(--ink)}
+body.sport-redesign .d-day[open]{border:var(--rule)}
+.d-day summary b{font-family:var(--display);font-weight:400;color:var(--ink)}
+.d-day summary:after{content:"▾";color:var(--ink-soft);font-size:18px}
+.d-day[open] summary:after{content:"▴"}
+body.sport-redesign .d-day .d-pay-row{background:transparent;border:0;border-bottom:var(--rule-thin);border-radius:0;padding:9px 2px}

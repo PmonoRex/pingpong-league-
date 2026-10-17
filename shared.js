@@ -123,6 +123,16 @@ const LeagueShared = (() => {
     const step = now => { const progress = Math.min(1, (now - started) / duration), eased = 1 - Math.pow(1 - progress, 3); window.scrollTo(0, start + distance * eased); scrollFrame = progress < 1 ? requestAnimationFrame(step) : null; };
     scrollFrame = requestAnimationFrame(step);
   }
+  // Next unplayed matches in schedule order (round by round); a match counts as played once both scores are whole numbers >= 0.
+  function nextUpMatches(rounds, results, limit = 2) {
+    const done = x => x && [x.a, x.b].every(v => Number.isInteger(v) && v >= 0);
+    const out = [];
+    (Array.isArray(rounds) ? rounds : []).forEach((round, ri) => (Array.isArray(round?.m) ? round.m : []).forEach((pair, mi) => {
+      const id = `r${ri}m${mi}`;
+      if (out.length < limit && !done(results?.[id])) out.push({ id, round: ri + 1, pair: [pair[0], pair[1]], rest: round.rest || null });
+    }));
+    return out;
+  }
   async function cloudRequest(columns, method = "GET", body = null, extraQuery = "") {
     const options = { method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } };
     if (body !== null) { options.headers["Content-Type"] = "application/json"; options.headers.Prefer = "return=representation"; options.body = JSON.stringify(body); }
@@ -131,8 +141,21 @@ const LeagueShared = (() => {
     if (!response.ok) throw new Error(`Cloud request failed: ${response.status}`);
     return response.json();
   }
+  // Dummy card scores live in their own `dummy` column. Their optimistic lock is `dummy.rev` (not updated_at),
+  // so a Dummy save never makes an in-flight league or predictions save look stale.
+  async function loadDummyCloud() {
+    const row = (await cloudRequest("dummy"))[0];
+    if (!row) throw new Error("Cloud row missing");
+    return row.dummy && typeof row.dummy === "object" ? row.dummy : {};
+  }
+  // Writes only if the cloud copy is still at `baseRev`; returns the saved object, or null when another device got there first.
+  async function saveDummyCloud(dummy, baseRev) {
+    const rev = Math.max(0, Math.floor(Number(baseRev) || 0));
+    const rows = await cloudRequest("dummy", "PATCH", { dummy }, rev ? `dummy->>rev=eq.${rev}` : "dummy->>rev=is.null");
+    return rows?.[0]?.dummy || null;
+  }
 
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
-    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, cloudRequest });
+    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud });
 })();

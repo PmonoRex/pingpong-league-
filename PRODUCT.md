@@ -28,7 +28,7 @@ It is the group's own league, not a generic tournament app: their names, their s
 ## Capabilities and Constraints
 
 - Static site, no build step (HTML/CSS/vanilla JS), hosted on GitHub Pages from `main`.
-- League data lives in one Supabase row (`public.app_state`, id `main`) with a localStorage copy; Dummy data stays only in the browser's localStorage.
+- League data lives in one Supabase row (`public.app_state`, id `main`) with a localStorage copy; Dummy data has its own `dummy` column in the same row (own revision lock, localStorage as the offline copy).
 - Login is a player account + PIN; roles: admin, dealer, player.
 - Predictions only record amounts; the site never takes or pays real money.
 - Dummy money modes: (1) points ÷ divisor, rounded to whole baht, pairs settle the difference; (2) knocker takes all, losers pay by rank with ×2 modifiers (มืด/ดัมมี่/สี, โง่).

@@ -112,3 +112,25 @@ test('Section navigation moves through intermediate positions before reaching ta
   frames.shift()(700);
   assert.equal(viewport.scrollY, 1186);
 });
+
+test('Next up picks the first unplayed matches round by round', () => {
+  const { shared } = loadShared();
+  const rounds = [{ rest: 'c', m: [['a', 'b'], ['d', 'e']] }, { rest: 'a', m: [['b', 'c'], ['e', 'd']] }];
+  const plain = value => JSON.parse(JSON.stringify(value));
+  assert.deepEqual(plain(shared.nextUpMatches(rounds, {})).map(x => x.id), ['r0m0', 'r0m1']);
+  const results = { r0m0: { a: 11, b: 5 }, r0m1: { a: 3, b: null }, r1m0: { a: 0, b: 0 } };
+  assert.deepEqual(plain(shared.nextUpMatches(rounds, results)), [
+    { id: 'r0m1', round: 1, pair: ['d', 'e'], rest: 'c' },
+    { id: 'r1m1', round: 2, pair: ['e', 'd'], rest: 'a' }
+  ]);
+  assert.deepEqual(plain(shared.nextUpMatches(rounds, results, 1)).map(x => x.id), ['r0m1']);
+});
+
+test('Next up is empty once every match has a result, and tolerates missing data', () => {
+  const { shared } = loadShared();
+  const rounds = [{ rest: null, m: [['a', 'b']] }];
+  assert.equal(shared.nextUpMatches(rounds, { r0m0: { a: 11, b: 9 } }).length, 0);
+  assert.equal(shared.nextUpMatches(undefined, undefined).length, 0);
+  assert.equal(shared.nextUpMatches([{ rest: 'x' }, null], {}).length, 0);
+  assert.equal(shared.nextUpMatches(rounds, { r0m0: { a: -1, b: 2 } }).length, 1);
+});
