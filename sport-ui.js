@@ -6,7 +6,7 @@
 
   function ensureStyles(){
     const required=[
-      ['theme.css?v=20261016-kb','theme.css'],
+      ['theme.css?v=20261017-polish','theme.css'],
       ['motion.css?v=20261015-ux','motion.css']
     ];
     required.forEach(([href,file])=>{
@@ -86,6 +86,30 @@
       const a=document.createElement('a');a.href='dummy.html';a.innerHTML='<span>🃏</span>Dummy';nav.appendChild(a);
     });
   }
+  // One drawn icon set for every tab bar (replaces the emoji glyphs): 24px grid, 1.8 stroke, round caps.
+  const ICON_PATHS={
+    home:'<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+    dashboard:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="4" rx="1.5"/><rect x="13" y="10" width="7" height="10" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/>',
+    predict:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6" fill="currentColor"/>',
+    stats:'<path d="M4 20h16"/><path d="M5 16l4.5-5 3.5 3 6-7"/><path d="M15 7h4v4"/>',
+    dummy:'<rect x="3.5" y="6" width="10" height="14" rx="2" transform="rotate(-8 8.5 13)"/><rect x="10.5" y="4" width="10" height="14" rx="2" transform="rotate(8 15.5 11)"/>',
+    matches:'<path d="M3 12h18"/><path d="M12 8.5V12"/><path d="M5.5 12v7M18.5 12v7"/><circle cx="17" cy="5.5" r="1.8" fill="currentColor" stroke="none"/>',
+    table:'<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v1.5A3 3 0 0 0 8 10.5M16 6h3v1.5a3 3 0 0 1-3 3"/><path d="M12 13v4M8.5 20h7"/>',
+    ranking:'<circle cx="12" cy="14" r="5"/><path d="M9 9.5 6.5 3h4L12 7M15 9.5 17.5 3h-4"/><path d="m12 12 .9 1.6 1.7.3-1.3 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.3-1.2 1.7-.3z" fill="currentColor" stroke="none"/>',
+    dealer:'<rect x="4" y="8" width="16" height="11" rx="2"/><path d="M9 8V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v2M4 13h16"/>',
+    history:'<path d="M6 3.5h12v17l-3-1.8-3 1.8-3-1.8-3 1.8z"/><path d="M9 8.5h6M9 12h6"/>'
+  };
+  const TAB_KEYS={'index.html':'home','dashboard.html':'dashboard','predictions.html':'predict','stats.html':'stats','dummy.html':'dummy',
+    '#competition':'matches','#standingsCard':'table','#rankCard':'ranking','#bettingPanel':'predict','#dealerPanel':'dealer','#historySection':'history'};
+  function drawTabIcons(){
+    document.querySelectorAll('.bottom-nav a,.sport-tabbar a').forEach(a=>{
+      const href=a.getAttribute('href')||'',i=href.indexOf('#');
+      const key=TAB_KEYS[i>=0?href.slice(i):href.split('?')[0].toLowerCase()];
+      const span=a.querySelector('span');if(!key||!span||span.dataset.icon)return;
+      span.dataset.icon=key;span.setAttribute('aria-hidden','true');
+      span.innerHTML=`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[key]}</svg>`;
+    });
+  }
   function markActiveNav(){
     document.querySelectorAll('.bottom-nav a,.sport-tabbar a').forEach(a=>{
       const href=a.getAttribute('href')||'',file=href.split('#')[0].split('?')[0].toLowerCase();
@@ -97,7 +121,7 @@
 
   function elevateImportantCards(){['#standingsCard','#bettingPanel','#dealerPanel','.rank-card'].forEach(sel=>qs(sel)?.classList.add('sport-feature-card'))}
   // Hero, brand and tab bar go in before first paint so cross-page view transitions keep them in place.
-  addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();addDummyTab();markActiveNav();
+  addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();addDummyTab();drawTabIcons();markActiveNav();
   // On touch screens the fixed tab bar floats above the on-screen keyboard and covers the fields, so hide it while typing.
   function hideTabsWhileTyping(){
     if(!matchMedia('(pointer:coarse)').matches)return;
