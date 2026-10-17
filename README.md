@@ -24,7 +24,8 @@
 - `suite.js` — League Assistant, Export (CSV/PNG/PDF/แชร์), Toast, Data health badge
 - `sport-ui.js` + `*.css` — ธีม, hero, motion, ปรับ UI มือถือ
 - `supabase/migrations/` — SQL สร้างตารางและ policy
-- `tests/shared.test.cjs` — unit test ของ `shared.js`
+- `tests/shared.test.cjs`, `tests/pin.test.cjs` — unit test ของ `shared.js` (รวม PIN hash / เปลี่ยน PIN)
+- `pin-change.js` — หน้าต่างบังคับตั้ง/เปลี่ยน PIN
 - `SESSION_ROADMAP.md` — รายการฟีเจอร์ที่ทำในแต่ละ Session และ QA checklist
 - `QA_REPORT.md` — ผลรีวิวโค้ดเทียบกับ QA checklist
 
@@ -49,9 +50,9 @@ npx serve .
 ## ตั้งค่า Supabase
 
 1. สร้างโปรเจกต์ใน [Supabase](https://supabase.com)
-2. เปิด **SQL Editor** แล้วรันไฟล์ใน `supabase/migrations/` ตามลำดับชื่อไฟล์ (ตอนนี้มี `20260919163000_create_shared_state.sql`) ซึ่งจะสร้างตาราง `public.app_state`, เปิด RLS, ตั้ง policy และ insert แถว `main` เริ่มต้น หรือใช้ Supabase CLI: `supabase db push`
+2. เปิด **SQL Editor** แล้วรันไฟล์ใน `supabase/migrations/` ตามลำดับชื่อไฟล์ (`20260919163000_create_shared_state.sql` สร้างตาราง `public.app_state`, เปิด RLS, ตั้ง policy และ insert แถว `main` เริ่มต้น; `20261017120000_harden_shared_state.sql` เพิ่ม write guard, rate limit และประวัติทุกเวอร์ชันใน schema `private` — ดู `SECURITY_REVIEW.md`) หรือใช้ Supabase CLI: `supabase db push`
 3. แก้ `SUPABASE_URL` และ `SUPABASE_KEY` (publishable/anon key) ที่ต้นไฟล์ `shared.js` ให้เป็นของโปรเจกต์ตัวเอง
-4. เปิดเว็บ — ครั้งแรกบัญชีเริ่มต้นจะถูกสร้างจากรายชื่อผู้เล่นเดิม โดย PIN เริ่มต้นคือ `1234` (Admin เริ่มต้นคือบัญชีชื่อ "มอส") ควรให้ Admin ตรวจและรีเซ็ตที่หน้า Admin
+4. เปิดเว็บ — ครั้งแรกบัญชีเริ่มต้นจะถูกสร้างจากรายชื่อผู้เล่นเดิม โดย PIN เริ่มต้นคือ `1234` (Admin เริ่มต้นคือบัญชีชื่อ "มอส") ทุกคนจะถูกบังคับให้ตั้ง PIN ใหม่ 4–6 หลักหลังล็อกอินครั้งแรก (PIN ที่ตั้งเก็บเป็น PBKDF2 hash)
 
 โครงสร้างข้อมูลในแถว `main`: คอลัมน์ `league` เก็บ `{ uidLeague: {...} }` (profiles, seasonPlayerIds, rounds, results, rankHistory, seasonArchives, auditLog, schemaVersion), คอลัมน์ `predictions` เก็บ `{ uidPredictions: {...} }` (dealerId, markets, bets), และ `updated_at` ใช้เป็น optimistic lock ตอนเขียน
 
@@ -69,4 +70,4 @@ GitHub Actions (`.github/workflows/test.yml`) รัน `npm test` ทุก pus
 
 ## ⚠️ หมายเหตุด้านความปลอดภัย
 
-ระบบ PIN **ยังเป็น client-side ทั้งหมด**: PIN เก็บเป็นข้อความธรรมดาในข้อมูลลีกที่ใครก็อ่านได้ด้วย publishable key, การตรวจสิทธิ์ admin/dealer ทำในเบราว์เซอร์, และ policy ของตารางอนุญาตให้ `anon` แก้แถว `main` ได้ จึงเหมาะกับกลุ่มเพื่อนที่ไว้ใจกันเท่านั้น **ไม่ควรเปิดใช้งานบนอินเทอร์เน็ตสาธารณะที่มีเงินจริงเกี่ยวข้อง** กำลังมีการปรับระบบ auth ใหม่ (ย้ายการตรวจ PIN/สิทธิ์ไปฝั่ง server) ใน branch อื่น — รายละเอียดช่องโหว่ที่พบดูใน `QA_REPORT.md`
+ดูรายละเอียดทั้งหมดใน **`SECURITY_REVIEW.md`** (ไทย/อังกฤษ) สรุป: การตรวจ PIN และสิทธิ์ admin/dealer ยังอยู่ในเบราว์เซอร์ และ `anon` ยังแก้แถว `main` ได้ (migration `20261017120000_harden_shared_state.sql` กันการล้าง/ยัดข้อมูลและเก็บประวัติให้กู้คืนได้ แต่ยังกันการแก้ทีละนิดไม่ได้) PIN ที่ตั้งเองเก็บเป็น hash แต่ยังอยู่ในแถวที่ใครก็อ่านได้ จึงเหมาะกับกลุ่มเพื่อนที่ไว้ใจกันเท่านั้น **ไม่ควรเปิดใช้งานบนอินเทอร์เน็ตสาธารณะที่มีเงินจริงเกี่ยวข้อง** จนกว่าจะทำ phase 2 (`supabase/proposed/phase2_server_side_auth.sql`: ตรวจ PIN และสิทธิ์ฝั่ง server ผ่าน RPC)

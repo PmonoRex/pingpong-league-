@@ -80,6 +80,7 @@
 
       let next=remoteLeagueChanged?applyResultDelta(syncBase,local,remote):local;
       next=mergeLocalAudit(syncBase,local,next);
+      next=LeagueShared.keepCredentials(next,remote);
       const now=new Date().toISOString(),expected=latest?.updated_at||'',filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:'';
       const rows=await cloudRequest('PATCH',{league:{...(latest?.league||{}),uidLeague:next},updated_at:now},filter);
       if(!rows?.length){

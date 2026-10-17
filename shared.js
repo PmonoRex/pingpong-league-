@@ -8,6 +8,9 @@ const LeagueShared = (() => {
   const SUPABASE_URL = "https://gqlfqoeejgtjpsdvngbh.supabase.co";
   const SUPABASE_KEY = "sb_publishable_A26ocTxGPkLry2Y2iBY2mA_kTWNRI4Z";
   const CLOUD_ENDPOINT = `${SUPABASE_URL}/rest/v1/app_state?id=eq.main`;
+  const DEFAULT_PIN = "1234";
+  const PIN_HASH_ITERATIONS = 150000;
+  const CREDENTIAL_FIELDS = ["pin", "pinHash", "mustChangePin", "pinChangedAt"];
 
   const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
@@ -85,10 +88,71 @@ const LeagueShared = (() => {
   }
   function guardMap(){try{return JSON.parse(localStorage.getItem(LOGIN_GUARD_KEY)||"{}")||{}}catch{return{}}}
   function loginGuardStatus(id){const map=guardMap(),g=map[id]||{fails:0,lockedUntil:0};const remain=Math.max(0,Number(g.lockedUntil||0)-Date.now());return{fails:Number(g.fails||0),locked:remain>0,remainingMs:remain}}
-  function login(league, id, pin) {
+
+  // A self-chosen PIN: 4-6 digits (the login field is a 6-digit number pad) and not one of the first PINs anyone would try.
+  function pinPolicyError(pin) {
+    const value = String(pin ?? "");
+    if (!/^\d{4,6}$/.test(value)) return "PIN ต้องเป็นตัวเลข 4–6 หลัก";
+    if (value === DEFAULT_PIN) return "ห้ามใช้ PIN เริ่มต้น 1234";
+    if (/^(\d)\1+$/.test(value)) return "ห้ามใช้เลขซ้ำกันทั้งหมด เช่น 0000";
+    const digits = [...value].map(Number), steps = new Set(digits.slice(1).map((d, i) => (d - digits[i] + 10) % 10));
+    if (steps.size === 1 && (steps.has(1) || steps.has(9))) return "ห้ามใช้เลขเรียง เช่น 123456 หรือ 9876";
+    return "";
+  }
+  const toHex = bytes => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, "0")).join("");
+  const fromHex = hex => new Uint8Array((hex.match(/../g) || []).map(h => parseInt(h, 16)));
+  // pinHash = "pbkdf2-sha256$<iterations>$<salt hex>$<hash hex>". The row is still world-readable, so this only stops a
+  // chosen PIN from being read off the page; a 4-6 digit PIN can still be brute-forced from it (see SECURITY_REVIEW.md).
+  async function hashPin(pin, saltHex = "", iterations = PIN_HASH_ITERATIONS) {
+    const subtle = globalThis.crypto?.subtle;
+    if (!subtle) throw new Error("เบราว์เซอร์นี้เข้ารหัส PIN ไม่ได้ (ต้องเปิดเว็บผ่าน https)");
+    const salt = saltHex ? fromHex(saltHex) : globalThis.crypto.getRandomValues(new Uint8Array(16));
+    const key = await subtle.importKey("raw", new TextEncoder().encode(String(pin)), "PBKDF2", false, ["deriveBits"]);
+    const bits = await subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, key, 256);
+    return `pbkdf2-sha256$${iterations}$${toHex(salt)}$${toHex(bits)}`;
+  }
+  async function verifyPin(person, pin) {
+    if (!person || typeof pin !== "string" || !pin) return false;
+    // Plaintext "pin" is the legacy format and what an admin reset writes (the public default 1234).
+    if (typeof person.pin === "string" && person.pin === pin) return true;
+    const parts = typeof person.pinHash === "string" ? person.pinHash.split("$") : [];
+    if (parts.length !== 4 || parts[0] !== "pbkdf2-sha256" || !/^[0-9a-f]{32}$/.test(parts[2])) return false;
+    const iterations = Number(parts[1]);
+    // The row is writable by anyone, so refuse iteration counts that would freeze the phone.
+    if (!Number.isInteger(iterations) || iterations < 10000 || iterations > 1000000) return false;
+    try { return (await hashPin(pin, parts[2], iterations)) === person.pinHash; } catch { return false; }
+  }
+  const needsPinChange = person => Boolean(person) && (person.mustChangePin === true || !person.pinHash);
+  // Errors the user can fix by typing a different PIN (as opposed to network or conflict errors).
+  const pinInputError = message => Object.assign(new Error(message), { pinInput: true });
+  async function setPin(person, pin) {
+    const error = pinPolicyError(pin);
+    if (error) throw pinInputError(error);
+    person.pinHash = await hashPin(pin);
+    delete person.pin; delete person.mustChangePin;
+    person.pinChangedAt = new Date().toISOString();
+    return person;
+  }
+  function resetPin(person) {
+    person.pin = DEFAULT_PIN; person.mustChangePin = true;
+    delete person.pinHash; delete person.pinChangedAt;
+    return person;
+  }
+  // Credentials change only through setPin/resetPin on the latest cloud copy. Every other league write takes them from the
+  // cloud, so restoring an old backup or pushing a stale local copy cannot roll someone's PIN back to 1234.
+  function keepCredentials(next, remote) {
+    Object.entries(next?.profiles || {}).forEach(([id, person]) => {
+      const current = remote?.profiles?.[id];
+      if (!current || !person) return;
+      CREDENTIAL_FIELDS.forEach(field => { if (field in current) person[field] = current[field]; else delete person[field]; });
+    });
+    return next;
+  }
+
+  async function login(league, id, pin) {
     const person = activeProfile(league, id), map=guardMap(), g=map[id]||{fails:0,lockedUntil:0};
     if (Number(g.lockedUntil||0) > Date.now()) return false;
-    if (!person || person.pin !== pin) {
+    if (!(await verifyPin(person, pin))) {
       g.fails=Number(g.fails||0)+1;
       if(g.fails>=5){g.lockedUntil=Date.now()+60000;g.fails=0}
       map[id]=g;localStorage.setItem(LOGIN_GUARD_KEY,JSON.stringify(map));return false;
@@ -131,8 +195,28 @@ const LeagueShared = (() => {
     if (!response.ok) throw new Error(`Cloud request failed: ${response.status}`);
     return response.json();
   }
+  // Self-service PIN change: re-read the cloud row, check the current PIN against it, and write back only this profile's
+  // new credentials (optimistic lock on updated_at, like every other writer).
+  async function changePin(id, currentPin, newPin) {
+    const error = pinPolicyError(newPin);
+    if (error) throw pinInputError(error);
+    if (newPin === currentPin) throw pinInputError("PIN ใหม่ต้องไม่ซ้ำกับ PIN เดิม");
+    const row = (await cloudRequest("league,updated_at"))[0], latest = row?.league?.uidLeague;
+    if (!latest?.profiles) throw new Error("ไม่พบข้อมูลบัญชีในระบบ");
+    const person = activeProfile(latest, id);
+    if (!person) throw new Error("บัญชีนี้ถูกปิดใช้งาน");
+    if (!(await verifyPin(person, currentPin))) throw Object.assign(pinInputError("PIN เดิมไม่ถูกต้อง"), { wrongCurrent: true });
+    await setPin(person, newPin);
+    audit(latest, "pin_change", id, { target: id });
+    const expected = row.updated_at || "", filter = expected ? `updated_at=eq.${encodeURIComponent(expected)}` : "";
+    const saved = await cloudRequest("league,updated_at", "PATCH", { league: { ...(row.league || {}), uidLeague: latest }, updated_at: new Date().toISOString() }, filter);
+    if (!saved?.length) throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง กรุณาลองใหม่");
+    saveLocalLeague(latest);
+    return latest;
+  }
 
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
-    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, cloudRequest });
+    sessionUserId, login, loginGuardStatus, logout, DEFAULT_PIN, pinPolicyError, hashPin, verifyPin, needsPinChange, setPin, resetPin,
+    keepCredentials, changePin, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, cloudRequest });
 })();

@@ -76,11 +76,11 @@ test('A placed bet keeps its original handicap for settlement', () => {
   assert.equal(shared.settlementOutcome(2, bet, { ...scoredMatch, pair: ['bob', 'alice'] }), null);
 });
 
-test('One login persists across pages and a deactivated account loses its session', () => {
+test('One login persists across pages and a deactivated account loses its session', async () => {
   const { shared, localStorage } = loadShared();
-  assert.equal(shared.login(league, 'mos', 'wrong'), false);
-  assert.equal(shared.login(league, 'eve', '1234'), false);
-  assert.equal(shared.login(league, 'mos', '1234'), true);
+  assert.equal(await shared.login(league, 'mos', 'wrong'), false);
+  assert.equal(await shared.login(league, 'eve', '1234'), false);
+  assert.equal(await shared.login(league, 'mos', '1234'), true);
   assert.equal(localStorage.getItem(shared.SESSION_KEY), 'mos');
   assert.equal(shared.sessionUserId(league), 'mos');
   const changed = { profiles: { ...profiles, mos: { ...profiles.mos, active: false } } };

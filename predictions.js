@@ -35,11 +35,14 @@ async function mutatePred(change){
 const cloudRequest=(method="GET",body=null,extraQuery="")=>LeagueShared.cloudRequest("league,predictions,updated_at",method,body,extraQuery);
 function setSync(t,s=""){const e=document.getElementById("syncStatus");e.textContent=t;e.className=`sync ${s}`}
 function reconcileSession(){currentUserId=LeagueShared.sessionUserId(league);document.getElementById("auth").classList.toggle("hidden",Boolean(currentUserId))}
-async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){league=remote;LeagueShared.saveLocalLeague(league)}const rp=row?.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pull,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
+async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){league=remote;LeagueShared.saveLocalLeague(league)}const rp=row?.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");askPinChange();setInterval(pull,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
 async function pull(){if(predSaving)return;try{const rows=await cloudRequest(),row=rows[0];if(predSaving||!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){league=remote;LeagueShared.saveLocalLeague(league)}const rp=row.predictions?.uidPredictions;if(rp){pred=Object.assign(freshPred(),rp);localStorage.setItem(PRED_KEY,JSON.stringify(pred))}reconcileSession();renderLogin();render()}catch(e){}}
 function activeProfiles(){return LeagueShared.activeProfiles(league)}
 function renderLogin(){LeagueShared.renderLoginOptions(document.getElementById("loginUser"),league,currentUserId)}
-function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!LeagueShared.login(league,id,pin)){alert("PIN ไม่ถูกต้องหรือบัญชีถูกปิดใช้งาน");return}document.getElementById("loginPin").value="";reconcileSession();render()}
+async function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!(await LeagueShared.login(league,id,pin))){alert(loginFailMessage(id));return}document.getElementById("loginPin").value="";reconcileSession();render();askPinChange(pin)}
+function loginFailMessage(id){const g=LeagueShared.loginGuardStatus(id);return g.locked?`ใส่ PIN ผิดหลายครั้ง • ลองใหม่ใน ${Math.ceil(g.remainingMs/1000)} วินาที`:"PIN ไม่ถูกต้องหรือบัญชีถูกปิดใช้งาน"}
+function askPinChange(knownPin=""){if(typeof PinChange!=="undefined")PinChange.enforce(league,currentUserId,{knownPin,onSaved:()=>pull(),onCancel:logout})}
+function changePin(){if(currentUserId&&typeof PinChange!=="undefined")PinChange.run({userId:currentUserId,name:profile(currentUserId)?.displayName,onSaved:()=>pull()})}
 function logout(){LeagueShared.logout();reconcileSession();renderLogin();render()}
 function allMatches(){const out=[];(league.rounds||[]).forEach((r,ri)=>r.m.forEach((pair,mi)=>out.push({id:mid(ri,mi),season:league.currentSeason,ri,mi,pair,score:(league.results||{})[mid(ri,mi)]})));return out}
 function hasResult(m){return m.score&&valid(m.score.a)&&valid(m.score.b)}
@@ -188,7 +191,7 @@ function renderHistory(){const list=isAdmin()||isDealer()?pred.bets:pred.bets.fi
 function render(){
  renderHeader();renderSummary();renderDealerSelect();renderDealer();renderBetting();renderSettlement();renderHistory();bindProfileLinks();
 }
-document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;
+document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;document.getElementById("changePin").onclick=changePin;
 document.getElementById("settleAll").onclick=settleAll;
 document.getElementById("saveDealer").onclick=saveDealer;
 document.getElementById("profileClose").onclick=closeProfile;

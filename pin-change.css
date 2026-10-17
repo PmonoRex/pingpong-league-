@@ -1,0 +1,5 @@
+.pin-overlay{position:fixed;inset:0;z-index:120;background:rgba(3,9,18,.84);display:flex;align-items:center;justify-content:center;padding:18px}
+.pin-card .pin-note,.pin-card .pin-name{font-size:12.5px;margin:4px 0}
+.pin-card .pin-error{min-height:18px;color:#ff5a5f;font-size:12.5px;margin-top:4px}
+.pin-card .pin-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.pin-card .pin-actions button{flex:1}
