@@ -61,7 +61,7 @@ body.sport-redesign .me-close{flex:none;width:44px;min-height:44px;padding:0;dis
 .pay-check{margin-top:14px;font-size:13px;color:var(--ink-soft);border-top:var(--rule-thin);padding-top:10px}
 
 /* the โอน button on Dummy and predictions rows */
-body.sport-redesign .pay-go{min-height:40px;padding:4px 14px;font-weight:700;white-space:nowrap}
+body.sport-redesign .pay-go{min-height:44px;padding:4px 14px;font-weight:700;white-space:nowrap}
 body.sport-redesign .d-pay-row:has(.pay-go){grid-template-columns:auto auto 1fr auto auto}
 body.sport-redesign td .pay-go{margin-left:6px;vertical-align:middle}
 .pa-tagline{display:block;font-size:12px;color:var(--ink-soft);font-weight:400;overflow-wrap:anywhere}

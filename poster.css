@@ -310,3 +310,5 @@ html{color-scheme:light}
 .skip-link{position:absolute;left:8px;top:-60px;z-index:400;padding:10px 14px;background:var(--ink);color:var(--poster);font-weight:700;border-radius:var(--r);text-decoration:none}
 .skip-link:focus-visible{top:8px}
 body.sport-redesign .me-entry{display:inline-flex;align-items:center;min-height:40px;cursor:pointer}
+/* Red money on the yellow total cells: the plain lose red is 4.1:1 on poster yellow; this darker red is 5.4:1 */
+body.sport-redesign .d-sum td .neg{color:#a3141f}
