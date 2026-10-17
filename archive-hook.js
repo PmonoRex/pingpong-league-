@@ -100,12 +100,12 @@
     if (typeof isAdmin === "function" && !isAdmin()) return 0;
     const list = findBackfill();
     if (!list.length) return 0;
-    const lines = list.map(a => `• Season ${a.season}: ${Object.keys(a.results).length} แมตช์ (จากสำรองในเครื่อง ${a.backfilled.snapshotAt ? new Date(a.backfilled.snapshotAt).toLocaleString("th-TH") : "-"})`).join("\n");
-    if (!confirm(`เติม Archive ย้อนหลังจากข้อมูลสำรองในเครื่องนี้?\n\n${lines}\n\nตรวจแล้วว่าแต้มทุกคนตรงกับแรงค์ที่บันทึกไว้ ระบบจะบันทึกขึ้น Cloud`)) return 0;
+    const lines = list.map(a => `• ซีซั่น ${a.season}: ${Object.keys(a.results).length} แมตช์ (จากสำรองในเครื่อง ${a.backfilled.snapshotAt ? new Date(a.backfilled.snapshotAt).toLocaleString("th-TH") : "-"})`).join("\n");
+    if (!confirm(`เติมคลังย้อนหลังจากข้อมูลสำรองในเครื่องนี้?\n\n${lines}\n\nตรวจแล้วว่าแต้มทุกคนตรงกับแรงค์ที่บันทึกไว้ ระบบจะบันทึกขึ้น Cloud`)) return 0;
     list.forEach(storeArchive);
     saveState();
     if (typeof render === "function") render();
-    window.LeagueToast?.(`เติม Archive แล้ว ${list.length} Season`, "good");
+    window.LeagueToast?.(`เติมคลังแล้ว ${list.length} ซีซั่น`, "good");
     return list.length;
   }
   function refreshBackfillButton() {
@@ -115,7 +115,7 @@
     const count = typeof isAdmin === "function" && isAdmin() ? findBackfill().length : 0;
     if (!count) { btn?.remove(); return; }
     if (!btn) { btn = document.createElement("button"); btn.id = "archiveBackfill"; btn.type = "button"; btn.className = "secondary"; btn.onclick = applyBackfill; host.appendChild(btn); }
-    btn.textContent = `📚 เติม Archive ย้อนหลัง (${count} Season)`;
+    btn.textContent = `📚 เติมคลังย้อนหลัง (${count} ซีซั่น)`;
   }
   if (typeof render === "function") {
     const originalRender = render;

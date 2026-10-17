@@ -147,17 +147,17 @@ test('Settlement table and history follow the current score before the dealer re
 
 test('Finished-Season bets stay visible, settle from the archive and can be voided (QA P2)', async () => {
   const { exec, settle, elements, row, shared } = loadPredictions({ league: baseLeague(), predictions: basePredictions(), userId: 'd' });
-  assert.match(elements.get('settleAlert').textContent, /รายการทายค้างจาก Season ก่อน 2 รายการ \(Season 2, 1\)/);
-  assert.match(elements.get('settlementSeasonSelect').innerHTML, /Season 1 • มีรายการค้าง/);
+  assert.match(elements.get('settleAlert').textContent, /รายการทายค้างจากซีซั่นก่อน 2 รายการ \(ซีซั่น 2, 1\)/);
+  assert.match(elements.get('settlementSeasonSelect').innerHTML, /ซีซั่น 1 • มีรายการค้าง/);
   await settle();
   assert.equal(row.predictions.uidPredictions.bets[1].status, 'lost', 'Season 2 bet settled against its archive');
 
   const select = elements.get('settlementSeasonSelect');
   select.value = '1'; select.onchange();
   assert.equal(elements.get('settlementSeason').textContent, 1);
-  assert.match(elements.get('settlementPending').innerHTML, /#3 .*Bob.*ไม่มี Archive.*data-void="3"/);
+  assert.match(elements.get('settlementPending').innerHTML, /#3 .*Bob.*ไม่มีในคลัง.*data-void="3"/);
   await elements.get('exportSettlement').fire('click');
-  assert.match(shared[0].title, /Season 1/);
+  assert.match(shared[0].title, /ซีซั่น 1/);
   assert.match(shared[0].text, /ยังมีรายการรอผล 1 รายการ\n {2}• #3 Bob: 50 \(r0m0\)/);
 
   await exec('voidOldBet(1)');

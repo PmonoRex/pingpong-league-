@@ -43,7 +43,7 @@ async function mutate(change) {
 function render() {
   document.getElementById("accounts").innerHTML = Object.values(state?.profiles || {})
     .sort((a, b) => (b.role === "admin") - (a.role === "admin") || a.displayName.localeCompare(b.displayName, "th"))
-    .map(person => `<div class="account ${person.active === false ? "off" : ""}"><div><strong>${esc(person.displayName)} ${person.role === "admin" ? '<span class="badge">ADMIN</span>' : ""}</strong><small>${person.active === false ? "ปิดใช้งาน" : "เปิดใช้งาน"}</small></div><div class="account-actions"><button class="secondary" data-rename="${esc(person.id)}">เปลี่ยนชื่อ</button><button class="blue" data-reset="${esc(person.id)}">รีเซ็ต PIN</button><button class="${person.active === false ? "primary" : "danger"}" data-toggle="${esc(person.id)}">${person.active === false ? "เปิดใช้งาน" : "ปิดใช้งาน"}</button></div></div>`).join("");
+    .map(person => `<div class="account ${person.active === false ? "off" : ""}"><div><strong>${esc(person.displayName)} ${person.role === "admin" ? '<span class="badge">แอดมิน</span>' : ""}</strong><small>${person.active === false ? "ปิดใช้งาน" : "เปิดใช้งาน"}</small></div><div class="account-actions"><button class="secondary" data-rename="${esc(person.id)}">เปลี่ยนชื่อ</button><button class="blue" data-reset="${esc(person.id)}">รีเซ็ต PIN</button><button class="${person.active === false ? "primary" : "danger"}" data-toggle="${esc(person.id)}">${person.active === false ? "เปิดใช้งาน" : "ปิดใช้งาน"}</button></div></div>`).join("");
 
   document.querySelectorAll("[data-reset]").forEach(button => button.onclick = async () => {
     const id = button.dataset.reset; if (!confirm(`รีเซ็ต PIN ของ ${profile(id)?.displayName || id} เป็น 1234?`)) return;
@@ -51,7 +51,7 @@ function render() {
   });
   document.querySelectorAll("[data-toggle]").forEach(button => button.onclick = async () => {
     const id = button.dataset.toggle;
-    await mutate(latest => { const person = latest.profiles[id]; if (!person) return false; if (id === currentUserId && person.active !== false) { alert("ปิดบัญชี Admin ที่กำลังใช้งานไม่ได้"); return false; } person.active = person.active === false; LeagueShared.audit(latest,"account_toggle",currentUserId,{target:id,active:person.active}); });
+    await mutate(latest => { const person = latest.profiles[id]; if (!person) return false; if (id === currentUserId && person.active !== false) { alert("ปิดบัญชีแอดมินที่กำลังใช้งานไม่ได้"); return false; } person.active = person.active === false; LeagueShared.audit(latest,"account_toggle",currentUserId,{target:id,active:person.active}); });
   });
   document.querySelectorAll("[data-rename]").forEach(button => button.onclick = async () => {
     const id = button.dataset.rename, oldName=profile(id)?.displayName||"", name = prompt("ชื่อใหม่", oldName)?.trim(); if (!name) return;

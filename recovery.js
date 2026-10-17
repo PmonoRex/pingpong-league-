@@ -125,15 +125,15 @@
       document.getElementById("restoreRecovery").disabled = true;
       return;
     }
-    list.innerHTML = candidates.map((c, i) => `<button type="button" class="recovery-item ${i===selectedIndex?"active":""}" data-recovery-index="${i}"><span><strong>${esc(c.source)}</strong><small>${esc(`${c.season?`Season ${c.season} • `:""}${fmtDate(c.savedAt)}${c.reason?` • ${c.reason}`:""}`)}</small></span><span class="recovery-count">${esc(c.played)}/${esc(c.total)}</span></button>`).join("");
+    list.innerHTML = candidates.map((c, i) => `<button type="button" class="recovery-item ${i===selectedIndex?"active":""}" data-recovery-index="${i}"><span><strong>${esc(c.source)}</strong><small>${esc(`${c.season?`ซีซั่น ${c.season} • `:""}${fmtDate(c.savedAt)}${c.reason?` • ${c.reason}`:""}`)}</small></span><span class="recovery-count">${esc(c.played)}/${esc(c.total)}</span></button>`).join("");
     list.querySelectorAll("[data-recovery-index]").forEach(btn => btn.onclick = () => { selectedIndex = Number(btn.dataset.recoveryIndex); renderCandidates(); });
     const c = candidates[selectedIndex];
-    preview.innerHTML = `<strong>ตัวอย่างก่อนกู้</strong><div class="recovery-preview-grid"><div><b>${esc(c.season || "-")}</b><small>Season เดิม</small></div><div><b>${esc(c.played)}</b><small>แมตช์ที่มีคะแนน</small></div><div><b>${c.ids.length}</b><small>ผู้เล่น</small></div></div><div class="hint" style="margin-top:9px">${esc(playerNames(c.ids))}</div>`;
+    preview.innerHTML = `<strong>ตัวอย่างก่อนกู้</strong><div class="recovery-preview-grid"><div><b>${esc(c.season || "-")}</b><small>ซีซั่นเดิม</small></div><div><b>${esc(c.played)}</b><small>แมตช์ที่มีคะแนน</small></div><div><b>${c.ids.length}</b><small>ผู้เล่น</small></div></div><div class="hint" style="margin-top:9px">${esc(playerNames(c.ids))}</div>`;
     document.getElementById("restoreRecovery").disabled = false;
   }
 
   function openRecovery() {
-    if (typeof isAdmin === "function" && !isAdmin()) return alert("เฉพาะ Admin เท่านั้น");
+    if (typeof isAdmin === "function" && !isAdmin()) return alert("เฉพาะแอดมินเท่านั้น");
     collectCandidates();
     document.getElementById("recoveryBackdrop")?.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -144,10 +144,10 @@
   }
   function restoreSelected() {
     if (selectedIndex < 0 || !candidates[selectedIndex]) return;
-    if (typeof isAdmin === "function" && !isAdmin()) return alert("เฉพาะ Admin เท่านั้น");
+    if (typeof isAdmin === "function" && !isAdmin()) return alert("เฉพาะแอดมินเท่านั้น");
     const c = candidates[selectedIndex];
     const rankExists = c.season && (state.rankHistory || []).some(s => Number(s.season) === Number(c.season));
-    const warning = `กำลังกู้ ${c.played} แมตช์${c.season?` จาก Season ${c.season}`:""}\n\nระบบจะสำรองข้อมูลปัจจุบันก่อนกู้ และจะอัปเดตขึ้นฐานข้อมูลหลังยืนยัน${rankExists?"\n\nหมายเหตุ: Season นี้มีประวัติแรงค์แล้ว ระบบจะไม่ย้อนหมายเลข Season เพื่อป้องกันแรงค์ซ้ำ":""}`;
+    const warning = `กำลังกู้ ${c.played} แมตช์${c.season?` จากซีซั่น ${c.season}`:""}\n\nระบบจะสำรองข้อมูลปัจจุบันก่อนกู้ และจะอัปเดตขึ้นฐานข้อมูลหลังยืนยัน${rankExists?"\n\nหมายเหตุ: ซีซั่นนี้มีประวัติแรงค์แล้ว ระบบจะไม่ย้อนหมายเลขซีซั่นเพื่อป้องกันแรงค์ซ้ำ":""}`;
     if (!confirm(warning)) return;
     snapshotCurrent("ก่อนกู้ข้อมูล");
     state.seasonPlayerIds = clone(c.ids);
@@ -158,7 +158,7 @@
     if (typeof saveState === "function") saveState();
     if (typeof render === "function") render();
     closeRecovery();
-    alert(`กู้คะแนนสำเร็จ ${c.played} แมตช์ กรุณาตรวจสอบคะแนนก่อนกดจบ Season`);
+    alert(`กู้คะแนนสำเร็จ ${c.played} แมตช์ กรุณาตรวจสอบคะแนนก่อนกดจบซีซั่น`);
   }
 
   function bind() {

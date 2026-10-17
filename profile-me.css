@@ -11,7 +11,7 @@ body.sport-redesign .me-close{flex:none;width:44px;min-height:44px;padding:0;dis
 
 /* picture */
 .me-pic{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:var(--rule);border-bottom:var(--rule-thin)}
-.me-pic-preview{flex:none;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:var(--pa,#3b322c);color:#fff;font-size:40px;font-weight:700;box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--ink)}
+.me-pic-preview{flex:none;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:var(--pa,#3b322c);color:var(--pa-fg,#fff);font-size:40px;font-weight:700;box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--ink)}
 .me-pic-preview img{width:100%;height:100%;object-fit:cover;display:block}
 .me-pic-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .me-pic-actions small{flex-basis:100%;font-size:13px}

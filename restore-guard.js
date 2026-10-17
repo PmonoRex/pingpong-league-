@@ -9,10 +9,10 @@ const RestoreGuard = (() => {
   // Returns {ok, message, results, apply:[...], skipped:[...]} without touching either league.
   function planScores(current, backup) {
     const plan = { ok: false, message: "", results: JSON.parse(JSON.stringify(current?.results || {})), apply: [], skipped: [] };
-    if (!backup || !current) { plan.message = "ไม่พบข้อมูล Backup"; return plan; }
+    if (!backup || !current) { plan.message = "ไม่พบข้อมูลสำรอง"; return plan; }
     if (Number(backup.currentSeason) !== Number(current.currentSeason)) {
-      plan.message = `Backup นี้เป็นของ Season ${backup.currentSeason ?? "-"} แต่ตอนนี้เป็น Season ${current.currentSeason ?? "-"} จึงกู้เฉพาะคะแนนไม่ได้ (ใช้ "กู้ทั้ง Season" แทน)`;
-      Object.entries(backup.results || {}).filter(([, s]) => validScore(s)).forEach(([id, s]) => plan.skipped.push({ id, score: s, backupPair: pairAt(backup, id), currentPair: pairAt(current, id), reason: "คนละ Season" }));
+      plan.message = `ชุดสำรองนี้เป็นของซีซั่น ${backup.currentSeason ?? "-"} แต่ตอนนี้เป็นซีซั่น ${current.currentSeason ?? "-"} จึงกู้เฉพาะคะแนนไม่ได้ (ใช้ "กู้ทั้งซีซั่น" แทน)`;
+      Object.entries(backup.results || {}).filter(([, s]) => validScore(s)).forEach(([id, s]) => plan.skipped.push({ id, score: s, backupPair: pairAt(backup, id), currentPair: pairAt(current, id), reason: "คนละซีซั่น" }));
       return plan;
     }
     const ids = new Set([...Object.keys(backup.results || {}), ...(current.rounds || []).flatMap((r, ri) => (r?.m || []).map((_, mi) => `r${ri}m${mi}`))]);
@@ -20,14 +20,14 @@ const RestoreGuard = (() => {
       const before = pairAt(backup, id), now = pairAt(current, id), score = backup.results?.[id];
       const has = validScore(score);
       if (!now) { if (has) plan.skipped.push({ id, score, backupPair: before, currentPair: null, reason: "ไม่มีคู่นี้ในตารางปัจจุบัน" }); return; }
-      if (!before) { if (has) plan.skipped.push({ id, score, backupPair: null, currentPair: now, reason: "Backup ไม่มีตารางของคู่นี้" }); return; }
+      if (!before) { if (has) plan.skipped.push({ id, score, backupPair: null, currentPair: now, reason: "ข้อมูลสำรองไม่มีตารางของคู่นี้" }); return; }
       const same = before[0] === now[0] && before[1] === now[1], swapped = before[0] === now[1] && before[1] === now[0];
       if (!same && !swapped) { if (has) plan.skipped.push({ id, score, backupPair: before, currentPair: now, reason: "คู่ไม่ตรงกับตารางปัจจุบัน" }); return; }
       if (has) { const next = swapped ? { a: score.b, b: score.a } : { a: score.a, b: score.b }; plan.results[id] = next; plan.apply.push({ id, pair: now, score: next }); }
       else if (id in plan.results) { delete plan.results[id]; plan.apply.push({ id, pair: now, score: null }); }
     });
     plan.ok = plan.apply.length > 0;
-    if (!plan.ok) plan.message = plan.skipped.length ? `ไม่มีคะแนนที่ตรงคู่กับตารางปัจจุบัน (ข้าม ${plan.skipped.length} คู่) จึงไม่กู้คะแนน` : "Backup นี้ไม่มีคะแนนให้กู้";
+    if (!plan.ok) plan.message = plan.skipped.length ? `ไม่มีคะแนนที่ตรงคู่กับตารางปัจจุบัน (ข้าม ${plan.skipped.length} คู่) จึงไม่กู้คะแนน` : "ชุดสำรองนี้ไม่มีคะแนนให้กู้";
     return plan;
   }
 
@@ -49,12 +49,12 @@ if (typeof restore === "function" && typeof document !== "undefined" && document
   const originalRestore = restore;
   restore = async function scoreSafeRestore(mode) {
     if (mode !== "scores") return originalRestore(mode);
-    if (!selected || !isAdmin()) return alert("เฉพาะ Admin เท่านั้น");
+    if (!selected || !isAdmin()) return alert("เฉพาะแอดมินเท่านั้น");
     const plan = RestoreGuard.planScores(league, selected.state);
     if (!plan.ok) { $("backupStatus").textContent = plan.message; return alert(plan.message); }
     const warn = plan.skipped.length ? `\n\nข้าม ${plan.skipped.length} คู่ที่ไม่ตรงกับตารางปัจจุบัน (ดูใน Preview)` : "";
-    if (!confirm(`กู้คะแนน ${plan.apply.length} คู่จาก Backup นี้?${warn}`)) return;
-    snapshot("ก่อน Restore");
+    if (!confirm(`กู้คะแนน ${plan.apply.length} คู่จากชุดสำรองนี้?${warn}`)) return;
+    snapshot("ก่อนกู้คืน");
     const next = JSON.parse(JSON.stringify(league));
     next.results = plan.results;
     LeagueShared.audit(next, "restore_scores", currentId, { backupId: selected.id, backupAt: selected.savedAt, restored: plan.apply.length, skipped: plan.skipped.map(x => x.id) });

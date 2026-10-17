@@ -108,7 +108,7 @@
   }
   function footer(c, season) {
     const d = new Date(), date = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543}`;
-    text(c, `${LEAGUE}  •  Season ${season}  •  ${date}`, W / 2, H - 62, { size: 28, family: UI, weight: 600, color: C.inkSoft });
+    text(c, `${LEAGUE}  •  ซีซั่น ${season}  •  ${date}`, W / 2, H - 62, { size: 28, family: UI, weight: 600, color: C.inkSoft });
   }
 
   function drawMatch(c, m) {
@@ -149,7 +149,7 @@
     if (first) {
       panel(c, 48, 420, W - 96, 250, C.paper);
       disc(c, 150, 545, 62, C.poster, C.ink); text(c, "1", 150, 572, { size: 72 });
-      text(c, first.label === "แชมป์" ? "คู่เอก • แชมป์ Season" : "คู่เอก • จ่าฝูง", 240, 490, { size: 30, family: UI, weight: 700, color: C.magentaDeep, align: "left", maxWidth: 560 });
+      text(c, first.label === "แชมป์" ? "คู่เอก • แชมป์ซีซั่น" : "คู่เอก • จ่าฝูง", 240, 490, { size: 30, family: UI, weight: 700, color: C.magentaDeep, align: "left", maxWidth: 560 });
       text(c, cleanName(first.name), 240, 580, { size: 84, min: 40, align: "left", maxWidth: 560 });
       text(c, statLine(first), 240, 636, { size: 32, family: UI, weight: 600, color: C.inkSoft, align: "left", maxWidth: 740 });
       stamp(c, first.label, W - 170, 470, C.magentaDeep, -4, 54);
@@ -208,12 +208,12 @@
     const win = matchOutcome(m.a, m.b); if (!win) return say("คู่นี้ยังไม่มีผล", "bad");
     const a = cleanName(m.aName), b = cleanName(m.bName);
     const line = win === "d" ? `${a} เสมอ ${b} ${m.a}-${m.b}` : win === "a" ? `${a} ชนะ ${b} ${m.a}-${m.b}` : `${b} ชนะ ${a} ${m.b}-${m.a}`;
-    return render(drawMatch, m, posterFileName(`match-${m.id || ""}`, m.season), LEAGUE, `${LEAGUE} • Season ${m.season}: ${line}`, button);
+    return render(drawMatch, m, posterFileName(`match-${m.id || ""}`, m.season), LEAGUE, `${LEAGUE} • ซีซั่น ${m.season}: ${line}`, button);
   }
   function shareStandings(s, button) {
-    if (!s.rows?.length) return say("ยังไม่มีผู้เล่นใน Season นี้", "bad");
+    if (!s.rows?.length) return say("ยังไม่มีผู้เล่นในซีซั่นนี้", "bad");
     const lead = cleanName(s.rows[0].name);
-    return render(drawStandings, s, posterFileName("standings", s.season), LEAGUE, `${LEAGUE} • ตารางคะแนน Season ${s.season} • จ่าฝูง: ${lead}`, button);
+    return render(drawStandings, s, posterFileName("standings", s.season), LEAGUE, `${LEAGUE} • ตารางคะแนนซีซั่น ${s.season} • จ่าฝูง: ${lead}`, button);
   }
   window.SharePoster = { ...api, shareMatch, shareStandings, drawMatch, drawStandings, loadFonts };
   // Warm the fonts so the first tap reaches the share sheet while the tap still counts as a user gesture.

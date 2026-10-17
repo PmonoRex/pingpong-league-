@@ -7,9 +7,9 @@
 
   function ensureStyles(){
     const required=[
-      ['theme.css?v=20261017-polish','theme.css'],
+      ['theme.css?v=20261018-thai','theme.css'],
       ['motion.css?v=20261017-motion2','motion.css'],
-      ['poster.css?v=20261018-promax','poster.css']
+      ['poster.css?v=20261018-thai','poster.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -70,22 +70,22 @@
 
   function restyleExistingTabs(){
     const nav=qs('.bottom-nav');if(!nav)return;const links=[...nav.querySelectorAll('a')];
-    if(page==='index.html'&&links.length>=4){const labels=[['🏓','Matches'],['🏆','Table'],['🏅','Ranking'],['🎯','Predict']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
-    if(page==='predictions.html'&&links.length>=4){const labels=[['⌂','Home'],['🎯','Predict'],['🛠','Dealer'],['🧾','History']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
+    if(page==='index.html'&&links.length>=4){const labels=[['🏓','คู่ชก'],['🏆','ตาราง'],['🏅','แรงค์'],['🎯','ทายผล']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
+    if(page==='predictions.html'&&links.length>=4){const labels=[['⌂','หน้าแรก'],['🎯','ทายผล'],['🛠','เจ้ามือ'],['🧾','ประวัติ']];links.slice(0,4).forEach((a,i)=>{a.innerHTML=`<span>${labels[i][0]}</span>${labels[i][1]}`})}
   }
 
   // "Home" is always index.html (as on the index/predictions tab bars); the active tab is the one whose link is this page.
   function addUniversalTabs(){
     if(qs('.bottom-nav,.sport-tabbar'))return;
     const nav=document.createElement('nav');nav.className='sport-tabbar';nav.setAttribute('aria-label','เมนูหลัก');
-    nav.innerHTML='<a href="index.html"><span>⌂</span>Home</a><a href="dashboard.html"><span>📊</span>Dashboard</a><a href="predictions.html"><span>🎯</span>Predict</a><a href="stats.html"><span>📈</span>Stats</a>';
+    nav.innerHTML='<a href="index.html"><span>⌂</span>หน้าแรก</a><a href="dashboard.html"><span>📊</span>ภาพรวม</a><a href="predictions.html"><span>🎯</span>ทายผล</a><a href="stats.html"><span>📈</span>สถิติ</a>';
     document.body.appendChild(nav);
   }
   // Every tab bar (page-owned or universal) ends with the Dummy score keeper.
   function addDummyTab(){
     document.querySelectorAll('.bottom-nav,.sport-tabbar').forEach(nav=>{
       if(nav.querySelector('a[href="dummy.html"]'))return;
-      const a=document.createElement('a');a.href='dummy.html';a.innerHTML='<span>🃏</span>Dummy';nav.appendChild(a);
+      const a=document.createElement('a');a.href='dummy.html';a.innerHTML='<span>🃏</span>ดัมมี่';nav.appendChild(a);
     });
   }
   // One drawn icon set for every tab bar (replaces the emoji glyphs): 24px grid, 1.8 stroke, round caps.

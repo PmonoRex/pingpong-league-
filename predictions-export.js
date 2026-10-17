@@ -25,7 +25,7 @@
     const dealerNet=receiveTotal-payTotal;
     const summary=BetSettle.summary(league,pred,season),pending=summary.pending.length;
     const lines=[
-      `🏓 สรุปยอดชำระ Season ${season}`,
+      `🏓 สรุปยอดชำระซีซั่น ${season}`,
       `เจ้ามือ: ${dealer}`,
       "",
       "📤 เจ้ามือต้องจ่าย"
@@ -51,11 +51,11 @@
 
   async function exportSettlement(){
     if(!authorized()){
-      alert("เฉพาะ Admin หรือเจ้ามือปัจจุบันเท่านั้นที่ส่งออกยอดชำระได้");
+      alert("เฉพาะแอดมินหรือเจ้ามือปัจจุบันเท่านั้นที่ส่งออกยอดชำระได้");
       return;
     }
     const text=makeText();
-    const title=`สรุปยอดชำระ Season ${shownSeason()}`;
+    const title=`สรุปยอดชำระซีซั่น ${shownSeason()}`;
     try{
       if(navigator.share){
         await navigator.share({title,text});
