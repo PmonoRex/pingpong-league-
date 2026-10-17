@@ -304,3 +304,9 @@ body.sport-redesign{font-synthesis:none;text-rendering:optimizeLegibility;-webki
 body.sport-redesign :is(h1,h2,h3,.d-board-name b,.pair>b){text-wrap:balance}
 body.sport-redesign :is(p,.muted,.hint,small,.status){text-wrap:pretty}
 body.sport-redesign :is(.stat b,.score-control input,.d-cash-amt,.d-pay-amt,.rank-rp,.points,td){font-variant-numeric:tabular-nums lining-nums}
+
+/* Web Interface Guidelines pass */
+html{color-scheme:light}
+.skip-link{position:absolute;left:8px;top:-60px;z-index:400;padding:10px 14px;background:var(--ink);color:var(--poster);font-weight:700;border-radius:var(--r);text-decoration:none}
+.skip-link:focus-visible{top:8px}
+body.sport-redesign .me-entry{display:inline-flex;align-items:center;min-height:40px;cursor:pointer}

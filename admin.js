@@ -21,7 +21,7 @@ async function loadCloud() {
 }
 
 async function mutate(change) {
-  if (saving) return false; saving = true; setStatus("กำลังตรวจข้อมูลล่าสุด...");
+  if (saving) return false; saving = true; setStatus("กำลังตรวจข้อมูลล่าสุด…");
   try {
     const row = (await cloudRequest())[0], latest = row?.league?.uidLeague;
     if (!latest?.profiles) throw new Error("ไม่พบข้อมูลบัญชีในระบบ");
@@ -29,7 +29,7 @@ async function mutate(change) {
     if (!LeagueShared.isAdmin(latest, currentUserId)) { state = latest; LeagueShared.saveLocalLeague(state); leaveIfNotAdmin(); return false; }
     const updated = structuredClone(latest);
     if (change(updated) === false) { setStatus("ออนไลน์ • ไม่มีการเปลี่ยนแปลง"); return false; }
-    setStatus("กำลังบันทึก...");
+    setStatus("กำลังบันทึก…");
     const now = new Date().toISOString();
     const expected = row?.updated_at || "";
     const filter = expected ? `updated_at=eq.${encodeURIComponent(expected)}` : "";
@@ -66,4 +66,4 @@ document.getElementById("create").onclick = async () => {
   if (saved) { input.value = ""; alert(`สร้าง ${name} แล้ว • PIN 1234`); }
 };
 window.addEventListener("storage", event => { if ([KEY, LeagueShared.SESSION_KEY].includes(event.key)) loadCloud(); });
-setStatus("กำลังโหลดข้อมูลบัญชี..."); loadCloud();
+setStatus("กำลังโหลดข้อมูลบัญชี…"); loadCloud();

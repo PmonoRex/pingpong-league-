@@ -214,7 +214,7 @@
   })();
   let edits = 0, syncing = false, syncTimer = 0, cloudOff = !Cloud;
   function setSync(text, status = "") { const el = $("dSync"); el.textContent = text; el.className = `pill sync ${status}`; }
-  function queueSync() { if (cloudOff) return; setSync("กำลังบันทึก..."); clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 400); }
+  function queueSync() { if (cloudOff) return; setSync("กำลังบันทึก…"); clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 400); }
   function adopt(remote) {
     const sig = entrySig(); state = remote; meta = { base: normalize(remote), dirty: false }; store();
     render(sig !== entrySig());

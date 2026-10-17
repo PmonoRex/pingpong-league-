@@ -9,7 +9,7 @@
     const required=[
       ['theme.css?v=20261017-polish','theme.css'],
       ['motion.css?v=20261017-motion2','motion.css'],
-      ['poster.css?v=20261017-motion','poster.css']
+      ['poster.css?v=20261018-wig','poster.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -125,6 +125,9 @@
   // Hero, brand and tab bar go in before first paint so cross-page view transitions keep them in place.
   // iOS Safari only shows :active press states once the page listens for touches.
   document.addEventListener('touchstart',()=>{},{passive:true});
+  // Keyboard users can jump past the masthead straight to the page content.
+  function addSkipLink(){const main=qs('main');if(!main||qs('.skip-link'))return;if(!main.id)main.id='main-content';main.setAttribute('tabindex','-1');const a=document.createElement('a');a.className='skip-link';a.href='#'+main.id;a.textContent='ข้ามไปที่เนื้อหา';document.body.prepend(a)}
+  addSkipLink();
   addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();addDummyTab();drawTabIcons();markActiveNav();
   // On touch screens the fixed tab bar floats above the on-screen keyboard and covers the fields, so hide it while typing.
   function hideTabsWhileTyping(){
