@@ -11,14 +11,14 @@ Scope: every page of the site (index, dashboard, stats, predictions, archive, ba
 
 ## Direction contract
 
-THESIS: The league reads as a Thai boxing fight poster pasted up at the hall: every match is a bill, red corner versus blue corner, names in heavy display type, winners stamped. It refuses the dark glass sports-app card grid with a neon accent that the site had before.
+THESIS: The league reads as a night arena under one red spotlight: a dark esports-style sports app the user picked from their own reference mockup (2026-10-18), replacing the yellow fight poster. Every match is a face-off card, red corner versus blue corner, names and scores in big italic sporty type, winners tagged.
 
-OWN-WORLD: Poster-yellow ground, newsprint-white paper panels on 2px ink rules with small 6px corners and no shadows, a magenta (บานเย็น) masthead band, ink-black type. Red corner and blue corner are the two-sided colours for every pairing; green/red only for money won or lost. Chonburi (looped Thai poster display) for titles, names, scores and money; Anuphan for UI text. Navigation, tabs, inputs, tables and buttons stay standard controls.
+OWN-WORLD: Near-black ground (#0a0b0e) with a red glow, smoked-glass panels (#15171d) on 1px hairlines with 14px corners and soft drop shadows, red (#d81e29 / #ff4752) as the one loud colour; red and blue tints only for the two corners of a pairing; green/red only for money won or lost; gold, silver and bronze only for the top three. Kanit 800 italic for big numbers and the masthead, Kanit 600 for headings and names, Anuphan for UI text. A red block marker opens each section head.
 
 STORY: Friends open it mid-session, see the bill and the standings, enter a score in two taps, and the winner gets their moment in big type.
 
-FIRST VIEWPORT: Magenta masthead: league name stacked in yellow Chonburi, season line beneath, account strip in ink. Then the League Assistant strip, then the roster/match bill on paper. Ink-black tab bar at the bottom, active tab in poster yellow.
+FIRST VIEWPORT: Dark masthead with a red light streak, a ball in flight and a faint PING PONG watermark: league name in white Kanit italic, season line and status pills beneath, account strip on smoked glass. Then the queue (คิวต่อไป) and the match cards. Dark floating tab bar at the bottom; the active tab lights red.
 
-FORM: Thai boxing poster (โปสเตอร์มวย), position 1 on the ordered list (taken as the user's pick over assigned candidate 4, Thai lottery ticket); seed:57e2a018eda04e4f. Signature move: match rows billed red corner / VS stamp / blue corner.
+FORM: Night arena sports app, from the user's reference mockup (supersedes the Thai boxing poster, seed:57e2a018eda04e4f). Signature move: face-off cards with a glowing VS disc between the red and blue corners.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

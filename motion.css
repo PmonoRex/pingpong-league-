@@ -1,8 +1,8 @@
-/* Fight-poster motion. Operate surface: motion is feedback, continuity and one authored moment.
+/* Night-arena motion. Operate surface: motion is feedback, continuity and one authored moment.
    - Focal moment: a result comes in and the "ชนะ" stamp is struck onto the bill (index.js adds .stamp-in only on a change, never on page load).
-   - Continuity: between pages the magenta masthead morphs into the next masthead; the ink tab bar never moves and only its
-     yellow active tab crossfades to the new slot; the content underneath swaps quickly.
-   - Feedback: controls press down like a print press (short travel, no bounce); score digits tick.
+   - Continuity: between pages the masthead morphs into the next masthead; the dark tab bar never moves and only its
+     red active tab crossfades to the new slot; the content underneath swaps quickly.
+   - Feedback: controls press down (short travel, no bounce); score digits tick.
    Content is visible by default; nothing waits on an entrance animation. */
 :root{
   --motion-press:90ms;
@@ -24,7 +24,7 @@ body.sport-redesign .hero{view-transition-name:app-hero}
 ::view-transition-old(app-hero){animation:vtFadeOut 140ms var(--motion-exit) both}
 ::view-transition-new(app-hero){animation:vtFadeIn 220ms var(--motion-ease) 60ms both}
 ::view-transition-old(app-hero),::view-transition-new(app-hero){height:100%;width:100%;object-fit:cover;object-position:left top}
-/* The ink tab bar stays put; only the yellow active tab crossfades to the page you picked.
+/* The tab bar stays put; only the red active tab crossfades to the page you picked.
    (The tab bar is built by deferred sport-ui.js; making it render-blocking would cancel the transition in Chrome.) */
 body.sport-redesign :is(.bottom-nav,.sport-tabbar){view-transition-name:app-nav}
 ::view-transition-group(app-nav){animation:none}
@@ -35,7 +35,7 @@ body.sport-redesign :is(.bottom-nav,.sport-tabbar){view-transition-name:app-nav}
 @keyframes vtFadeOut{to{opacity:0}}
 @keyframes vtFadeIn{from{opacity:0}}
 
-/* ---------- Feedback: print-press controls ---------- */
+/* ---------- Feedback: press-down controls ---------- */
 button,a.btn,a.primary,a.secondary,.quick-tile,.bottom-nav a,.sport-tabbar a,input,select,textarea,.roster-item,.pill,.tag{
   transition:
     transform var(--motion-fast) var(--motion-ease),
@@ -45,10 +45,10 @@ button,a.btn,a.primary,a.secondary,.quick-tile,.bottom-nav a,.sport-tabbar a,inp
     box-shadow var(--motion-base) var(--motion-ease),
     opacity var(--motion-fast) var(--motion-ease);
 }
-/* Pressed: the block sinks 2px and the ink rule thickens on its top edge, the way a plate meets paper. */
+/* Pressed: the block sinks 2px with a shadow on its top edge. */
 body.sport-redesign :is(button,a.btn,a.primary,a.secondary,.quick-tile):not(:disabled):active{
   transform:translateY(2px);
-  box-shadow:inset 0 2px 0 rgba(23,17,15,.28);
+  box-shadow:inset 0 2px 0 rgba(0,0,0,.35);
   transition-duration:var(--motion-press);
 }
 body.sport-redesign :is(.bottom-nav,.sport-tabbar) a:active{transform:translateY(1px);transition-duration:var(--motion-press)}

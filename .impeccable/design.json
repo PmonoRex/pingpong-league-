@@ -1,354 +1,557 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-17T10:46:12+00:00",
+  "generatedAt": "2026-10-17T18:36:17Z",
   "title": "Design System: ตีให้สุด หยุดที่เบ้าตา",
   "extensions": {
     "colorMeta": {
-      "poster": {
-        "role": "primary",
-        "displayName": "Poster Yellow",
-        "canonical": "#ffd21f",
+      "bg": {
+        "role": "neutral",
+        "displayName": "Arena Black",
+        "canonical": "#0a0b0e",
         "tonalRamp": [
-          "#3d3000",
-          "#665000",
-          "#8f7000",
-          "#b89000",
-          "#f2bd00",
-          "#ffd21f",
-          "#ffe36b",
-          "#fff4c2"
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
         ]
       },
-      "poster-deep": {
-        "role": "primary",
-        "displayName": "Poster Deep",
-        "canonical": "#f2bd00",
+      "bg-2": {
+        "role": "neutral",
+        "displayName": "Stage",
+        "canonical": "#101217",
         "tonalRamp": [
-          "#332700",
-          "#5c4600",
-          "#856600",
-          "#ad8500",
-          "#d6a500",
-          "#f2bd00",
-          "#ffd84d",
-          "#fff0b3"
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
         ]
       },
-      "magenta": {
-        "role": "primary",
-        "displayName": "บานเย็น Magenta",
-        "canonical": "#e0147a",
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "#15171d",
         "tonalRamp": [
-          "#3a0520",
-          "#5e0834",
-          "#870b4a",
-          "#b40d61",
-          "#e0147a",
-          "#ef4d9a",
-          "#f78fc0",
-          "#fcd3e6"
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
         ]
       },
-      "magenta-deep": {
-        "role": "primary",
-        "displayName": "Magenta Deep",
-        "canonical": "#b40d61",
+      "panel-2": {
+        "role": "neutral",
+        "displayName": "Panel 2",
+        "canonical": "#1c1f26",
         "tonalRamp": [
-          "#2e0319",
-          "#52062d",
-          "#7a0942",
-          "#b40d61",
-          "#d61f78",
-          "#ec5c9f",
-          "#f59cc6",
-          "#fbd9ea"
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "panel-3": {
+        "role": "neutral",
+        "displayName": "Panel 3",
+        "canonical": "#252932",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Field",
+        "canonical": "#0e1014",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "dock": {
+        "role": "neutral",
+        "displayName": "Dock",
+        "canonical": "rgba(12,13,17,.94)",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "rgba(255,255,255,.08)",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "line-2": {
+        "role": "neutral",
+        "displayName": "Line 2",
+        "canonical": "rgba(255,255,255,.16)",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "canonical": "#f4f5f7",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "text-2": {
+        "role": "neutral",
+        "displayName": "Text 2",
+        "canonical": "#c9cdd5",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "text-soft": {
+        "role": "neutral",
+        "displayName": "Text Soft",
+        "canonical": "#9ba1ad",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#101217",
+          "#15171d",
+          "#1c1f26",
+          "#252932",
+          "#9ba1ad",
+          "#c9cdd5",
+          "#f4f5f7"
+        ]
+      },
+      "red": {
+        "role": "primary",
+        "displayName": "Arena Red",
+        "canonical": "#d81e29",
+        "tonalRamp": [
+          "#2d0608",
+          "#510b0f",
+          "#7d1118",
+          "#b31922",
+          "#e12833",
+          "#e95e66",
+          "#f19ca1",
+          "#fadbdd"
+        ]
+      },
+      "red-hi": {
+        "role": "primary",
+        "displayName": "Hot Red",
+        "canonical": "#ff4752",
+        "tonalRamp": [
+          "#330003",
+          "#5c0005",
+          "#8f0009",
+          "#cc000c",
+          "#ff0a19",
+          "#ff4752",
+          "#ff8f96",
+          "#ffd6d9"
+        ]
+      },
+      "red-deep": {
+        "role": "primary",
+        "displayName": "Red Deep",
+        "canonical": "#9e111a",
+        "tonalRamp": [
+          "#2e0508",
+          "#53090e",
+          "#810e15",
+          "#b8141e",
+          "#e7222f",
+          "#ed5963",
+          "#f49a9f",
+          "#fbdadc"
+        ]
+      },
+      "red-glow": {
+        "role": "primary",
+        "displayName": "Red Glow",
+        "canonical": "rgba(229,36,47,.38)",
+        "tonalRamp": [
+          "#2e0508",
+          "#520a0e",
+          "#800f16",
+          "#b6161f",
+          "#e5242f",
+          "#ec5b63",
+          "#f39ba0",
+          "#fbdbdc"
         ]
       },
       "corner-red": {
         "role": "secondary",
-        "displayName": "Red Corner",
-        "canonical": "#d4252e",
+        "displayName": "Corner Red",
+        "canonical": "#ff5560",
         "tonalRamp": [
-          "#3a0a0c",
-          "#601014",
-          "#8a161c",
-          "#b81e26",
-          "#d4252e",
-          "#e65a61",
-          "#f29a9e",
-          "#fde4e3"
+          "#330003",
+          "#5c0006",
+          "#8f0009",
+          "#cc000d",
+          "#ff0a1a",
+          "#ff4753",
+          "#ff8f96",
+          "#ffd6d9"
         ]
       },
-      "corner-red-hover": {
+      "blue": {
         "role": "secondary",
-        "displayName": "Red Corner Pressed",
-        "canonical": "#b81e26",
+        "displayName": "Corner Blue",
+        "canonical": "#5b8cff",
         "tonalRamp": [
-          "#300809",
-          "#550e11",
-          "#7d1419",
-          "#b81e26",
-          "#d4252e",
-          "#e65a61",
-          "#f29a9e",
-          "#fde4e3"
-        ]
-      },
-      "corner-blue": {
-        "role": "secondary",
-        "displayName": "Blue Corner",
-        "canonical": "#1c4fc0",
-        "tonalRamp": [
-          "#08173a",
-          "#0e2660",
-          "#143788",
-          "#1c4fc0",
-          "#3d6cd6",
-          "#7096e3",
-          "#a9c0f0",
-          "#e2e9fb"
+          "#000f33",
+          "#001b5c",
+          "#002b8f",
+          "#003dcc",
+          "#0a53ff",
+          "#477eff",
+          "#8fb0ff",
+          "#d6e2ff"
         ]
       },
       "red-field": {
         "role": "secondary",
         "displayName": "Red Field",
-        "canonical": "#fde4e3",
+        "canonical": "rgba(229,36,47,.16)",
         "tonalRamp": [
-          "#8a161c",
-          "#b81e26",
-          "#d4252e",
-          "#e65a61",
-          "#f29a9e",
-          "#f8c4c4",
-          "#fde4e3",
-          "#fff3f3"
+          "#2e0508",
+          "#520a0e",
+          "#800f16",
+          "#b6161f",
+          "#e5242f",
+          "#ec5b63",
+          "#f39ba0",
+          "#fbdbdc"
         ]
       },
       "blue-field": {
         "role": "secondary",
         "displayName": "Blue Field",
-        "canonical": "#e2e9fb",
+        "canonical": "rgba(91,140,255,.12)",
         "tonalRamp": [
-          "#143788",
-          "#1c4fc0",
-          "#3d6cd6",
-          "#7096e3",
-          "#a9c0f0",
-          "#cbd8f6",
-          "#e2e9fb",
-          "#f2f6fe"
+          "#000f33",
+          "#001b5c",
+          "#002b8f",
+          "#003dcc",
+          "#0a53ff",
+          "#477eff",
+          "#8fb0ff",
+          "#d6e2ff"
         ]
       },
       "win": {
         "role": "tertiary",
         "displayName": "Win Green",
-        "canonical": "#0b7a40",
+        "canonical": "#34d27c",
         "tonalRamp": [
-          "#03230f",
-          "#06401f",
-          "#0b7a40",
-          "#14994f",
-          "#3fb873",
-          "#7dd3a1",
-          "#bde9cf",
-          "#e9f7ee"
+          "#092a18",
+          "#114b2b",
+          "#1a7543",
+          "#25a760",
+          "#37d37e",
+          "#69de9e",
+          "#a3ebc4",
+          "#def8e9"
         ]
       },
       "lose": {
         "role": "tertiary",
-        "displayName": "Lose Red",
-        "canonical": "#c21f2a",
+        "displayName": "Lose Coral",
+        "canonical": "#ff5c68",
         "tonalRamp": [
-          "#350709",
-          "#5a0c11",
-          "#8a1219",
-          "#c21f2a",
-          "#d9464f",
-          "#e8838a",
-          "#f4bcc0",
-          "#fde8e9"
+          "#330004",
+          "#5c0007",
+          "#8f000b",
+          "#cc000f",
+          "#ff0a1c",
+          "#ff4755",
+          "#ff8f97",
+          "#ffd6d9"
         ]
       },
-      "medal-gold": {
+      "gold": {
         "role": "tertiary",
-        "displayName": "Medal Gold",
-        "canonical": "#e7a900",
+        "displayName": "Gold",
+        "canonical": "#f5b80b",
         "tonalRamp": [
-          "#3a2a00",
-          "#664a00",
-          "#996f00",
-          "#c99100",
-          "#e7a900",
-          "#f5c84a",
-          "#fadf95",
-          "#fdf3d6"
+          "#312502",
+          "#584204",
+          "#896706",
+          "#c49308",
+          "#f5bb14",
+          "#f8cc4f",
+          "#fbe093",
+          "#fdf4d8"
         ]
       },
-      "medal-silver": {
+      "silver": {
         "role": "tertiary",
-        "displayName": "Medal Silver",
-        "canonical": "#9aa3ad",
+        "displayName": "Silver",
+        "canonical": "#c3cad5",
         "tonalRamp": [
-          "#25292e",
-          "#3c4249",
-          "#58606a",
-          "#79828c",
-          "#9aa3ad",
-          "#b9c0c7",
-          "#d7dbe0",
-          "#f0f2f4"
+          "#15181e",
+          "#262c36",
+          "#3b4554",
+          "#546278",
+          "#6f809a",
+          "#93a0b3",
+          "#bdc5d1",
+          "#e7eaee"
         ]
       },
-      "medal-bronze": {
+      "bronze": {
         "role": "tertiary",
-        "displayName": "Medal Bronze",
-        "canonical": "#b8763c",
+        "displayName": "Bronze",
+        "canonical": "#d68a4c",
         "tonalRamp": [
-          "#2e1c0d",
-          "#4f3116",
-          "#734823",
-          "#96602f",
-          "#b8763c",
-          "#cf9a6a",
-          "#e3c19f",
-          "#f6e8da"
-        ]
-      },
-      "ink": {
-        "role": "neutral",
-        "displayName": "Ink",
-        "canonical": "#17110f",
-        "tonalRamp": [
-          "#17110f",
-          "#3b322c",
-          "#5e534b",
-          "#82766d",
-          "#a69a91",
-          "#c8beb6",
-          "#e6dfd8",
-          "#fffdf6"
-        ]
-      },
-      "ink-2": {
-        "role": "neutral",
-        "displayName": "Ink 2",
-        "canonical": "#3b322c",
-        "tonalRamp": [
-          "#17110f",
-          "#3b322c",
-          "#5e534b",
-          "#82766d",
-          "#a69a91",
-          "#c8beb6",
-          "#e6dfd8",
-          "#fffdf6"
-        ]
-      },
-      "ink-soft": {
-        "role": "neutral",
-        "displayName": "Ink Soft",
-        "canonical": "rgba(23,17,15,.66)",
-        "tonalRamp": [
-          "#17110f",
-          "#3b322c",
-          "#5e534b",
-          "#82766d",
-          "#a69a91",
-          "#c8beb6",
-          "#e6dfd8",
-          "#fffdf6"
-        ]
-      },
-      "paper": {
-        "role": "neutral",
-        "displayName": "Paper",
-        "canonical": "#fffdf6",
-        "tonalRamp": [
-          "#3b3826",
-          "#5e5a44",
-          "#8a8466",
-          "#b5ae8c",
-          "#d9d2b3",
-          "#ebe5cf",
-          "#f6f1e3",
-          "#fffdf6"
-        ]
-      },
-      "paper-2": {
-        "role": "neutral",
-        "displayName": "Paper 2",
-        "canonical": "#f6f1e3",
-        "tonalRamp": [
-          "#3b3826",
-          "#5e5a44",
-          "#8a8466",
-          "#b5ae8c",
-          "#d9d2b3",
-          "#ebe5cf",
-          "#f6f1e3",
-          "#fffdf6"
+          "#29180a",
+          "#4b2b11",
+          "#74431b",
+          "#a66026",
+          "#d17d38",
+          "#dd9d6a",
+          "#eac3a4",
+          "#f7e9de"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "League name in the league-home masthead only."
+        "purpose": "League name in the league-home masthead only; white, italic, soft red glow."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Page titles in the compact masthead."
+        "purpose": "Page titles in the compact masthead; auth sheet title."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Panel and section headings."
+        "purpose": "Panel and section heads, led by the red square marker."
       },
       "fighter": {
         "displayName": "Fighter",
-        "purpose": "Player names in the match fight bill."
+        "purpose": "Player names in match cards and next-up rows; wraps, never truncates."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Stat-line values, RP, money totals; tabular lining numerals."
       },
       "score": {
         "displayName": "Score",
-        "purpose": "Score inputs; the Chonburi number voice."
+        "purpose": "Score inputs in the match steppers."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Running UI text in Anuphan."
+        "purpose": "Running UI text, lists, tables."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Buttons and stat-line captions."
+        "purpose": "Buttons, table-row names, stat-line captions."
+      },
+      "table-head": {
+        "displayName": "Table Head",
+        "purpose": "Table header rows, text-soft on stage."
       }
     },
     "shadows": [
       {
-        "name": "floating",
-        "value": "0 6px 18px rgba(23,17,15,.28)",
-        "purpose": "Fixed tab bar and toast only."
+        "name": "panel",
+        "value": "0 14px 34px rgba(0,0,0,.38)",
+        "purpose": "Top-level cards and workflow cards."
       },
       {
-        "name": "stamp-ring",
-        "value": "0 0 0 2px #17110f",
-        "purpose": "Outer ring of the VS disc around its 3px paper border; an outline, not depth."
+        "name": "stage",
+        "value": "0 18px 40px rgba(0,0,0,.45)",
+        "purpose": "Masthead and Season poster bill."
       },
       {
-        "name": "focus-halo",
-        "value": "0 0 0 3px rgba(224,20,122,.18)",
-        "purpose": "Input focus halo with magenta border."
+        "name": "dock",
+        "value": "0 12px 30px rgba(0,0,0,.55)",
+        "purpose": "Floating tab dock (toasts use .5 alpha)."
+      },
+      {
+        "name": "sheet",
+        "value": "0 24px 60px rgba(0,0,0,.6)",
+        "purpose": "Profile, recovery and auth sheets."
+      },
+      {
+        "name": "red-action",
+        "value": "0 8px 20px rgba(229,36,47,.28)",
+        "purpose": "Primary button only."
+      },
+      {
+        "name": "red-glow",
+        "value": "0 0 12px rgba(229,36,47,.38)",
+        "purpose": "Section marker, progress fill, active tab bar, next-up VS; 18px on the match VS disc."
+      },
+      {
+        "name": "winner-tag",
+        "value": "0 6px 16px rgba(229,36,47,.38)",
+        "purpose": "ชนะ tag and brand mark (blue tag uses rgba(91,140,255,.4))."
+      },
+      {
+        "name": "medal-glow",
+        "value": "0 0 14px rgba(245,184,11,.45)",
+        "purpose": "Rank-1 disc; แชมป์ stamp uses 0 0 12px at .4."
+      },
+      {
+        "name": "focus",
+        "value": "outline: 2px solid #ff4752; outline-offset: 2px",
+        "purpose": "Every focus-visible element."
+      },
+      {
+        "name": "input-focus",
+        "value": "0 0 0 3px rgba(229,36,47,.22)",
+        "purpose": "Input focus halo with hot-red border."
       }
     ],
     "motion": [
       {
+        "name": "motion-press",
+        "value": "90ms",
+        "purpose": "Press-down duration for buttons, tiles and tabs."
+      },
+      {
+        "name": "motion-fast",
+        "value": "140ms",
+        "purpose": "Transform and opacity transitions on controls."
+      },
+      {
+        "name": "motion-base",
+        "value": "200ms",
+        "purpose": "Colour, border and shadow transitions; overlay fades."
+      },
+      {
+        "name": "motion-slow",
+        "value": "300ms",
+        "purpose": "Masthead morph between pages; sheet entrance."
+      },
+      {
+        "name": "motion-ease",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Confident arrival; default easing."
+      },
+      {
+        "name": "motion-exit",
+        "value": "cubic-bezier(.4,0,1,1)",
+        "purpose": "Quick departure for exits and toasts leaving."
+      },
+      {
+        "name": "stamp-strike",
+        "value": "420ms cubic-bezier(.2,.9,.3,1)",
+        "purpose": "ชนะ tag drops from 1.9x to rest at its ∓4deg tilt; card jolts 2px; result line inks in. Only on a live result change."
+      },
+      {
+        "name": "page-swap",
+        "value": "out 120ms / in 220ms +40ms delay, 8px rise",
+        "purpose": "Cross-document View Transition for content."
+      },
+      {
+        "name": "dock-crossfade",
+        "value": "160ms",
+        "purpose": "Tab dock stays put; active tab crossfades."
+      },
+      {
+        "name": "digit-tick",
+        "value": "260ms",
+        "purpose": "Score digits drop 4px into place on change."
+      },
+      {
         "name": "loser-fade",
         "value": "opacity .2s",
         "purpose": "Loser name fades to 42% when a match is decided."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "120-160ms linear fades",
+        "purpose": "No travel, no strike; skeleton sweep and toast timer stop."
       }
     ],
     "breakpoints": [
       {
         "name": "stamp-stack",
         "value": "600px",
-        "purpose": "Below: champion stamp drops under the name."
+        "purpose": "Below: champion and streak stamps drop under the name."
       },
       {
         "name": "tools-menu",
@@ -358,7 +561,7 @@
       {
         "name": "two-column",
         "value": "900px",
-        "purpose": "At and above: league home splits into bill and sticky standings; bottom nav hides."
+        "purpose": "At and above: league home splits into matches and sticky standings; bottom dock hides."
       }
     ]
   },
@@ -367,142 +570,150 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Red-corner fill for the main action on a panel (save, create).",
+      "description": "Glossy red gradient for the main action on a panel (save, create).",
       "html": "<button class=\"ds-btn-primary\">บันทึก</button>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-btn-primary{background:var(--corner-red);color:#fff;border:var(--rule);border-radius:var(--r);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:40px;cursor:pointer}.ds-btn-primary:hover{background:#b81e26}.ds-btn-primary:focus-visible{outline:3px solid var(--magenta);outline-offset:2px}.ds-btn-primary:disabled{opacity:.45}"
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-btn-primary{background:linear-gradient(180deg,#dc2530,#b0121a);color:#fff;border:1px solid #ff5c66;border-radius:var(--r-sm);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:44px;box-shadow:0 8px 20px rgba(229,36,47,.28);cursor:pointer;transition:transform 140ms cubic-bezier(.16,1,.3,1),background-color 200ms cubic-bezier(.16,1,.3,1)}.ds-btn-primary:hover{background:linear-gradient(180deg,#d61f2a,#b8141d)}.ds-btn-primary:active{transform:translateY(2px);transition-duration:90ms}.ds-btn-primary:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px}.ds-btn-primary:disabled{opacity:.45}"
     },
     {
       "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "Paper button with ink rule; turns poster yellow on hover.",
-      "html": "<button class=\"ds-btn-secondary\">ล้างคะแนน</button>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-btn-secondary{background:var(--paper);color:var(--ink);border:var(--rule);border-radius:var(--r);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:40px;cursor:pointer}.ds-btn-secondary:hover{background:var(--poster)}.ds-btn-secondary:focus-visible{outline:3px solid var(--magenta);outline-offset:2px}"
+      "description": "Dark panel-2 button for every other action.",
+      "html": "<button class=\"ds-btn-secondary\">ยกเลิก</button>",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-btn-secondary{background:var(--panel-2);color:var(--text);border:1px solid var(--line-2);border-radius:var(--r-sm);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:44px;cursor:pointer;transition:transform 140ms cubic-bezier(.16,1,.3,1),background-color 200ms cubic-bezier(.16,1,.3,1),border-color 200ms}.ds-btn-secondary:hover{background:var(--panel-3);border-color:rgba(255,255,255,.26)}.ds-btn-secondary:active{transform:translateY(2px);transition-duration:90ms}.ds-btn-secondary:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px}"
     },
     {
       "name": "Danger Button",
       "kind": "button",
       "refersTo": "button-danger",
-      "description": "Destructive action: paper with lose-red text and rule.",
-      "html": "<button class=\"ds-btn-danger\">กู้ทั้ง Season</button>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-btn-danger{background:var(--paper);color:var(--lose);border:2px solid var(--lose);border-radius:var(--r);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:40px;cursor:pointer}.ds-btn-danger:focus-visible{outline:3px solid var(--magenta);outline-offset:2px}"
+      "description": "Transparent coral-outlined button for destructive actions.",
+      "html": "<button class=\"ds-btn-danger\">ลบ</button>",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-btn-danger{background:transparent;color:var(--lose);border:1px solid rgba(255,92,104,.6);border-radius:var(--r-sm);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:44px;cursor:pointer}.ds-btn-danger:active{transform:translateY(2px)}.ds-btn-danger:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px}.ds-btn-danger:disabled{opacity:.45}"
     },
     {
       "name": "Text Field",
       "kind": "input",
       "refersTo": "input",
-      "description": "White field on a 2px ink rule; magenta border and halo on focus.",
-      "html": "<label class=\"ds-field\"><span>ผู้เล่นหลัก</span><input class=\"ds-input\" placeholder=\"ชื่อเล่น\"></label>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-field{display:grid;gap:4px;font:400 14px/1.55 var(--font);color:var(--ink-2)}.ds-input{background:#fff;color:var(--ink);border:var(--rule);border-radius:var(--r);padding:9px 10px;font:400 15px var(--font);outline:none}.ds-input::placeholder{color:rgba(23,17,15,.45)}.ds-input:focus{border-color:var(--magenta);box-shadow:0 0 0 3px rgba(224,20,122,.18)}"
+      "description": "Recessed field-coloured input; hot-red border and halo on focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"ชื่อผู้เล่น\">",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-input{background:var(--field);color:var(--text);border:1px solid var(--line-2);border-radius:var(--r-sm);font:400 14px/1.4 var(--font);padding:10px 12px;min-height:44px;caret-color:var(--red-hi);transition:border-color 200ms,box-shadow 200ms}.ds-input::placeholder{color:rgba(244,245,247,.38)}.ds-input:focus{outline:none;border-color:var(--red-hi);box-shadow:0 0 0 3px rgba(229,36,47,.22)}"
     },
     {
-      "name": "Tab Bar",
+      "name": "Tab Dock",
       "kind": "nav",
       "refersTo": "tab-bar",
-      "description": "Ink strip with drawn icons; active tab is a poster-yellow block.",
-      "html": "<nav class=\"ds-tabbar\"><a class=\"active\" href=\"#\"><span><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z\"/></svg></span>Home</a><a href=\"#\"><span><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"4\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"13\" y=\"4\" width=\"7\" height=\"4\" rx=\"1.5\"/><rect x=\"13\" y=\"10\" width=\"7\" height=\"10\" rx=\"1.5\"/><rect x=\"4\" y=\"13\" width=\"7\" height=\"7\" rx=\"1.5\"/></svg></span>Dashboard</a><a href=\"#\"><span><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"8\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"12\" cy=\"12\" r=\".6\" fill=\"currentColor\"/></svg></span>Predict</a><a href=\"#\"><span><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 20h16\"/><path d=\"M5 16l4.5-5 3.5 3 6-7\"/><path d=\"M15 7h4v4\"/></svg></span>Stats</a></nav>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-tabbar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;background:var(--ink);border-radius:var(--r);box-shadow:0 6px 18px rgba(23,17,15,.28)}.ds-tabbar a{display:grid;justify-items:center;gap:2px;padding:6px 4px;color:rgba(255,255,255,.72);border-radius:4px;font:600 11px var(--font);text-decoration:none}.ds-tabbar a:hover{color:#fff}.ds-tabbar a.active{background:var(--poster);color:var(--ink)}.ds-tabbar a:focus-visible{outline:3px solid var(--magenta);outline-offset:2px}"
+      "description": "Floating blurred dark dock; the active tab lights hot red with a glowing top bar.",
+      "html": "<nav class=\"ds-dock\"><a class=\"active\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12h18\"/><path d=\"M12 8.5V12\"/><path d=\"M5.5 12v7M18.5 12v7\"/><circle cx=\"17\" cy=\"5.5\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></svg><span>แมตช์</span></a><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"14\" r=\"5\"/><path d=\"M9 9.5 6.5 3h4L12 7M15 9.5 17.5 3h-4\"/></svg><span>อันดับ</span></a><a href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"/><path d=\"M8 9h8M8 13h8M8 17h5\"/></svg><span>ดัมมี่</span></a></nav>",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-dock{display:flex;gap:4px;padding:6px;background:rgba(12,13,17,.94);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,.55);backdrop-filter:blur(12px)}.ds-dock a{position:relative;flex:1;display:grid;place-items:center;gap:2px;padding:8px 4px;min-height:44px;color:rgba(244,245,247,.62);text-decoration:none;font:600 11px/1.1 var(--font);border-radius:12px;transition:color 200ms}.ds-dock a:hover{color:var(--text)}.ds-dock a.active{color:var(--red-hi)}.ds-dock a.active:before{content:\"\";position:absolute;top:2px;left:30%;right:30%;height:3px;border-radius:3px;background:var(--red-hi);box-shadow:0 0 12px var(--red-glow)}.ds-dock a.active svg{filter:drop-shadow(0 0 6px var(--red-glow))}.ds-dock a:active{transform:translateY(1px)}.ds-dock a:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px}"
     },
     {
-      "name": "Paper Panel",
+      "name": "Smoked Panel",
       "kind": "card",
       "refersTo": "panel",
-      "description": "Paper panel on a 2px ink rule with a Chonburi title and ruled rows.",
-      "html": "<section class=\"ds-panel\"><h2>ตารางคะแนน</h2><div class=\"ds-row\"><span>มอส</span><b>30 RP</b></div><div class=\"ds-row\"><span>บอส</span><b>26 RP</b></div></section>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-panel{background:var(--paper);border:var(--rule);border-radius:var(--r);padding:14px 16px;color:var(--ink);font:400 14px/1.55 var(--font)}.ds-panel h2{margin:0 0 8px;font:400 clamp(21px,5.6vw,27px)/1.2 var(--display)}.ds-row{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:var(--rule-thin)}.ds-row b{font:400 18px var(--display);color:var(--corner-red)}"
+      "description": "Top-level content card: panel with a top sheen, hairline border, 14px corners, deep shadow; heading led by the red square.",
+      "html": "<section class=\"ds-panel\"><h2>แมตช์ถัดไป</h2><div class=\"ds-row\">กิฟท์ พบ ต้น</div><div class=\"ds-row\">โอ๊ต พบ เบียร์</div></section>",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-panel{background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 120px),var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 14px 34px rgba(0,0,0,.38);padding:16px}.ds-panel h2{margin:0 0 10px;font:600 clamp(20px,5.4vw,25px)/1.25 var(--display)}.ds-panel h2:before{content:\"\";display:inline-block;width:.42em;height:.42em;margin-right:.42em;background:var(--red);border-radius:2px;vertical-align:.12em;box-shadow:0 0 12px var(--red-glow)}.ds-row{padding:10px 2px;border-bottom:1px solid var(--line);font:400 14px/1.55 var(--font)}"
     },
     {
       "name": "Masthead",
       "kind": "custom",
       "refersTo": "masthead",
-      "description": "Magenta band, ศึก ink mark, league name in yellow Chonburi.",
-      "html": "<header class=\"ds-mast\"><div class=\"ds-mark\">ศึก</div><h1>ตีให้สุด หยุดที่เบ้าตา</h1><p>Season 4 • 7 คน • 21 แมตช์</p></header>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-mast{background:var(--magenta);border:var(--rule);border-radius:var(--r);padding:20px 18px 18px;color:#fff;font:400 14px var(--font)}.ds-mark{width:40px;height:40px;border-radius:50%;background:var(--ink);border:2px solid var(--poster);color:var(--poster);display:grid;place-items:center;font:400 13px/1 var(--display);margin-bottom:6px}.ds-mast h1{margin:4px 0 8px;font:400 clamp(40px,10vw,72px)/1.05 var(--display);color:var(--poster);letter-spacing:0}.ds-mast p{margin:0;color:rgba(255,255,255,.9)}"
+      "description": "Dark stage card lit by a red bloom and streak, ball in flight, white italic Kanit title.",
+      "html": "<header class=\"ds-hero\"><div class=\"ds-brand\"><span class=\"ds-mark\">ศึก</span><b>ลีกปิงปอง</b></div><h1>ตีให้สุด หยุดที่เบ้าตา</h1><p>ฤดูกาล 3</p></header>",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-hero{position:relative;overflow:hidden;padding:16px 16px 14px;color:#fff;border:1px solid var(--line-2);border-radius:var(--r);box-shadow:0 18px 40px rgba(0,0,0,.45);background:radial-gradient(circle at calc(100% - 34px) 30px,rgba(255,255,255,.95) 0 8px,rgba(255,255,255,.16) 9px,transparent 24px),linear-gradient(118deg,transparent 0 52%,rgba(229,36,47,0) 52%,rgba(229,36,47,.55) 60%,rgba(229,36,47,0) 61%,transparent 100%),linear-gradient(118deg,transparent 0 63%,rgba(229,36,47,.25) 66%,transparent 70%),radial-gradient(520px 300px at 100% 0,rgba(229,36,47,.35),transparent 70%),linear-gradient(160deg,#17191f,#0d0e12 70%)}.ds-brand{display:flex;align-items:center;gap:8px}.ds-brand b{font:600 15px/1 var(--display)}.ds-mark{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#ff5a63,var(--red) 55%,var(--red-deep));box-shadow:0 0 0 2px rgba(255,255,255,.12),0 6px 16px var(--red-glow);font:italic 800 14px/1 var(--display)}.ds-hero h1{margin:6px 0 4px;font:italic 800 clamp(32px,9vw,48px)/1.04 var(--display);text-shadow:0 2px 0 rgba(0,0,0,.4),0 0 28px rgba(229,36,47,.35)}.ds-hero p{margin:0;color:var(--text-2);font:400 14px/1.55 var(--font)}"
     },
     {
-      "name": "Match Fight Bill",
+      "name": "Match Face-off Card",
       "kind": "custom",
-      "refersTo": "vs-stamp",
-      "description": "Red corner vs blue corner with VS disc; finished match stamps the winner.",
-      "html": "<div class=\"ds-bill\"><span class=\"ds-stamp\">ชนะ</span><div class=\"ds-pair\"><b class=\"a\">มอส</b><span class=\"ds-vs\">VS</span><b class=\"b\">เฟิร์น</b><input class=\"sa\" value=\"2\"><input class=\"sb\" value=\"0\"></div><div class=\"ds-status\">มอส ชนะ 2 0</div></div>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-bill{position:relative;margin-top:26px;background:linear-gradient(90deg,var(--red-field) 0 50%,var(--blue-field) 50% 100%);border:var(--rule);border-radius:var(--r)}.ds-pair{display:grid;grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr);grid-template-areas:'na vs nb' 'sa vs sb';gap:8px 6px;align-items:center;padding:20px 10px 10px}.ds-pair b{font:400 clamp(20px,5.6vw,26px)/1.15 var(--display)}.ds-pair .a{grid-area:na;justify-self:end;color:var(--corner-red)}.ds-pair .b{grid-area:nb;color:var(--corner-blue);opacity:.42}.ds-pair input{min-height:44px;background:#fff;border:2px solid;border-radius:var(--r);text-align:center;font:400 22px var(--display);color:var(--ink);min-width:0}.ds-pair .sa{grid-area:sa;border-color:var(--corner-red)}.ds-pair .sb{grid-area:sb;border-color:var(--corner-blue)}.ds-pair input:focus{outline:none;border-color:var(--magenta);box-shadow:0 0 0 3px rgba(224,20,122,.18)}.ds-vs{grid-area:vs;justify-self:center;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--poster);font:400 16px/1 var(--display);border:3px solid var(--paper);box-shadow:0 0 0 2px var(--ink)}.ds-status{padding:7px 10px 9px;border-top:var(--rule-thin);background:var(--paper);border-radius:0 0 var(--r) var(--r);text-align:center;font:400 19px var(--display);color:var(--corner-red)}.ds-stamp{position:absolute;top:-16px;left:10px;z-index:2;font:400 24px/1 var(--display);padding:5px 10px 4px;border:3px solid currentColor;border-radius:4px;background:var(--paper);color:var(--corner-red);transform:rotate(-7deg)}"
+      "refersTo": "vs-disc",
+      "description": "Red corner left, blue right, glowing VS disc, score steppers, winner tag tilted onto the top corner.",
+      "html": "<article class=\"ds-match\"><span class=\"ds-win\">ชนะ</span><div class=\"ds-pair\"><b>กิฟท์</b><span class=\"ds-vs\">VS</span><b class=\"lost\">ต้น</b><div class=\"ds-score red\"><button>−</button><input value=\"11\"><button class=\"plus\">+</button></div><div class=\"ds-score blue\"><button>−</button><input value=\"7\"><button class=\"plus\">+</button></div></div><p class=\"ds-status\">กิฟท์ ชนะ 11-7</p></article>",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-match{position:relative;margin-top:22px;background:linear-gradient(100deg,rgba(229,36,47,.20),rgba(229,36,47,.04) 46%,rgba(91,140,255,.04) 54%,rgba(91,140,255,.16)),var(--panel-2);border:1px solid var(--line);border-radius:var(--r)}.ds-win{position:absolute;top:-14px;left:10px;font:italic 800 17px/1 var(--display);padding:6px 12px 5px;border-radius:8px;color:#fff;background:linear-gradient(180deg,#f2343e,#b3121b);box-shadow:0 6px 16px var(--red-glow);transform:rotate(-4deg)}.ds-pair{display:grid;grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr);grid-template-areas:\"na vs nb\" \"sa vs sb\";gap:8px 6px;align-items:center;padding:20px 10px 10px}.ds-pair>b{font:600 clamp(18px,5vw,23px)/1.2 var(--display);color:#fff;transition:opacity 200ms}.ds-pair>b:first-child{grid-area:na;justify-self:end;text-align:right}.ds-pair>b.lost{grid-area:nb;opacity:.42}.ds-vs{grid-area:vs;justify-self:center;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a2e38,#0c0d11);color:var(--red-hi);font:italic 800 17px/1 var(--display);border:1px solid rgba(255,71,82,.6);box-shadow:0 0 18px var(--red-glow)}.ds-score{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:4px}.ds-score.red{grid-area:sa}.ds-score.blue{grid-area:sb}.ds-score input{min-width:0;min-height:44px;text-align:center;background:var(--field);color:#fff;border:1px solid rgba(255,85,96,.55);border-radius:var(--r-sm);font:italic 800 22px/1 var(--display);font-variant-numeric:tabular-nums}.ds-score.blue input{border-color:rgba(91,140,255,.55)}.ds-score button{min-height:44px;background:var(--panel-3);color:#fff;border:1px solid var(--line-2);border-radius:var(--r-sm);cursor:pointer}.ds-score .plus{background:var(--red);border-color:#ff5c66}.ds-score button:active{transform:translateY(2px) scale(.94)}.ds-score button:focus-visible,.ds-score input:focus-visible{outline:2px solid var(--red-hi);outline-offset:2px}.ds-status{margin:0;padding:8px 10px 10px;border-top:1px solid var(--line);background:rgba(0,0,0,.18);border-radius:0 0 var(--r) var(--r);text-align:center;font:italic 800 18px/1.2 var(--display);color:#ff8a92}"
     },
     {
-      "name": "Stat Lines",
+      "name": "Stat Lines and Standings",
       "kind": "custom",
-      "refersTo": "panel",
-      "description": "Stats as ruled lines: Anuphan caption left, Chonburi value right.",
-      "html": "<div class=\"ds-stats\"><div class=\"ds-stat\"><b>9</b><small>แข่งแล้ว</small></div><div class=\"ds-stat\"><b>12</b><small>เหลือ</small></div><div class=\"ds-stat\"><b>มอส</b><small>อันดับ 1</small></div></div>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-stats{display:grid;border-top:var(--rule);background:var(--paper);padding:0 12px}.ds-stat{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 2px;border-bottom:var(--rule-thin)}.ds-stat b{font:400 clamp(22px,6vw,28px)/1.1 var(--display);color:var(--ink)}.ds-stat small{font:400 14px var(--font);color:var(--ink-2)}"
+      "refersTo": "table-header",
+      "description": "Ruled stat rows (caption left, italic Kanit figure right) and medal rank discs with hot-red RP.",
+      "html": "<div class=\"ds-stats\"><div class=\"ds-stat\"><small>แมตช์ที่เล่น</small><b>24</b></div><div class=\"ds-stat\"><small>อัตราชนะ</small><b>63%</b></div></div><div class=\"ds-rank\"><span class=\"ds-pos gold\">1</span><span>กิฟท์ <i class=\"ds-champ\">แชมป์</i></span><b>1,240</b></div><div class=\"ds-rank\"><span class=\"ds-pos\">4</span><span>เบียร์</span><b>980</b></div>",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-stats{border-top:1px solid var(--line-2)}.ds-stat{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 2px;border-bottom:1px solid var(--line)}.ds-stat small{font:400 14px/1.3 var(--font);color:var(--text-2)}.ds-stat b{font:italic 800 clamp(22px,6vw,28px)/1.1 var(--display);font-variant-numeric:tabular-nums lining-nums}.ds-rank{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);font:700 14px/1.3 var(--font)}.ds-rank b{margin-left:auto;color:var(--red-hi);font:italic 800 18px/1 var(--display)}.ds-pos{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:var(--panel-3);border:1px solid var(--line-2);font:italic 800 14px/1 var(--display)}.ds-pos.gold{background:var(--gold);border-color:var(--gold);color:#1a1300;box-shadow:0 0 14px rgba(245,184,11,.45)}.ds-champ{display:inline-block;margin-left:6px;padding:2px 7px 1px;font:italic 800 11px/1.3 var(--display);color:#1a1300;background:var(--gold);border-radius:5px;box-shadow:0 0 12px rgba(245,184,11,.4)}"
     },
     {
-      "name": "Tag and Form Dots",
+      "name": "Tags, Form Dots and Streak Stamps",
       "kind": "chip",
       "refersTo": "tag",
-      "description": "Pill tag on a 1.5px ink rule; W/D/L dots in result colours.",
-      "html": "<div class=\"ds-chips\"><span class=\"ds-tag\">พัก: มอส</span><span class=\"ds-tag closed\">ปิดแล้ว</span><span class=\"ds-dot w\">W</span><span class=\"ds-dot d\">D</span><span class=\"ds-dot l\">L</span></div>",
-      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ds-tag{background:var(--paper-2);border:1.5px solid var(--ink);color:var(--ink);border-radius:999px;padding:2px 9px;font:600 12px var(--font)}.ds-tag.closed{background:var(--ink);color:var(--poster)}.ds-dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--ink);font:400 12px var(--display)}.ds-dot.w{background:var(--win);color:#fff}.ds-dot.l{background:var(--lose);color:#fff}.ds-dot.d{background:var(--poster);color:var(--ink)}"
+      "description": "Panel-3 pill tags (closed turns red), W/L/D form dots, tilted banter stamps.",
+      "html": "<span class=\"ds-tag\">เปิด</span> <span class=\"ds-tag closed\">ปิดแล้ว</span> <span class=\"ds-dot w\">W</span><span class=\"ds-dot l\">L</span><span class=\"ds-dot d\">D</span> <span class=\"ds-stamp hot\">ไฟลุก</span> <span class=\"ds-stamp cold\">ฟอร์มตก</span>",
+      "css": ":host{--bg:#0a0b0e;--bg-2:#101217;--panel:#15171d;--panel-2:#1c1f26;--panel-3:#252932;--field:#0e1014;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.16);--text:#f4f5f7;--text-2:#c9cdd5;--text-soft:#9ba1ad;--red:#d81e29;--red-hi:#ff4752;--red-deep:#9e111a;--red-glow:rgba(229,36,47,.38);--blue:#5b8cff;--gold:#f5b80b;--win:#34d27c;--lose:#ff5c68;--r:14px;--r-sm:10px;--display:\"Kanit\",\"Anuphan\",system-ui,sans-serif;--font:\"Anuphan\",system-ui,sans-serif;font-family:var(--font);color:var(--text)} .ds-tag{display:inline-block;padding:2px 7px;border-radius:999px;background:var(--panel-3);border:1px solid var(--line-2);color:var(--text);font:600 12px/1.4 var(--font)}.ds-tag.closed{background:var(--red);border-color:var(--red);color:#fff}.ds-dot{display:inline-grid;place-items:center;width:26px;height:26px;margin-right:4px;border-radius:8px;font:italic 800 13px/1 var(--display)}.ds-dot.w{background:var(--win);color:#06200f}.ds-dot.l{background:var(--lose);color:#2a0306}.ds-dot.d{background:var(--panel-3);color:var(--text)}.ds-stamp{display:inline-block;padding:2px 6px 1px;font:italic 800 11px/1.2 var(--display);border:1.5px solid currentColor;border-radius:3px;background:var(--panel);transform:rotate(-4deg)}.ds-stamp.hot{color:var(--win)}.ds-stamp.cold{color:var(--lose);transform:rotate(3deg)}"
     }
   ],
   "narrative": {
-    "northStar": "The Fight Bill at the Hall",
-    "overview": "**Creative North Star: \"The Fight Bill at the Hall\"**\n\nThe league reads as a Thai boxing poster (โปสเตอร์มวย) pasted up next to the table. The ground is poster yellow; content sits on newsprint-white paper panels held by 2px ink rules; the masthead is a บานเย็น magenta band with the league name in looped yellow Chonburi. Every pairing is billed red corner versus blue corner with a VS stamp between, and a finished match gets a rotated ชนะ stamp on the winner while the loser fades back. It is loud the way a poster is loud: flat inks, heavy display type, no glow.\n\nDensity is phone-first and operational. Panels are tight (6px corners, 12-18px insets), numbers and names carry the page in display type, and everything else stays standard Anuphan UI text on standard controls. Desktop widens the league home into two columns (bill on the left, sticky standings on the right) without changing the vocabulary. This world replaces the dark glass sports-app card grid with a neon accent that the site had before.",
+    "northStar": "Match Night Under the Red Light",
+    "overview": "The league reads as a dark esports-style sports app on match night. The ground is a near-black arena (bg) lit by one red spotlight: a soft red radial bloom in the top-right corner of the page and a fainter one on the left. Content sits on smoked-glass panels (panel with a faint white sheen across the top 120px, a hairline white border, 14px corners, a deep soft shadow). Red is the only loud colour; it carries the primary action, the active tab, section markers, the VS disc and the winner's tag, and it glows. Every pairing is still a face-off, red corner left and blue corner right, with a glowing VS disc between.\n\nDensity is phone-first and operational. Big sporty words (the league name, page titles, scores, figures, stamps) are set in Kanit 800 italic; names and section titles in Kanit 600 upright; everything you read or operate stays in Anuphan. Desktop widens the league home into two columns (matches on the left, sticky standings on the right) without changing the vocabulary. This world replaces the yellow fight-poster world (Chonburi, magenta masthead, paper panels on poster yellow) that the site had before.",
     "keyCharacteristics": [
-      "Poster-yellow page ground, paper panels, 2px ink rules, 6px corners.",
-      "Two-faced type: Chonburi for titles, names, scores, money and stamps; Anuphan for everything else.",
-      "Red corner / blue corner as the colour pair for every match-up; green and red only for won/lost money and W/L.",
-      "Magenta is the masthead and the interaction colour (focus, caret, selection, progress).",
-      "Stamps, not glyphs: winners and champions get a bordered, slightly rotated Chonburi word.",
-      "Flat surfaces; depth only for the floating tab bar and toast."
+      "Near-black arena ground with a red radial bloom; smoked-glass panels with hairline white borders and 14px corners.",
+      "Two Kanit cuts only: 800 italic for the big sporty words and numbers, 600 upright for names and section titles; Anuphan for everything else.",
+      "Red is the one accent and the interaction colour (primary button, focus, caret, selection, active tab, progress); it glows.",
+      "Red corner / blue corner for every match-up; green and coral-red only for won/lost money and W/L.",
+      "Gold, silver and bronze for ranks 1-3, the leader row and champions.",
+      "Lifted surfaces: panels, the masthead, the tab dock and sheets cast deep, soft black shadows; red elements add a red glow."
     ],
     "rules": [
+      {
+        "name": "The One Light Rule",
+        "body": "Red is the only accent colour in the arena. Gold, silver and bronze mean rank; green and coral mean won and lost; blue means the right corner. Nothing else gets a hue.",
+        "section": "colors"
+      },
       {
         "name": "The Two Corners Rule",
         "body": "Any head-to-head pairing is red on the left, blue on the right, every time. Red/blue never encode good/bad.",
         "section": "colors"
       },
       {
-        "name": "The Money Is Green and Red Rule",
-        "body": "Win green and lose red are reserved for won/lost amounts, W/L results and rank movement.",
+        "name": "The Money Is Green and Coral Rule",
+        "body": "Win green and lose coral are reserved for won/lost amounts, W/L results and rank movement.",
         "section": "colors"
       },
       {
-        "name": "The Magenta Means Here Rule",
-        "body": "Outside the masthead, magenta marks where the user is acting: focus, caret, selection, progress.",
-        "section": "colors"
-      },
-      {
-        "name": "The Bill Voice Rule",
-        "body": "Chonburi is for what the poster would print: titles, names, scores, money, stamps. Controls, labels and explanations stay in Anuphan.",
+        "name": "The Two Cuts Rule",
+        "body": "Kanit exists on the site only as 600 upright and 800 italic. Italic means loud (titles in the masthead, numbers, stamps); upright 600 means names and section titles. Never ask for another weight or an upright 800; `font-synthesis:none` means the browser will not fake one.",
         "section": "typography"
       },
       {
-        "name": "The No Tracking Rule",
-        "body": "Display type is set at letter-spacing 0 and never in faux bold; Chonburi ships one weight.",
+        "name": "The Arena Voice Rule",
+        "body": "Kanit is for what the scoreboard would show: titles, names, scores, money, stamps. Controls, labels and explanations stay in Anuphan.",
         "section": "typography"
       },
       {
-        "name": "The Pasted-Up Rule",
-        "body": "Panels, cards, buttons and sheets have no shadow and no blur; overlays are flat ink at 55% with no backdrop filter.",
+        "name": "The Glow Means Red or Gold Rule",
+        "body": "Coloured light comes only from red (action, live, winner) and gold (rank 1, champion). Everything else lifts with neutral black shadow or not at all.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Flat Inside Rule",
+        "body": "Only top-level things lift: panels, masthead, dock, sheets, toasts, the primary button. Rows and controls inside a panel stay flat on tone and hairlines.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "**Do** put every page on the poster-yellow ground and every content block on paper with a 2px ink rule and 6px corners.",
-      "**Do** bill every pairing red corner left, blue corner right, with the ink VS disc between.",
-      "**Do** set names, scores, money, titles and stamps in Chonburi 400 at letter-spacing 0; keep controls and labels in Anuphan.",
-      "**Do** mark a winner with a rotated Chonburi word stamp in their colour, and fade the loser, rather than adding an icon.",
-      "**Do** flatten lists inside a panel into rows divided by thin ink rules.",
-      "**Do** use drawn SVG icons (24px grid, 1.8 stroke, round caps) where an icon is needed.",
-      "**Do** keep magenta for the masthead and for focus, caret, selection and progress."
+      "Do put every page on the arena-black ground with the red bloom, and every content block on a smoked-glass panel with a 1px line border, 14px corners and the panel shadow.",
+      "Do bill every pairing red corner left, blue corner right, with the glowing VS disc between.",
+      "Do set the loud words (masthead titles, scores, figures, money, stamps) in Kanit 800 italic and names and section titles in Kanit 600 upright; keep controls and labels in Anuphan.",
+      "Do mark a winner with the tilted ชนะ tag in their corner colour, and fade the loser, rather than adding an icon.",
+      "Do flatten lists inside a panel into rows divided by line hairlines.",
+      "Do use drawn SVG icons (24px grid, 1.8 stroke, round caps) where an icon is needed.",
+      "Do keep red as the single accent, with hot red for focus, caret, selection, the active tab and red text on dark.",
+      "Do keep numbers in tabular lining figures."
     ],
     "donts": [
-      "**Don't** bring back the dark glass card grid with a neon accent, backdrop blur or glow.",
-      "**Don't** put shadows on panels, buttons or sheets; only the floating tab bar and toast lift.",
-      "**Don't** use red or blue corner colours to mean good or bad; won/lost is green and red.",
-      "**Don't** use emoji or text glyphs as icons.",
-      "**Don't** nest boxed cards inside paper panels, or lay stats out as a wall of big-number tiles.",
-      "**Don't** print an empty stat as a headline-size dash; drop it."
+      "Don't bring back the yellow fight-poster world: poster-yellow ground, paper panels, 2px ink rules, the magenta masthead or Chonburi.",
+      "Don't add a second accent hue; blue belongs to the right corner, gold/silver/bronze to rank, green and coral to won/lost.",
+      "Don't use red or blue corner colours to mean good or bad; won/lost is green and coral.",
+      "Don't request Kanit weights or styles other than 600 upright and 800 italic.",
+      "Don't put shadows or glow on rows, inputs or tags inside a panel; only top-level surfaces lift, and only red and gold glow.",
+      "Don't use emoji or text glyphs as icons.",
+      "Don't nest boxed cards inside panels, or lay stats out as a wall of big-number tiles.",
+      "Don't print an empty stat as a headline-size dash; drop it."
     ]
   }
 }

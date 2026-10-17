@@ -1,0 +1,364 @@
+/* Night-arena world: loaded last on every page, after the page css, theme.css and motion.css.
+   A dark arena under one red spotlight: near-black ground, smoked-glass panels, red as the only loud colour,
+   Kanit italic for the big sporty words, Anuphan for everything you read.
+   Everything is scoped to body.sport-redesign (set by sport-ui.js) so it wins over the older layers.
+   The older page sheets speak in the poster tokens (--ink, --paper, --poster…); they are mapped onto this palette
+   at the bottom of :root so those sheets turn dark without being rewritten. */
+:root{
+  --bg:#0a0b0e;
+  --bg-2:#101217;
+  --panel:#15171d;
+  --panel-2:#1c1f26;
+  --panel-3:#252932;
+  --field:#0e1014;
+  --line:rgba(255,255,255,.08);
+  --line-2:rgba(255,255,255,.16);
+  --text:#f4f5f7;
+  --text-2:#c9cdd5;
+  --text-soft:#9ba1ad;
+  --red:#d81e29;
+  --red-hi:#ff4752;
+  --red-deep:#9e111a;
+  --red-glow:rgba(229,36,47,.38);
+  --blue:#5b8cff;
+  --gold:#f5b80b;
+  --silver:#c3cad5;
+  --bronze:#d68a4c;
+  --win:#34d27c;
+  --lose:#ff5c68;
+  --r:14px;
+  --r-sm:10px;
+  --display:"Kanit","Anuphan",system-ui,sans-serif;
+  --font:"Anuphan",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
+  /* poster tokens used by the page sheets */
+  --ink:var(--text);
+  --ink-2:var(--text-2);
+  --ink-soft:var(--text-soft);
+  --paper:var(--panel);
+  --paper-2:var(--panel-2);
+  --poster:var(--red);
+  --poster-deep:var(--red-deep);
+  --magenta:var(--red);
+  --magenta-deep:var(--red-hi);
+  --corner-red:#ff5560;
+  --corner-blue:var(--blue);
+  --red-field:rgba(229,36,47,.16);
+  --blue-field:rgba(91,140,255,.12);
+  --rule:1px solid var(--line-2);
+  --rule-thin:1px solid var(--line);
+  --sport-muted:var(--text-soft);
+  --sport-red:var(--red);
+  --sport-line:var(--line-2);
+  --sport-line-2:var(--line);
+  --medal-gold:var(--gold);--medal-silver:var(--silver);--medal-bronze:var(--bronze);
+}
+html{background:var(--bg);color-scheme:dark}
+body.sport-redesign{
+  background:
+    radial-gradient(900px 520px at 105% -8%,rgba(229,36,47,.22),transparent 62%),
+    radial-gradient(700px 480px at -15% 38%,rgba(229,36,47,.08),transparent 60%),
+    var(--bg);
+  background-repeat:no-repeat;
+  color:var(--text);font-family:var(--font);caret-color:var(--red-hi);accent-color:var(--red)}
+body.sport-redesign ::selection{background:var(--red);color:#fff}
+body.sport-redesign :is(h1,h2,h3){color:var(--text);letter-spacing:0}
+body.sport-redesign :is(.muted,.hint,small){color:var(--text-soft)}
+body.sport-redesign a{color:inherit}
+body.sport-redesign :focus-visible{outline:2px solid var(--red-hi)!important;outline-offset:2px}
+
+/* ---------- Masthead: a dark stage, one red light streak, a ball in flight ---------- */
+body.sport-redesign .hero{position:relative;overflow:hidden;isolation:isolate;
+  background:
+    radial-gradient(circle at calc(100% - 34px) 30px,rgba(255,255,255,.95) 0 8px,rgba(255,255,255,.16) 9px,transparent 24px),
+    linear-gradient(118deg,transparent 0 52%,rgba(229,36,47,.0) 52%,rgba(229,36,47,.55) 60%,rgba(229,36,47,.0) 61%,transparent 100%),
+    linear-gradient(118deg,transparent 0 63%,rgba(229,36,47,.25) 66%,transparent 70%),
+    radial-gradient(520px 300px at 100% 0,rgba(229,36,47,.35),transparent 70%),
+    linear-gradient(160deg,#17191f,#0d0e12 70%);
+  border:1px solid var(--line-2);border-radius:var(--r);box-shadow:0 18px 40px rgba(0,0,0,.45);color:var(--text);min-height:0;padding:18px 18px 16px}
+body.sport-redesign .hero:before{content:"PING PONG";display:block;position:absolute;z-index:-1;right:-6px;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:center;font-family:var(--display);font-style:italic;font-weight:800;font-size:44px;letter-spacing:.06em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.08);white-space:nowrap;pointer-events:none;translate:42% 0}
+body.sport-redesign .hero:after{display:none}
+body.sport-redesign .hero-player-photo{display:none}
+body.sport-redesign .hero h1{font-family:var(--display);font-style:italic;font-weight:800;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.4),0 0 28px rgba(229,36,47,.35);letter-spacing:0;line-height:1.08;max-width:100%!important}
+body.sport-redesign .hero :is(.muted,.sub,p,small){color:var(--text-2)!important}
+body.sport-redesign .hero .eyebrow{display:none}
+.sport-brand{margin-bottom:6px}
+body.sport-redesign .sport-mark{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff5a63,var(--red) 55%,var(--red-deep));border:0;box-shadow:0 0 0 2px rgba(255,255,255,.12),0 6px 16px var(--red-glow);font-family:var(--display);font-style:italic;font-weight:800;font-size:14px!important;color:#fff!important;display:grid;place-items:center;line-height:1}
+body.sport-redesign .sport-mark:after{content:none}
+.sport-brand b{font-family:var(--display);font-weight:600;font-size:15px;color:#fff}
+.sport-brand small{color:var(--text-soft);letter-spacing:.12em}
+body.sport-redesign .hero .pill{background:rgba(255,255,255,.06);border:1px solid var(--line-2);color:var(--text);border-radius:999px;backdrop-filter:blur(6px)}
+body.sport-redesign .hero .sync.online{background:rgba(52,210,124,.12);border-color:rgba(52,210,124,.45);color:var(--win)}
+body.sport-redesign .hero .sync.offline{background:rgba(229,36,47,.14);border-color:rgba(255,71,82,.5);color:#ffb0b5}
+body.sport-redesign .hero .account-bar{background:rgba(10,11,14,.72);border:1px solid var(--line);border-radius:var(--r-sm);backdrop-filter:blur(8px);color:#fff}
+body.sport-redesign .hero .account-bar :is(strong,.account-user){color:#fff}
+body.sport-redesign .admin-badge{background:var(--red);color:#fff;border-radius:6px;font-weight:700}
+body.sport-redesign .hero .notice{background:rgba(229,36,47,.14);border:1px solid rgba(255,71,82,.45);color:var(--text);border-radius:var(--r-sm)}
+body.sport-redesign .hero .notice *{color:var(--text)!important}
+body.hero-full .hero{padding:20px 18px 18px}
+body.hero-full .hero h1{font-size:clamp(44px,13vw,88px);line-height:1.04;margin:4px 0 8px}
+body.hero-compact .hero{padding:14px 16px 12px}
+body.hero-compact .hero h1{font-size:clamp(26px,7.4vw,38px)!important;padding-right:44px}
+body.hero-compact .sport-mark{width:34px;height:34px;font-size:12px!important}
+body.sport-redesign .hero .account-bar :is(button,a){background:rgba(255,255,255,.04);color:#fff;border:1px solid var(--line-2)}
+body.sport-redesign .hero .account-bar .danger{color:#ffb0b5;border-color:rgba(255,92,104,.55)}
+body.sport-redesign .hero>.actions :is(a,button){background:rgba(255,255,255,.05);color:#fff;border:1px solid var(--line-2);border-radius:var(--r-sm)!important;min-height:44px;padding:6px 12px;line-height:1.2}
+
+/* ---------- Panels: smoked glass ---------- */
+body.sport-redesign :is(.card,.workflow-card){background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 120px),var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 14px 34px rgba(0,0,0,.38);color:var(--text)}
+/* Section heads get the red block marker from the reference: ■ แมตช์ถัดไป */
+body.sport-redesign :is(.card>h2,.section-head h2,.next-up-head h2):before{content:"";display:inline-block;width:.42em;height:.42em;margin-right:.42em;background:var(--red);border-radius:2px;vertical-align:.12em;box-shadow:0 0 12px var(--red-glow)}
+body.sport-redesign :is(.card h2,.section-head h2,.workflow-title b){font-family:var(--display);font-weight:600;font-size:clamp(20px,5.4vw,25px);line-height:1.25;color:var(--text)}
+body.sport-redesign .card h3{font-weight:700}
+body.sport-redesign :is(.roster-box,.rest,.roster-item,.match,.market,.backup,.season-item,.account,.season-btn,.dealer-current-card,.dealer-selector,.workflow-item,.quick-tile,.stat,.profile-metric,.locked,.d-board-row,.d-entry-row,.d-line,.d-pay-row,.d-preview,.d-rates){background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:none;color:var(--text)}
+body.sport-redesign .workflow-item{background:var(--panel-2)}
+body.sport-redesign .workflow-item a{color:var(--red-hi);font-weight:700;display:inline-flex;align-items:center;min-height:44px;min-width:44px;justify-content:center;margin:-12px -10px}
+body.sport-redesign .rh{color:var(--text)}
+body.sport-redesign .rh b{font-family:var(--display);font-style:italic;font-weight:800;font-size:18px}
+body.sport-redesign .rest{background:rgba(229,36,47,.14);border:1px solid rgba(255,71,82,.45);color:#ffc2c6;border-radius:999px}
+
+/* ---------- Controls ---------- */
+body.sport-redesign :is(button,a.btn,a.primary,a.secondary){border-radius:var(--r-sm);font-weight:700;box-shadow:none;filter:none}
+body.sport-redesign :is(.primary,.blue,.green){background:linear-gradient(180deg,#dc2530,#b0121a);color:#fff;border:1px solid #ff5c66;box-shadow:0 8px 20px rgba(229,36,47,.28)}
+body.sport-redesign :is(.primary,.blue,.green):not(:disabled):hover{background:linear-gradient(180deg,#d61f2a,#b8141d)}
+body.sport-redesign .secondary{background:var(--panel-2);color:var(--text);border:1px solid var(--line-2)}
+body.sport-redesign .secondary:not(:disabled):hover{background:var(--panel-3);border-color:rgba(255,255,255,.26)}
+body.sport-redesign .danger{background:transparent;color:var(--lose);border:1px solid rgba(255,92,104,.6)}
+body.sport-redesign :is(input,select,textarea){background:var(--field);color:var(--text);border:1px solid var(--line-2);border-radius:var(--r-sm);box-shadow:none}
+body.sport-redesign :is(input,select,textarea):focus{border-color:var(--red-hi);box-shadow:0 0 0 3px rgba(229,36,47,.22)}
+body.sport-redesign input::placeholder{color:rgba(244,245,247,.38)}
+body.sport-redesign input[type=checkbox],body.sport-redesign input[type=radio]{accent-color:var(--red)}
+body.sport-redesign select option{background:var(--panel);color:var(--text)}
+
+/* ---------- Numbers and stats: big italic figures ---------- */
+body.sport-redesign .stat{background:var(--panel-2);border:1px solid var(--line)}
+body.sport-redesign .stat b{font-family:var(--display);font-style:italic;font-weight:800;color:var(--text)}
+body.sport-redesign .stat small{color:var(--text-soft)}
+body.sport-redesign .progress{background:var(--field);border:1px solid var(--line);border-radius:999px}
+body.sport-redesign .progress span{background:linear-gradient(90deg,var(--red-deep),var(--red-hi));box-shadow:0 0 12px var(--red-glow)}
+body.sport-redesign :is(.rank-rp,.points){color:var(--red-hi);font-family:var(--display);font-style:italic;font-weight:800}
+body.sport-redesign .rank-row{border-bottom:1px solid var(--line)}
+body.sport-redesign .rank-pos{background:var(--panel-3);color:var(--text);border:1px solid var(--line-2);border-radius:50%;font-family:var(--display);font-style:italic;font-weight:800}
+body.sport-redesign .rank-row:nth-child(1) .rank-pos{background:var(--gold);color:#1a1300;border-color:var(--gold);box-shadow:0 0 14px rgba(245,184,11,.45)}
+body.sport-redesign .rank-row:nth-child(2) .rank-pos{background:var(--silver);color:#14171c;border-color:var(--silver)}
+body.sport-redesign .rank-row:nth-child(3) .rank-pos{background:var(--bronze);color:#1c0f05;border-color:var(--bronze)}
+body.sport-redesign :is(.positive,.up){color:var(--win)!important}
+body.sport-redesign :is(.negative,.down){color:var(--lose)!important}
+
+/* ---------- Tables: the standings board ---------- */
+body.sport-redesign :is(.wrap,.table-wrap){background:var(--panel);border:1px solid var(--line);border-radius:var(--r-sm)}
+body.sport-redesign table{background:transparent}
+body.sport-redesign th{background:var(--bg-2);color:var(--text-soft);font-weight:600;font-size:12px;letter-spacing:.06em;border-bottom:1px solid var(--line-2)}
+body.sport-redesign td{color:var(--text);border-bottom:1px solid var(--line)}
+body.sport-redesign tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+body.sport-redesign td.name{font-weight:700}
+/* The leader's row glows gold, like the #1 card in the reference */
+body.sport-page-index-html #standings tr:first-child td{background:rgba(245,184,11,.09)}
+
+/* ---------- Signature: every match is a face-off card ----------
+   Red corner on the left, blue on the right, a glowing VS disc between, score steppers underneath.
+   index.js sets data-win="a|b|d" on a finished match: the winner gets the red ชนะ tag, the loser dims. */
+body.sport-redesign .match{position:relative;overflow:visible;padding:0;background:linear-gradient(100deg,rgba(229,36,47,.20),rgba(229,36,47,.04) 46%,rgba(91,140,255,.04) 54%,rgba(91,140,255,.16)),var(--panel-2);border:1px solid var(--line);border-radius:var(--r)}
+body.sport-redesign .match:before{display:none}
+body.sport-redesign .pair{display:grid!important;grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr)!important;grid-template-areas:"na vs nb" "sa vs sb";gap:8px 6px!important;align-items:center;padding:14px 10px 10px;width:100%}
+body.sport-redesign .pair>b:first-child{grid-area:na;justify-self:end;text-align:right;color:#fff}
+body.sport-redesign .pair>b:last-child{grid-area:nb;justify-self:start;text-align:left;color:#fff}
+body.sport-redesign .pair>b{font-family:var(--display);font-weight:600;font-size:clamp(18px,5vw,23px)!important;line-height:1.2;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;transition:opacity .2s}
+body.sport-redesign .pair>b .pa{--s:24px!important;vertical-align:-4px}
+body.sport-redesign .pair>.score-control:nth-of-type(1){grid-area:sa}
+body.sport-redesign .pair>.score-control:nth-of-type(2){grid-area:sb}
+body.sport-redesign .pair>.score-control{grid-template-columns:36px minmax(0,1fr) 36px!important;gap:4px}
+body.sport-redesign .pair>.score-control:nth-of-type(1) input{border-color:rgba(255,85,96,.55)}
+body.sport-redesign .pair>.score-control:nth-of-type(2) input{border-color:rgba(91,140,255,.55)}
+body.sport-redesign .score-control input{font-family:var(--display);font-style:italic;font-weight:800;font-size:22px!important;color:#fff;min-height:44px!important;background:var(--field)}
+body.sport-redesign .score-control button{background:var(--panel-3);color:#fff;border:1px solid var(--line-2);min-height:44px!important}
+body.sport-redesign .score-control .plus{background:var(--red);color:#fff;border-color:#ff5c66}
+body.sport-redesign .pair>.vs{grid-area:vs;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a2e38,#0c0d11);color:var(--red-hi)!important;font-family:var(--display);font-style:italic;font-weight:800;font-size:17px!important;line-height:1;justify-self:center;align-self:center;text-transform:uppercase;border:1px solid rgba(255,71,82,.6);box-shadow:0 0 18px var(--red-glow)}
+body.sport-redesign .match .status{margin:0;padding:8px 10px 10px;border-top:1px solid var(--line);background:rgba(0,0,0,.18);border-radius:0 0 var(--r) var(--r);color:var(--text-soft);font-weight:600;text-align:center}
+body.sport-redesign .match[data-win] .status{font-family:var(--display);font-style:italic;font-weight:800;font-size:18px;color:var(--text)}
+body.sport-redesign .match[data-win=a] .status{color:#ff8a92}
+body.sport-redesign .match[data-win=b] .status{color:#9dbaff}
+body.sport-redesign .match[data-win=a] .pair>b:last-child,body.sport-redesign .match[data-win=b] .pair>b:first-child{opacity:.42}
+body.sport-redesign .match[data-win=a]:after,body.sport-redesign .match[data-win=b]:after{content:"ชนะ";position:absolute;top:-14px;z-index:2;font-family:var(--display);font-style:italic;font-weight:800;font-size:17px;line-height:1;padding:6px 12px 5px;border-radius:8px;color:#fff;background:linear-gradient(180deg,#f2343e,#b3121b);box-shadow:0 6px 16px var(--red-glow);transform:rotate(-4deg)}
+body.sport-redesign .match[data-win=a]:after{left:10px}
+body.sport-redesign .match[data-win=b]:after{right:10px;background:linear-gradient(180deg,#6f9bff,#2f5fd6);box-shadow:0 6px 16px rgba(91,140,255,.4);transform:rotate(4deg)}
+body.sport-redesign .match[data-win=a]{--stamp-rot:-4deg}
+body.sport-redesign .match[data-win=b]{--stamp-rot:4deg}
+body.sport-redesign .match{margin-bottom:12px}
+body.sport-redesign .match[data-win=a],body.sport-redesign .match[data-win=b]{margin-top:22px}
+body.sport-redesign .match[data-win] .pair{padding-top:20px}
+/* "คิวต่อไป" */
+.next-up[hidden]{display:none!important}
+body.sport-redesign .next-up{margin:0 0 16px;padding:0 0 14px;border-bottom:1px solid var(--line)}
+body.sport-redesign .next-up-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+body.sport-redesign .next-up-head h2{margin:0}
+body.sport-redesign .next-up-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+body.sport-redesign .next-up-item{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"tag tag" "bill go";gap:4px 8px;align-items:stretch}
+body.sport-redesign .next-up-item+.next-up-item{padding-top:10px;border-top:1px solid var(--line)}
+body.sport-redesign .next-up-tag{grid-area:tag;font-weight:700;font-size:13px;color:var(--text-soft)}
+body.sport-redesign .next-up-item:first-child .next-up-tag{color:var(--red-hi)}
+body.sport-redesign .next-up-bill{grid-area:bill;display:grid;grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);align-items:center;gap:6px;min-height:52px;padding:6px 8px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:linear-gradient(100deg,rgba(229,36,47,.28),rgba(229,36,47,.04) 48%,rgba(91,140,255,.04) 52%,rgba(91,140,255,.22)),var(--panel-2)}
+body.sport-redesign .next-up-bill b{font-family:var(--display);font-weight:600;font-size:clamp(16px,4.4vw,19px);line-height:1.2;overflow-wrap:anywhere;color:#fff}
+body.sport-redesign .next-up-bill .nu-red{text-align:right}
+body.sport-redesign .next-up-bill .nu-blue{text-align:left}
+body.sport-redesign .next-up-bill .nu-vs{display:grid;place-items:center;width:30px;height:30px;justify-self:center;border-radius:50%;background:#0c0d11;border:1px solid rgba(255,71,82,.6);color:var(--red-hi);font-family:var(--display);font-style:italic;font-weight:800;font-size:12px;line-height:1;box-shadow:0 0 12px var(--red-glow)}
+body.sport-redesign .next-up-go{grid-area:go;min-height:52px;padding:6px 12px;white-space:nowrap}
+body.sport-redesign .next-up-done{padding:10px 12px;border:1px solid rgba(52,210,124,.45);border-radius:var(--r-sm);background:rgba(52,210,124,.1);color:var(--win);font-weight:700}
+body.sport-redesign .match.cued{outline:2px solid var(--red-hi);outline-offset:3px;transition:outline-color .3s}
+@media (prefers-reduced-motion:no-preference){body.sport-redesign .match.cued{animation:nu-cue 1.8s ease-out}}
+@keyframes nu-cue{0%,55%{outline-color:var(--red-hi)}100%{outline-color:transparent}}
+
+/* ---------- Avatars, podium, chips ---------- */
+.pa{box-shadow:0 0 0 1.5px rgba(255,255,255,.18);text-shadow:none}
+.pod .pa{box-shadow:0 0 0 3px var(--panel),0 0 0 5px var(--medal),0 0 22px color-mix(in srgb,var(--medal) 45%,transparent)}
+.pod b{color:var(--text)}
+.pod strong{color:var(--red-hi);font-family:var(--display);font-style:italic;font-weight:800}
+.pod-medal{color:#14171c;box-shadow:none;border:0;background:var(--medal);font-family:var(--display);font-style:italic;font-weight:800}
+.pod-step{border:1px solid color-mix(in srgb,var(--medal) 70%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--medal) 30%,var(--panel)),var(--panel));box-shadow:0 -6px 24px color-mix(in srgb,var(--medal) 18%,transparent)}
+body.sport-redesign .podium-row:first-child{border-color:rgba(245,184,11,.6);background:linear-gradient(90deg,rgba(245,184,11,.16),transparent)}
+.delta{background:var(--panel-2);border:1px solid var(--line-2);color:var(--text)}
+.delta.up{border-color:rgba(52,210,124,.6)}.delta.down{border-color:rgba(255,92,104,.6)}
+.ring{background:conic-gradient(var(--red) calc(var(--p)*1%),var(--panel-3) 0);border:1px solid var(--line-2)}
+.ring:before{background:var(--panel);border:1px solid var(--line)}
+.ring b{font-family:var(--display);font-style:italic;font-weight:800;color:var(--text)}
+.form-strip .dot,.recent .dot{border:0;font-family:var(--display);font-style:italic;font-weight:800}
+body.sport-redesign .dot.w{background:var(--win);color:#06200f}
+body.sport-redesign .dot.l{background:var(--lose);color:#2a0306}
+body.sport-redesign .dot.d{background:var(--panel-3);color:var(--text)}
+body.sport-redesign .quick-tile{background:var(--panel-2);border:1px solid var(--line);color:var(--text)}
+body.sport-redesign .quick-tile:hover{background:var(--panel-3);border-color:rgba(255,71,82,.5)}
+body.sport-redesign .quick-tile b{font-family:var(--display);font-weight:600}
+.health-pill{background:rgba(255,255,255,.06);border:1px solid var(--line-2)!important;color:var(--text)!important}
+body.sport-redesign .season-btn.active{background:rgba(229,36,47,.16);border:1px solid rgba(255,71,82,.6);box-shadow:none}
+.season-btn .tag,body.sport-redesign .tag{background:var(--panel-3);border:1px solid var(--line-2);color:var(--text)}
+body.sport-redesign .tag.closed{background:var(--red);border-color:var(--red);color:#fff}
+.empty-state b{color:var(--text)}
+.empty-state svg *{stroke:var(--text-soft)}
+
+/* ---------- Predictions ---------- */
+body.sport-redesign .handicap{color:var(--red-hi);font-weight:700}
+body.sport-redesign .quick button{background:var(--panel-2);color:var(--text);border:1px solid var(--line-2)}
+body.sport-redesign .profile-link{color:var(--text)!important;text-decoration-color:var(--red-hi)}
+body.sport-redesign :is(.profile-backdrop,.auth-overlay){background:rgba(5,6,8,.72);backdrop-filter:blur(6px)}
+body.sport-redesign :is(.profile-sheet,.recovery-sheet,.auth-card){background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r);box-shadow:0 24px 60px rgba(0,0,0,.6);color:var(--text)}
+body.sport-redesign .auth-card :is(h2,label,p){color:var(--text)}
+body.sport-redesign .auth-card h2{font-family:var(--display);font-style:italic;font-weight:800}
+body.sport-redesign .profile-avatar{background:var(--red);color:#fff}
+body.sport-redesign .profile-close{background:var(--panel-2);color:var(--text);border:1px solid var(--line-2)}
+body.sport-redesign .profile-history-row{border-bottom:1px solid var(--line)}
+
+/* ---------- Tab bar: dark dock, the active tab lights red ---------- */
+body.sport-redesign :is(.bottom-nav,.sport-tabbar){background:rgba(12,13,17,.94);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,.55);backdrop-filter:blur(12px)}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a{position:relative;color:rgba(244,245,247,.62);border-radius:12px;background:transparent}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a.active{background:transparent;color:var(--red-hi);box-shadow:none}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a.active:before{content:"";position:absolute;top:2px;left:30%;right:30%;height:3px;border-radius:3px;background:var(--red-hi);box-shadow:0 0 12px var(--red-glow)}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a.active span{opacity:1}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a.active svg{filter:drop-shadow(0 0 6px var(--red-glow))}
+
+/* ---------- Dummy ---------- */
+.d-pos{background:var(--panel-3);color:var(--text);border:1px solid var(--line-2);border-radius:50%;font-family:var(--display);font-style:italic;font-weight:800}
+body.sport-redesign .d-board-row.lead{background:linear-gradient(90deg,rgba(229,36,47,.2),rgba(229,36,47,.04)),var(--panel-2);border:1px solid rgba(255,71,82,.55)}
+.d-board-row.lead .d-pos{background:var(--red);color:#fff;border-color:var(--red)}
+.d-board-name b,.d-line-name{color:var(--text)}
+.d-cash-amt,.d-total,.d-pay-amt{font-family:var(--display);font-style:italic;font-weight:800;color:var(--text)}
+.d-cash-amt.pos,.d-money.pos,.d-cell-money.pos,.d-preview .pos,.d-preview-list .pos{color:var(--win)}
+.d-cash-amt.neg,.d-total.neg,.d-money.neg,.d-cell-money.neg,body.sport-redesign .neg{color:var(--lose)}
+.d-pay h3{font-family:var(--display);font-weight:600}
+.d-pay-amt{color:var(--red-hi)}
+.d-pay-arrow,.d-pay-note{color:var(--text-soft)}
+body.sport-redesign .d-div-row{background:var(--panel-2);border:1px solid var(--line-2);border-radius:var(--r-sm)}
+.d-div-row label{color:var(--text)}
+body.sport-redesign .d-sign{background:var(--panel-3);color:var(--text);border:1px solid var(--line-2)}
+body.sport-redesign .d-sign.on{background:var(--lose)!important;border-color:var(--lose)!important;color:#2a0306!important}
+body.sport-redesign .d-line input.neg{color:var(--lose);border-color:var(--lose)}
+.d-knock{color:var(--text)}
+.d-flag{background:var(--panel-2);border:1px solid var(--line-2);color:var(--text)}
+.d-tag{background:var(--red);color:#fff}
+.d-sum td{background:var(--panel-3)!important;font-family:var(--display);font-style:italic;font-weight:800}
+.d-winner{background:linear-gradient(90deg,rgba(245,184,11,.18),rgba(245,184,11,.04));border:1px solid rgba(245,184,11,.55);color:var(--text)}
+.d-bar{background:var(--field)}.d-bar span{background:var(--red)}
+
+@media (prefers-reduced-motion:reduce){.pod{animation:none}}
+
+/* ---------- Leftover components from the older page sheets ---------- */
+body.sport-redesign :is(.preview,.recovery-preview,.recovery-note,.notice,.settle-alert){background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--text)}
+body.sport-redesign .card .notice{background:rgba(229,36,47,.12);border:1px solid rgba(255,71,82,.45)}
+body.sport-redesign .badge{background:var(--red);color:#fff;border-radius:6px}
+body.sport-redesign :is(.field label,.formline label,label){color:var(--text-2)}
+body.sport-redesign .match-row{background:var(--panel-2);border-bottom:1px solid var(--line);color:var(--text)}
+body.sport-redesign .recovery-backdrop{background:rgba(5,6,8,.72);backdrop-filter:blur(6px)}
+body.sport-redesign :is(.recovery-item,.recovery-close){background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:var(--r-sm)}
+body.sport-redesign .recovery-item.active{background:rgba(229,36,47,.16);border:1px solid rgba(255,71,82,.6)}
+body.sport-redesign .danger:disabled,body.sport-redesign .primary:disabled{opacity:.45}
+.d-toast,.toast{background:var(--panel-3);color:var(--text);border:1px solid var(--line-2);border-radius:var(--r-sm);box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.toast small{color:var(--text-soft)!important}
+.skeleton{background:var(--panel-2)!important}
+.skeleton:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent)!important}
+body.sport-redesign :is(#bettingMarkets,#dealerMarkets) .market{box-shadow:none}
+/* Page sheets that drew ink chips or ink rules */
+.bill-vs{background:#0c0d11!important;border:1px solid rgba(255,71,82,.6);color:var(--red-hi)!important;font-style:italic;font-weight:800;box-shadow:0 0 12px var(--red-glow)}
+.corner-odds{border:1px solid var(--line-2)!important;background:var(--panel-3)!important;color:var(--text)!important}
+.board-bar{border:1px solid var(--line-2)!important}
+body.sport-redesign .chips button,body.sport-redesign .slip .chip-clear{background:var(--panel-2);color:var(--text);border:1px solid var(--line-2)}
+.settled-score{background:var(--panel-3)!important;color:var(--text)!important;font-style:italic;font-weight:800}
+.me-seg-opt input:checked+span{background:var(--red)!important;color:#fff!important}
+.me-warn{background:rgba(229,36,47,.14)!important;border:1px solid rgba(255,71,82,.5)!important;color:var(--text)!important}
+
+/* ---------- Champions ---------- */
+.nw{white-space:nowrap}
+body.sport-redesign :is(td.champ,.champ):after,.champ-stamp{content:"แชมป์";display:inline-block;margin-left:6px;padding:2px 7px 1px;font-family:var(--display);font-style:italic;font-weight:800;font-size:11px;line-height:1.3;color:#1a1300;background:var(--gold);border-radius:5px;vertical-align:2px;box-shadow:0 0 12px rgba(245,184,11,.4)}
+.champ-count{color:var(--gold)!important;font-weight:700}
+/* Stat lines: label left, big italic figure right (dashboard, predictions summary, index standings strip) */
+body.sport-page-dashboard-html .stats,body.sport-page-predictions-html :is(.stats,.summary),body.sport-page-index-html .summary{display:grid;grid-template-columns:1fr!important;gap:0;border-top:1px solid var(--line-2)}
+body.sport-page-dashboard-html .stat,body.sport-page-predictions-html :is(.stats,.summary) .stat,body.sport-page-index-html .summary .stat{display:flex!important;flex-direction:row-reverse;justify-content:space-between;align-items:baseline;gap:12px;min-height:0!important;padding:9px 2px!important;background:transparent!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;text-align:left}
+body.sport-page-dashboard-html .stat b,body.sport-page-predictions-html :is(.stats,.summary) .stat b,body.sport-page-index-html .summary .stat b{font-size:clamp(22px,6vw,28px)!important;line-height:1.1;text-align:right}
+body.sport-page-dashboard-html .stat small,body.sport-page-predictions-html :is(.stats,.summary) .stat small,body.sport-page-index-html .summary .stat small{font-size:14px!important;color:var(--text-2)!important}
+body.sport-redesign .stat.stat-empty{display:none!important}
+body.sport-redesign :is(.quick-tile small,.empty,.rank-row small,.roster-item small,.season-btn small,.pod small,.empty-state small,.hint,.status,.tier,.realtime-state){color:var(--text-soft)}
+/* Nested panels flattened into rows */
+body.sport-redesign .roster-box{background:transparent;border:0;border-radius:0;padding:0 0 14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+body.sport-redesign .roster-list{gap:0!important}
+body.sport-redesign .roster-item{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0}
+body.sport-redesign .d-pay{background:transparent;border:0;border-top:1px solid var(--line-2);border-radius:0;padding:12px 0 0}
+body.sport-redesign .d-pay-list{gap:0}
+body.sport-redesign .d-pay-row{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 2px}
+body.sport-redesign .form-row{border-bottom:1px solid var(--line)}
+/* Desktop league home: matches get the wide column, standings stay in view beside them */
+@media (min-width:900px){
+ body.sport-page-index-html .grid{grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);align-items:start}
+ body.sport-page-index-html .grid>section:not(.card){position:sticky;top:12px}
+ body.sport-page-index-html .grid>#competition{grid-row:span 2}
+ body.sport-page-index-html .grid>.workflow-card{grid-column:2;margin:0}
+ body.sport-page-index-html .bottom-nav{display:none}
+ body.sport-page-index-html main{padding-bottom:24px}
+}
+@media (max-width:600px){
+ body.sport-redesign td.champ:after{display:block;width:max-content;margin:3px 0 0;font-size:10px}
+}
+/* Dummy per-day summary */
+body.sport-redesign .d-day{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--text)}
+body.sport-redesign .d-day[open]{border-color:var(--line-2)}
+.d-day summary b{font-family:var(--display);font-weight:600;color:var(--text)}
+.d-day summary:after{content:"";flex:none;width:8px;height:8px;margin-left:4px;border-right:2px solid var(--text-soft);border-bottom:2px solid var(--text-soft);transform:translateY(-2px) rotate(45deg);transition:transform var(--motion-base,200ms) var(--motion-ease,ease)}
+.d-day[open] summary:after{content:"";transform:translateY(2px) rotate(-135deg)}
+body.sport-redesign .d-day .d-pay-row{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:9px 2px}
+
+/* Type: Kanit ships 600 upright and 800 italic only, so never let the browser fake the others. */
+body.sport-redesign{font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-kerning:normal}
+body.sport-redesign :is(h1,h2,h3,.d-board-name b,.pair>b){text-wrap:balance}
+body.sport-redesign :is(p,.muted,.hint,small,.status){text-wrap:pretty}
+body.sport-redesign :is(.stat b,.score-control input,.d-cash-amt,.d-pay-amt,.rank-rp,.points,td){font-variant-numeric:tabular-nums lining-nums}
+
+/* Web Interface Guidelines */
+.skip-link{position:absolute;left:8px;top:-60px;z-index:400;padding:10px 14px;background:var(--red);color:#fff;font-weight:700;border-radius:var(--r-sm);text-decoration:none}
+.skip-link:focus-visible{top:8px}
+body.sport-redesign .me-entry{display:inline-flex;align-items:center;min-height:40px;cursor:pointer}
+/* Home leads with the fight card: a shorter masthead, the season roster folds away under the queue. */
+body.sport-page-index-html .hero{padding:16px 16px 14px}
+body.sport-page-index-html .hero h1{font-size:clamp(32px,9vw,48px)!important;margin:6px 0 4px}
+body.sport-page-index-html .hero .account-bar{margin-top:12px}
+body.sport-redesign details.roster-box>summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0}
+body.sport-redesign details.roster-box>summary::-webkit-details-marker{display:none}
+body.sport-redesign details.roster-box>summary:after{content:"";flex:none;width:9px;height:9px;border-right:2px solid var(--text-soft);border-bottom:2px solid var(--text-soft);transform:translateY(-3px) rotate(45deg);transition:transform var(--motion-base,200ms) var(--motion-ease,ease)}
+body.sport-redesign details.roster-box[open]>summary:after{transform:translateY(2px) rotate(-135deg)}
+body.sport-redesign details.roster-box[open]>summary{margin-bottom:10px}
+body.sport-redesign .account-user{flex:none;display:flex;align-items:center;gap:8px;white-space:nowrap}
