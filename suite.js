@@ -30,11 +30,14 @@
   const fmtNum=(v,p)=>`${v<0?"-":p.plus&&v>0?"+":""}${p.commas?Math.abs(v).toLocaleString("en-US"):Math.abs(v)}${p.suffix}`;
   function pulse(el){el.classList.remove("number-pulse");void el.offsetWidth;el.classList.add("number-pulse")}
   function countUp(el,fromText){
+    // Any new write by the page cancels an animation still running toward an older value,
+    // including a write of the same text the animation happens to show (its text node is then replaced).
+    const run=el.__countRun=(el.__countRun||0)+1;let node=null;
     const final=el.textContent,to=parseNum(final),from=parseNum(fromText);
     if(String(fromText).trim()===final.trim()||!to)return;
     if(!from||from.n===to.n||reduceMotion()||document.hidden)return pulse(el);
-    const fmt={...to,plus:to.plus||from.plus,commas:to.commas||from.commas},diff=to.n-from.n,duration=Math.min(900,380+Math.abs(diff)*18),t0=performance.now(),run=el.__countRun=(el.__countRun||0)+1;
-    const step=now=>{if(el.__countRun!==run)return;const k=Math.min(1,Math.max(0,now-t0)/duration),text=k<1?fmtNum(Math.round(from.n+diff*(1-Math.pow(1-k,3))),fmt):final;written.set(el,text);el.textContent=text;if(k<1)requestAnimationFrame(step)};
+    const fmt={...to,plus:to.plus||from.plus,commas:to.commas||from.commas},diff=to.n-from.n,duration=Math.min(900,380+Math.abs(diff)*18),t0=performance.now();
+    const step=now=>{if(el.__countRun!==run||(node&&el.firstChild!==node))return;const k=Math.min(1,Math.max(0,now-t0)/duration),text=k<1?fmtNum(Math.round(from.n+diff*(1-Math.pow(1-k,3))),fmt):final;written.set(el,text);el.textContent=text;node=el.firstChild;if(k<1)requestAnimationFrame(step)};
     pulse(el);step(t0);
   }
   const numKey=el=>{const row=el.closest(".rank-row,tr,.stat,.profile-metric,.workflow-item");return`${row?.querySelector("strong,td.name,small,span")?.textContent.trim()||""}|${el.className||el.tagName}`};
@@ -100,7 +103,9 @@
   function currentMatchStats(l){let played=0,total=0;(l?.rounds||[]).forEach((r,ri)=>(r.m||[]).forEach((p,mi)=>{total++;const s=l.results?.[`r${ri}m${mi}`];if(Number.isInteger(s?.a)&&Number.isInteger(s?.b))played++}));return{played,total,remain:Math.max(0,total-played)}}
   function pendingPredictions(){try{const p=JSON.parse(localStorage.getItem(LeagueShared.PRED_KEY)||"null");return (p?.bets||[]).filter(b=>b.status==="pending").length}catch{return 0}}
   function addWorkflowCard(){const l=leagueState();if(!l||!qs("#competition")||qs("#workflowCard"))return;const m=currentMatchStats(l),pending=pendingPredictions(),admin=(()=>{try{return typeof isAdmin==="function"&&isAdmin()}catch{return false}})();const card=document.createElement("section");card.id="workflowCard";card.className="workflow-card suite-section";card.innerHTML=`<div class="workflow-title"><b>League Assistant</b><a class="btn secondary" href="dashboard.html">Dashboard</a></div><div class="workflow-items"><div class="workflow-item ${m.remain?"warn":"good"}"><span>${m.remain?`เหลือ ${m.remain} คู่ยังไม่มีผล`:"กรอกผลครบแล้ว"}</span><b>${m.played}/${m.total}</b></div><div class="workflow-item ${pending?"warn":"good"}"><span>${pending?`มี ${pending} รายการทายรอผล`:"ไม่มีรายการทายรอผล"}</span><a href="predictions.html">เปิด</a></div>${admin&&m.total&&m.remain===0?'<div class="workflow-item good"><span>Season พร้อมปิดและบันทึกแรงค์</span><b>พร้อม ✓</b></div>':""}</div>`;qs("#competition").before(card)}
-  function tableRows(){return qsa("#standings tr").map(tr=>qsa("td",tr).map(td=>td.textContent.trim())).filter(x=>x.length)}
+  // Avatars (player-ui.js) and banter stamps (banter.js) sit inside the name cell; exports keep the plain name.
+  const cellText=td=>{const c=td.cloneNode(true);c.querySelectorAll(".pa,.banter-stamp").forEach(x=>x.remove());return c.textContent.trim()};
+  function tableRows(){return qsa("#standings tr").map(tr=>qsa("td",tr).map(cellText)).filter(x=>x.length)}
   function standingsCsv(){return ["อันดับ,ผู้เล่น,แข่ง,ชนะ,เสมอ,แพ้,ได้,เสีย,+/-,แต้ม",...tableRows().map(r=>r.map(v=>`"${v.replace(/"/g,'""')}"`).join(","))].join("\n")}
   function download(name,text,type="text/plain;charset=utf-8"){const blob=new Blob(["\ufeff"+text],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
   function downloadPng(){const rows=tableRows(),l=leagueState(),w=1080,rowH=54,h=170+(rows.length+1)*rowH,canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;const c=canvas.getContext("2d");c.fillStyle="#07111f";c.fillRect(0,0,w,h);c.fillStyle="#f7fbff";c.font="700 36px sans-serif";c.fillText(`ตารางคะแนน Season ${l?.currentSeason||"-"}`,42,58);c.font="20px sans-serif";c.fillStyle="#91a4be";c.fillText("ตีให้สุด หยุดที่เบ้าตา",42,94);const headers=["#","ผู้เล่น","แข่ง","ชนะ","เสมอ","แพ้","ได้","เสีย","+/-","แต้ม"],xs=[42,95,420,500,580,660,740,820,900,980];c.font="700 18px sans-serif";c.fillStyle="#cfe1fb";headers.forEach((x,i)=>c.fillText(x,xs[i],145));c.font="18px sans-serif";rows.forEach((r,ri)=>{const y=145+(ri+1)*rowH;c.fillStyle=ri%2?"#0b1728":"#10203a";c.fillRect(30,y-34,w-60,rowH-4);c.fillStyle="#f7fbff";r.forEach((v,i)=>c.fillText(v,xs[i],y))});const a=document.createElement("a");a.download=`standings-season-${l?.currentSeason||"current"}.png`;a.href=canvas.toDataURL("image/png");a.click();toast("สร้างรูปตารางคะแนนแล้ว","good")}

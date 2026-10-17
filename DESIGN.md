@@ -262,6 +262,9 @@ Each match is a bill: the panel fill splits hard into red field and blue field a
 ### Stat Lines and Standings
 Stat groups open with a 2px ink rule and run as rows: caption in Anuphan 14px ink-2 on the left, value in Chonburi on the right, thin rule beneath. Standings rows carry a 1.5px ink rank disc (rank 1 in poster yellow) and RP in red-corner Chonburi. Tables sit in a paper wrap with ink header rows in yellow type, faint even-row tint and thin row rules. Champions get a magenta-deep แชมป์ stamp after the name (block-level under 600px).
 
+### Banter Stamps and the Season Poster
+Facts from the scores, stamped like the ชนะ / แชมป์ stamps (Chonburi 11px, 1.5px currentColor border, paper fill, ±3-4deg) after a name in standings, the dashboard and the stats head: ไฟลุก (3+ wins in a row) in win green, ฟอร์มตก (3+ losses) in lose red, คืนชีพ (first win after 3+ losses) ink on poster yellow. A match bill between players who have met gets a thin-ruled rivalry strip above the status strip ("เจอกัน 4 ครั้ง กิฟท์ ชนะ 3"), and while this Season's meeting is unplayed the last loser gets an ink-on-yellow ศึกล้างตา stamp. The archive's Season poster is a 3px ink-ruled bill: magenta band with the league name, the champion in display Chonburi on poster yellow under a magenta-deep แชมป์ stamp, runner-up and 3rd on paper with a 5px silver/bronze top rule, then fact rows (biggest win, longest win streak); a fact the saved scores cannot back is dropped. Print shows only the poster.
+
 ### Toast
 Ink fill, poster-yellow text, 6px corners, the floating shadow.
 
