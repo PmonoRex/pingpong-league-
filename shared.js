@@ -123,6 +123,16 @@ const LeagueShared = (() => {
     const step = now => { const progress = Math.min(1, (now - started) / duration), eased = 1 - Math.pow(1 - progress, 3); window.scrollTo(0, start + distance * eased); scrollFrame = progress < 1 ? requestAnimationFrame(step) : null; };
     scrollFrame = requestAnimationFrame(step);
   }
+  // Next unplayed matches in schedule order (round by round); a match counts as played once both scores are whole numbers >= 0.
+  function nextUpMatches(rounds, results, limit = 2) {
+    const done = x => x && [x.a, x.b].every(v => Number.isInteger(v) && v >= 0);
+    const out = [];
+    (Array.isArray(rounds) ? rounds : []).forEach((round, ri) => (Array.isArray(round?.m) ? round.m : []).forEach((pair, mi) => {
+      const id = `r${ri}m${mi}`;
+      if (out.length < limit && !done(results?.[id])) out.push({ id, round: ri + 1, pair: [pair[0], pair[1]], rest: round.rest || null });
+    }));
+    return out;
+  }
   async function cloudRequest(columns, method = "GET", body = null, extraQuery = "") {
     const options = { method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } };
     if (body !== null) { options.headers["Content-Type"] = "application/json"; options.headers.Prefer = "return=representation"; options.body = JSON.stringify(body); }
@@ -147,5 +157,5 @@ const LeagueShared = (() => {
 
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
-    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, cloudRequest, loadDummyCloud, saveDummyCloud });
+    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud });
 })();
