@@ -48,7 +48,7 @@ function loadPredictions({ league, predictions, userId, confirmAnswer = true }) 
   };
   context.window = context;
   vm.createContext(context);
-  for (const file of ['shared.js', 'bet-settle.js', 'predictions.js', 'predictions-realtime.js', 'predictions-export.js']) {
+  for (const file of ['shared.js', 'bet-settle.js', 'predictions-board.js', 'predictions.js', 'predictions-realtime.js', 'predictions-export.js']) {
     vm.runInContext(fs.readFileSync(file, 'utf8'), context, { filename: file });
   }
   const run = code => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, context) ?? 'null');
