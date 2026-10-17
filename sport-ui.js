@@ -9,7 +9,7 @@
     const required=[
       ['theme.css?v=20261017-polish','theme.css'],
       ['motion.css?v=20261015-ux','motion.css'],
-      ['poster.css?v=20261017-poster3','poster.css']
+      ['poster.css?v=20261017-nextup','poster.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -138,4 +138,6 @@
   new MutationObserver(()=>{clearTimeout(statTimer);statTimer=setTimeout(markEmptyStats,60)}).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
   function boot(){setupMobileTools();markEmptyStats();elevateImportantCards();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
+  // Installable app: sw.js keeps the shell (pages, css, js, fonts) on the phone; league data still comes live from Supabase.
+  if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}),{once:true});
 })();

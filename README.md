@@ -23,6 +23,7 @@
 - `sync-guard.js` — ป้องกันการเขียนทับกันเมื่อ Admin หลายเครื่องแก้พร้อมกัน (ทับ `pushCloud` ของ `index.js`)
 - `suite.js` — League Assistant, Export (CSV/PNG/PDF/แชร์), Toast, Data health badge
 - `sport-ui.js` + `*.css` — ธีม, hero, motion, ปรับ UI มือถือ
+- `manifest.webmanifest`, `icons/`, `sw.js` — ติดตั้งเป็นแอปบนหน้าโฮม (PWA): `sw.js` เก็บหน้าเว็บ/CSS/JS/ฟอนต์ไว้ในเครื่องให้เปิดได้แม้เน็ตหลุด (หน้า HTML ดึงจากเน็ตก่อน, ไฟล์ asset อัปเดตตาม `?v=`) และไม่แคชคำขอไป Supabase เด็ดขาด ถ้าแก้ logic ใน `sw.js` ให้เปลี่ยนค่า `CACHE`
 - `supabase/migrations/` — SQL สร้างตารางและ policy
 - `tests/shared.test.cjs` — unit test ของ `shared.js`
 - `SESSION_ROADMAP.md` — รายการฟีเจอร์ที่ทำในแต่ละ Session และ QA checklist
