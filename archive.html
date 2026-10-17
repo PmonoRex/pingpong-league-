@@ -4,11 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffd21f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="ตีให้สุด">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Chonburi&display=swap">
 <title>Season Archive • ตีให้สุด หยุดที่เบ้าตา</title>
 <link rel="stylesheet" href="archive.css?v=20261012-1">
 <link rel="stylesheet" href="theme.css?v=20261017-polish">
-<link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-poster3">
+<link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-nextup2">
 <script src="player-ui.js?v=20261015-design" defer></script>
 </head>
 <body>
@@ -21,10 +28,10 @@
   <section class="card"><div class="section-head"><div><h2>Season ทั้งหมด</h2><div class="muted" id="archiveStatus" role="status">กำลังโหลด...</div></div></div><div id="seasonList" class="season-list"></div></section>
   <section class="card" id="detailCard"><div class="section-head"><div><h2 id="detailTitle">เลือก Season</h2><div class="muted" id="detailMeta">-</div></div></div><div id="summaryCards" class="summary"></div><div class="table-wrap"><table><thead><tr><th>#</th><th style="text-align:left">ผู้เล่น</th><th>คะแนน</th><th>+/-</th><th>RP</th></tr></thead><tbody id="archiveStandings"></tbody></table></div><div class="matches-head"><h3>ผลการแข่งขัน</h3><span class="muted" id="matchCount"></span></div><div id="archiveMatches" class="matches"></div></section>
 </main>
-<script src="shared.js?v=20261013-1" defer></script>
+<script src="shared.js?v=20261017-nextup2" defer></script>
 <script src="archive.js?v=20261017-poster2" defer></script>
 <script src="archive-export.js?v=20261017-poster2" defer></script>
 <script src="suite.js?v=20261017-poster2" defer></script>
-<script src="sport-ui.js?v=20261017-poster3" defer></script>
+<script src="sport-ui.js?v=20261017-nextup2" defer></script>
 </body>
 </html>

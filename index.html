@@ -4,12 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffd21f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="ตีให้สุด">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Chonburi&display=swap">
 <title>ตีให้สุด หยุดที่เบ้าตา</title>
 <link rel="stylesheet" href="index.css?v=smooth-nav-20260924">
 <link rel="stylesheet" href="recovery.css?v=20261012">
 <link rel="stylesheet" href="theme.css?v=20261017-polish">
-<link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-poster3"><link rel="stylesheet" href="share-poster.css?v=20261017-share1">
+<link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-nextup2"><link rel="stylesheet" href="share-poster.css?v=20261017-share2">
 <script src="player-ui.js?v=20261015-design" defer></script>
 </head>
 <body>
@@ -26,6 +33,7 @@
 
 <div class="grid">
 <section class="card" id="competition">
+ <div class="next-up" id="nextUp" aria-live="polite" hidden></div>
  <div class="roster-box" id="rosterBox">
    <div class="section-head"><div><h2>ผู้เล่น Season นี้</h2><div class="hint">เฉพาะ Admin เปลี่ยนรายชื่อผู้เล่นได้</div></div></div>
    <div id="rosterList" class="roster-list"></div>
@@ -49,14 +57,14 @@
 <nav class="bottom-nav" aria-label="เมนูหลัก"><a class="active" href="#competition"><span>🏓</span>การแข่งขัน</a><a href="#standingsCard"><span>🏆</span>ตารางคะแนน</a><a href="#rankCard"><span>📈</span>แรงค์</a><a href="predictions.html"><span>🎯</span>ทายผล</a></nav>
 <div class="recovery-backdrop" id="recoveryBackdrop" aria-hidden="true"><div class="recovery-sheet" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle"><div class="recovery-head"><div><h2 id="recoveryTitle">กู้ข้อมูลการแข่งขัน</h2><div class="hint">ระบบจะค้นหาคะแนนเก่าที่เหลืออยู่ในเครื่องนี้ก่อน และให้ตรวจตัวอย่างก่อนกู้</div></div><button class="recovery-close" id="closeRecovery" type="button" aria-label="ปิด">×</button></div><div class="recovery-note">การกู้จะไม่ลบประวัติแรงค์หรือบัญชีผู้เล่นปัจจุบัน และระบบจะสำรองข้อมูลปัจจุบันก่อนเขียนทับคะแนน หาก Season เดิมถูกบันทึกแรงค์ไปแล้ว ระบบจะไม่สร้างแรงค์ซ้ำอัตโนมัติ</div><div id="recoveryList" class="recovery-list"></div><div id="recoveryPreview" class="recovery-preview"><div class="hint">เลือกข้อมูลที่ต้องการกู้</div></div><div class="recovery-actions"><button class="primary" id="restoreRecovery" type="button" disabled>กู้คะแนนชุดนี้</button><button class="secondary" id="cancelRecovery" type="button">ยกเลิก</button></div></div></div>
 <div class="auth-overlay" id="auth"><div class="auth-card"><h2>เข้าสู่ลีก</h2><p>เลือกบัญชีของคุณแล้วใส่ PIN</p><div class="field"><label>บัญชี</label><select id="loginUser"></select></div><div class="field"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div><button class="blue" id="loginBtn" style="width:100%">เข้าสู่ระบบ</button></div></div>
-<script src="shared.js?v=20261013-1" defer></script>
-<script src="index.js?v=20261017-share1" defer></script>
+<script src="shared.js?v=20261017-nextup2" defer></script>
+<script src="index.js?v=20261017-share2" defer></script>
 <script src="sync-guard.js?v=20261013-1" defer></script>
 <script src="archive-hook.js?v=20261015-design" defer></script>
 <script src="recovery.js?v=20261015-qa" defer></script>
 <script src="safety-hooks.js?v=20261012" defer></script>
 <script src="suite.js?v=20261017-poster2" defer></script>
-<script src="sport-ui.js?v=20261017-poster3" defer></script>
-<script src="share-poster.js?v=20261017-share1" defer></script>
+<script src="sport-ui.js?v=20261017-nextup2" defer></script>
+<script src="share-poster.js?v=20261017-share2" defer></script>
 </body>
 </html>
