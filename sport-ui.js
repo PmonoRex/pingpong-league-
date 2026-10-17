@@ -9,7 +9,7 @@
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
       ['motion.css?v=20261018-arena','motion.css'],
-      ['arena.css?v=20261018-pics','arena.css']
+      ['arena.css?v=20261018-drawer2','arena.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -53,19 +53,39 @@
     }
   }
 
+  // เครื่องมือ: the account bar's buttons live in a drawer that slides in from the right edge (every width).
+  // The first open moves the buttons' container to <body> (ids and listeners travel with it, and suite.js has already
+  // added its links by then), so the panel sits above the whole page; arena.css styles it as a fixed side panel.
   function setupMobileTools(){
-    if(page!=='index.html')return;
+    if(page!=='index.html'&&page!=='predictions.html')return;
     const bar=qs('.account-bar'),actions=bar&&qs('.actions',bar);
     if(!bar||!actions||qs('.sport-tools-toggle',bar))return;
-    actions.classList.add('sport-tools-actions');
-    const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary sport-tools-toggle';toggle.textContent='เครื่องมือ';
-    toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','เปิดเมนูเครื่องมือ');bar.insertBefore(toggle,actions);
-    const close=()=>{actions.classList.remove('open');toggle.setAttribute('aria-expanded','false')};
-    toggle.addEventListener('click',event=>{event.stopPropagation();const open=actions.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});
-    actions.addEventListener('click',event=>event.stopPropagation());
-    document.addEventListener('click',()=>{if(matchMedia('(max-width:640px)').matches)close()});
+    actions.classList.add('sport-tools-actions');actions.id='toolsDrawer';
+    actions.setAttribute('role','dialog');actions.setAttribute('aria-modal','true');actions.setAttribute('aria-label','เครื่องมือ');
+    const head=document.createElement('div');head.className='tools-head';
+    head.innerHTML='<div><b>เครื่องมือ</b><small class="tools-who"></small></div><button type="button" class="tools-close" aria-label="ปิดเมนูเครื่องมือ"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+    actions.prepend(head);
+    const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary sport-tools-toggle';
+    toggle.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h16"/></svg>เครื่องมือ';
+    toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls','toolsDrawer');bar.insertBefore(toggle,actions);
+    const shade=document.createElement('div');shade.className='tools-backdrop';shade.setAttribute('aria-hidden','true');document.body.appendChild(shade);
+    const isOpen=()=>actions.classList.contains('open');
+    const open=()=>{if(actions.parentElement!==document.body){document.body.appendChild(actions);void actions.offsetWidth}const who=qs('#whoami');qs('.tools-who',head).textContent=who?[...who.childNodes].filter(n=>!n.classList?.contains('pa')).map(n=>n.textContent).join('').trim():'';actions.classList.add('open');document.body.classList.add('tools-open');toggle.setAttribute('aria-expanded','true');
+      setTimeout(()=>qs('.tools-close',head)?.focus({preventScroll:true}),60)};
+    const close=(back=true)=>{if(!isOpen())return;actions.classList.remove('open');document.body.classList.remove('tools-open');toggle.setAttribute('aria-expanded','false');if(back)toggle.focus({preventScroll:true})};
+    toggle.addEventListener('click',()=>isOpen()?close():open());
+    qs('.tools-close',head).addEventListener('click',()=>close());
+    shade.addEventListener('click',()=>close());
     document.addEventListener('keydown',event=>{if(event.key==='Escape')close()});
-    matchMedia('(min-width:641px)').addEventListener?.('change',event=>{if(event.matches)close()});
+    // A tap on a destination closes the drawer; the sound switch stays so its new state can be seen.
+    actions.addEventListener('click',event=>{const hit=event.target.closest('a,button');if(hit&&!hit.closest('.tools-head')&&hit.id!=='soundToggle')close(false)});
+    // Keep Tab inside the open drawer.
+    actions.addEventListener('keydown',event=>{
+      if(event.key!=='Tab'||!isOpen())return;
+      const f=[...actions.querySelectorAll('a[href],button:not(:disabled)')].filter(el=>el.getClientRects().length);if(!f.length)return;
+      if(event.shiftKey&&document.activeElement===f[0]){event.preventDefault();f[f.length-1].focus()}
+      else if(!event.shiftKey&&document.activeElement===f[f.length-1]){event.preventDefault();f[0].focus()}
+    });
   }
 
   function restyleExistingTabs(){
