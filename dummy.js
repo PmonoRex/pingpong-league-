@@ -244,6 +244,15 @@
     $("dWinner").hidden = !w;
     if (w) $("dWinner").innerHTML = `🏆 <b>${esc(w.name)}</b> ถึง ${state.target.toLocaleString()} แต้มแล้ว — ชนะเกมนี้!`;
     $("dMeta").textContent = `เล่นไปแล้ว ${state.rounds.length} เกม${state.target ? ` • เป้า ${state.target.toLocaleString()} แต้ม` : ""}${winnerMode() ? ` • เงิน: ${MONEY_MODES.winner} (${state.rates.slice(0, state.players.length - 1).join(" / ")}฿)` : state.moneyMode === "points" ? ` • เงิน: แต้ม ÷ ${state.divisor} หักลบกัน` : ""}`;
+    // With money on, each row leads with the baht result; points step down to a detail line.
+    if (byMoney) {
+      $("dBoard").innerHTML = rows.map((r, pos) => {
+        const tone = r.money < 0 ? "neg" : r.money > 0 ? "pos" : "";
+        const detail = [`รวม ${r.total.toLocaleString()} แต้ม`, r.knocks ? `น็อค ${r.knocks} ครั้ง` : ""].filter(Boolean).join(" • ");
+        return `<div class="d-board-row d-cash ${pos === 0 && state.rounds.length && r.money > 0 ? "lead" : ""}"><span class="d-pos">${pos + 1}</span><div class="d-board-name"><b>${esc(r.name)}</b><small>${detail}</small></div><b class="d-cash-amt ${tone}">${baht(r.money)}</b></div>`;
+      }).join("");
+      return;
+    }
     $("dBoard").innerHTML = rows.map((r, pos) => {
       const pct = state.target ? Math.max(0, Math.min(100, r.total / state.target * 100)) : 0;
       return `<div class="d-board-row ${pos === 0 && state.rounds.length && (byMoney ? r.money > 0 : r.total === top) ? "lead" : ""}"><span class="d-pos">${pos + 1}</span><div class="d-board-name"><b>${esc(r.name)}</b><small>${[r.knocks ? `น็อค ${r.knocks} ครั้ง` : "", r.total < top ? `ตามแต้มสูงสุด ${(top - r.total).toLocaleString()}` : ""].filter(Boolean).join(" • ") || "&nbsp;"}</small>${state.target ? `<div class="d-bar"><span style="width:${pct}%"></span></div>` : ""}</div><div class="d-board-right"><b class="d-total ${r.total < 0 ? "neg" : ""}">${r.total.toLocaleString()}</b>${showMoney ? `<span class="d-money ${r.money < 0 ? "neg" : r.money > 0 ? "pos" : ""}">${baht(r.money)}</span>` : ""}</div></div>`;
