@@ -9,7 +9,7 @@
 | หน้า | ไฟล์ | หน้าที่ |
 |---|---|---|
 | การแข่งขัน (หน้าแรก) | `index.html`, `index.js`, `index.css` | ล็อกอิน, เลือกผู้เล่นใน Season, ตารางแข่ง, กรอกคะแนน, ตารางคะแนน, แรงค์/RP, จบ Season |
-| ทายผล | `predictions.html`, `predictions.js`, `predictions-realtime.js`, `predictions-export.js` | เจ้ามือตั้งราคาต่อ, ผู้เล่นทาย, คำนวณผล, สรุปยอดชำระ |
+| ทายผล | `predictions.html`, `predictions.js`, `predictions-board.js`, `predictions-realtime.js`, `predictions-export.js` | เจ้ามือตั้งราคาต่อ, ผู้เล่นทายแบบโปสเตอร์มวย (แตะมุมแดง/น้ำเงิน + ชิปยอด), กระดานทาย, แสตมป์ได้เงิน/คำแซวเมื่อตัดสิน, คำนวณผล, สรุปยอดชำระ |
 | Dashboard | `dashboard.html`, `dashboard.js` | ภาพรวมลีก, Top 3, ฟอร์มร้อนแรง, ผู้เล่นอันดับขยับ |
 | Stats / H2H | `stats.html`, `stats.js` | W/D/L, Win rate, ลูกได้-เสีย, ฟอร์ม 5 นัด, streak, Head-to-Head |
 | Season Archive | `archive.html`, `archive.js`, `archive-hook.js`, `archive-export.js` | เปิดดู Season เก่า, ส่งออก CSV / แชร์ |

@@ -104,7 +104,7 @@ function renderSummary(){
    : "ยังไม่ได้ตั้ง";
 }
 function marketDesc(m,market){return `${profile(market.favoriteId)?.displayName||"-"} ต่อ ${market.handicap} ลูก`}
-function renderDealer(){const box=document.getElementById("dealerMarkets");if(!box)return;box.innerHTML="";if(!canManageMarket())return;allMatches().forEach(m=>{const market=pred.markets[marketKey(m.id)]||{favoriteId:m.pair[0],handicap:.5,open:false};const c=document.createElement("div");c.className="market";c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag ${market.open&&!hasResult(m)?"":"closed"}">${hasResult(m)?"มีผลแล้ว":market.open?"เปิดรับ":"ปิดรับ"}</span></div><div class="market-controls"><div class="field"><label>ผู้ต่อ</label><select id="fav-${m.id}"><option value="${esc(m.pair[0])}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${esc(m.pair[1])}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select></div><div class="field"><label>แต้มต่อ</label><input id="hcp-${m.id}" type="number" min="0" step=".5" value="${esc(market.handicap)}"></div><div class="field"><label>สถานะ</label><select id="open-${m.id}"><option value="1">เปิดรับ</option><option value="0">ปิดรับ</option></select></div></div><div class="actions"><button class="primary" data-save="${m.id}">บันทึกคู่นี้</button></div>`;box.appendChild(c);document.getElementById(`fav-${m.id}`).value=market.favoriteId;document.getElementById(`open-${m.id}`).value=market.open&&!hasResult(m)?"1":"0"});box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>saveMarket(b.dataset.save))}
+function renderDealer(){const box=document.getElementById("dealerMarkets");if(!box)return;box.innerHTML="";if(!canManageMarket())return;allMatches().forEach(m=>{const market=pred.markets[marketKey(m.id)]||{favoriteId:m.pair[0],handicap:.5,open:false};const c=document.createElement("div");c.className="market";c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag ${market.open&&!hasResult(m)?"":"closed"}">${hasResult(m)?"มีผลแล้ว":market.open?"เปิดรับ":"ปิดรับ"}</span></div>${boardHtml(m)}<div class="market-controls"><div class="field"><label>ผู้ต่อ</label><select id="fav-${m.id}"><option value="${esc(m.pair[0])}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${esc(m.pair[1])}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select></div><div class="field"><label>แต้มต่อ</label><input id="hcp-${m.id}" type="number" min="0" step=".5" value="${esc(market.handicap)}"></div><div class="field"><label>สถานะ</label><select id="open-${m.id}"><option value="1">เปิดรับ</option><option value="0">ปิดรับ</option></select></div></div><div class="actions"><button class="primary" data-save="${m.id}">บันทึกคู่นี้</button></div>`;box.appendChild(c);document.getElementById(`fav-${m.id}`).value=market.favoriteId;document.getElementById(`open-${m.id}`).value=market.open&&!hasResult(m)?"1":"0"});box.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>saveMarket(b.dataset.save))}
 function saveMarket(id){
  const displayedMatch=allMatches().find(item=>item.id===id);
  const favoriteId=document.getElementById(`fav-${id}`).value;
@@ -118,16 +118,73 @@ function saveMarket(id){
   pred.markets[marketKey(id)]={favoriteId,handicap,open:open&&!hasResult(match)};
  });
 }
+// Fight-bill markets: one-tap corner picks, stake chips and the live กระดานทาย (PredBoard in predictions-board.js).
+// betDraft keeps a half-made pick (corner + typed stake) across the re-render that every cloud pull triggers.
+const betDraft={};
+const nameOf=id=>profile(id)?.displayName||id;
+const roundOf=matchId=>{const r=/^r(\d+)m\d+$/.exec(matchId||"");return r?Number(r[1])+1:"-"};
+function boardHtml(m){
+ const t=PredBoard.tally(pred.bets,league.currentSeason,m.id,m.pair);
+ const side=(c,cls)=>`<div class="board-side ${cls}"><b>${c.count}</b> คน<span>${credits(c.stake)}</span></div>`;
+ return `<div class="board" aria-label="กระดานทาย: ${esc(nameOf(m.pair[0]))} ${t.corners[0].count} คน ${credits(t.corners[0].stake)}, ${esc(nameOf(m.pair[1]))} ${t.corners[1].count} คน ${credits(t.corners[1].stake)}"><div class="board-head"><span>กระดานทาย</span><span>${t.count?`${t.count} คน • รวม ${credits(t.stake)}`:"ยังไม่มีใครกล้า"}</span></div><div class="board-bar" style="--red:${t.redShare}%"><i></i></div><div class="board-sides">${side(t.corners[0],"is-red")}${side(t.corners[1],"is-blue")}</div></div>`;
+}
+function cornerHtml(m,o,cls,mode,picked){
+ const inner=`<span class="corner-tag">มุม${cls==="is-red"?"แดง":"น้ำเงิน"}</span><b class="corner-name">${esc(nameOf(o.id))}</b><span class="corner-odds ${o.role}">${esc(o.label)} <small>${esc(o.num)}</small></span>${picked?`<span class="corner-pick">${mode==="bet"?"เลือกมุมนี้":"ทายมุมนี้"}</span>`:""}`;
+ return mode==="bet"
+  ?`<button type="button" class="corner ${cls}${picked?" picked":""}" data-pick="${m.id}" data-side="${esc(o.id)}" aria-pressed="${picked}">${inner}</button>`
+  :`<div class="corner ${cls}${picked?" picked":""}">${inner}</div>`;
+}
+function billHtml(m,market,mode,pickedId,body){
+ const o=PredBoard.odds(m.pair,market);
+ return `<div class="bill-head"><span class="bill-round">รอบ ${m.ri+1}</span><span class="tag">เปิดรับ</span></div><div class="bill-corners">${cornerHtml(m,o[0],"is-red",mode,pickedId===m.pair[0])}<span class="bill-vs" aria-hidden="true">VS</span>${cornerHtml(m,o[1],"is-blue",mode,pickedId===m.pair[1])}</div>${boardHtml(m)}${body}`;
+}
+function slipLabel(id){
+ const d=betDraft[id]||{},stake=Number(d.stake)||0;
+ if(!d.side)return "แตะมุมที่จะทายก่อน";
+ return stake>0?`ลง ${credits(stake)} ให้ ${nameOf(d.side)}`:`ใส่ยอดให้ ${nameOf(d.side)}`;
+}
 function renderBetting(){
  const box=document.getElementById("bettingMarkets");box.innerHTML="";
  if(isDealer()){
    box.innerHTML='<div class="locked">คุณเป็นเจ้ามือของรอบนี้ จึงไม่สามารถทายผลได้</div>';
    return;
  }
- let n=0;allMatches().forEach(m=>{const market=pred.markets[marketKey(m.id)];if(!market||!market.open||hasResult(m))return;n++;const own=m.pair.includes(currentUserId),existing=pred.bets.find(b=>b.season===league.currentSeason&&b.matchId===m.id&&b.userId===currentUserId);const c=document.createElement("div");c.className="market";let controls=own?'<div class="locked">คุณเป็นผู้เล่นในคู่นี้ จึงทายไม่ได้</div>':existing?`<div class="locked">ทายแล้ว: ${esc(profile(existing.sideId)?.displayName||existing.sideId)} • ${credits(existing.stake)}</div>`:`<div class="bet-row"><select id="side-${m.id}"><option value="${esc(m.pair[0])}">${esc(profile(m.pair[0])?.displayName||m.pair[0])}</option><option value="${esc(m.pair[1])}">${esc(profile(m.pair[1])?.displayName||m.pair[1])}</option></select><input id="stake-${m.id}" type="number" min="1" inputmode="numeric" placeholder="ยอด"><button class="green" data-bet="${m.id}">ยืนยัน</button></div><div class="quick"><button data-q="${m.id}:10">+10</button><button data-q="${m.id}:50">+50</button><button data-q="${m.id}:100">+100</button><button data-q="${m.id}:500">+500</button></div>`;c.innerHTML=`<div class="market-head"><div><div class="market-title">รอบ ${m.ri+1} • ${esc(profile(m.pair[0])?.displayName||m.pair[0])} vs ${esc(profile(m.pair[1])?.displayName||m.pair[1])}</div><div class="handicap">${esc(marketDesc(m,market))}</div></div><span class="tag">เปิดรับ</span></div>${controls}`;box.appendChild(c)});if(!n)box.innerHTML='<div class="empty">ยังไม่มีคู่ที่เปิดให้ทาย</div>';box.querySelectorAll("[data-bet]").forEach(b=>b.onclick=()=>placeBet(b.dataset.bet));box.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const [id,a]=b.dataset.q.split(":");const e=document.getElementById(`stake-${id}`);e.value=(Number(e.value)||0)+Number(a)})}
+ let n=0;allMatches().forEach(m=>{const market=pred.markets[marketKey(m.id)];if(!market||!market.open||hasResult(m))return;n++;const own=m.pair.includes(currentUserId),existing=pred.bets.find(b=>b.season===league.currentSeason&&b.matchId===m.id&&b.userId===currentUserId);const c=document.createElement("div");c.className="market bill";
+  if(own||existing){delete betDraft[m.id];c.innerHTML=billHtml(m,market,"view",existing?.sideId,own?'<div class="locked">คุณเป็นผู้เล่นในคู่นี้ จึงทายไม่ได้ • ไปตีให้ชนะแทน</div>':`<div class="locked">ทายแล้ว: ${esc(nameOf(existing.sideId))} • ${credits(existing.stake)}</div>`)}
+  else{
+   const d=betDraft[m.id]||(betDraft[m.id]={side:"",stake:""});
+   if(d.side&&!m.pair.includes(d.side))d.side="";
+   c.innerHTML=billHtml(m,market,"bet",d.side,`<div class="slip"><div class="chips" role="group" aria-label="เพิ่มยอดเร็ว">${PredBoard.STAKE_CHIPS.map(v=>`<button type="button" data-q="${m.id}:${v}">+${v}</button>`).join("")}</div><div class="slip-row"><label class="slip-stake"><span>ยอด</span><input id="stake-${m.id}" type="number" min="1" inputmode="numeric" placeholder="0" value="${esc(d.stake)}"></label><button type="button" class="chip-clear" data-clear="${m.id}" aria-label="ล้างยอด">ล้าง</button><button class="green slip-go" data-bet="${m.id}">${esc(slipLabel(m.id))}</button></div></div>`);
+  }
+  box.appendChild(c)});
+ if(!n)box.innerHTML='<div class="empty">ยังไม่มีคู่ที่เปิดให้ทาย • รอเจ้ามือตั้งราคา</div>';
+ const refresh=id=>{const b=box.querySelector(`[data-bet="${id}"]`);if(b)b.textContent=slipLabel(id)};
+ box.querySelectorAll("[data-bet]").forEach(b=>b.onclick=()=>placeBet(b.dataset.bet));
+ box.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{const id=b.dataset.pick;betDraft[id].side=b.dataset.side;box.querySelectorAll(`[data-pick="${id}"]`).forEach(x=>{const on=x===b;x.classList.toggle("picked",on);x.setAttribute("aria-pressed",String(on));x.querySelector(".corner-pick")?.remove();if(on)x.insertAdjacentHTML("beforeend",'<span class="corner-pick">เลือกมุมนี้</span>')});refresh(id);const e=document.getElementById(`stake-${id}`);if(e&&!Number(e.value))e.focus({preventScroll:true})});
+ box.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const [id,a]=b.dataset.q.split(":");const e=document.getElementById(`stake-${id}`);e.value=PredBoard.addStake(e.value,a);betDraft[id].stake=e.value;refresh(id)});
+ box.querySelectorAll("[data-clear]").forEach(b=>b.onclick=()=>{const id=b.dataset.clear,e=document.getElementById(`stake-${id}`);e.value="";betDraft[id].stake="";refresh(id)});
+ box.querySelectorAll('input[id^="stake-"]').forEach(e=>e.oninput=()=>{const id=e.id.slice(6);if(betDraft[id])betDraft[id].stake=e.value;refresh(id)});
+}
+// ใครได้ ใครเสีย: settled markets of this Season. Winners get the ได้เงิน stamp, losers a friendly tease (PredBoard lines).
+// A match that settles while the page is open gets the stamp struck in; ones already settled at load just sit there.
+let seenSettled=null;
+function renderSettled(){
+ const panel=document.getElementById("settledPanel"),box=document.getElementById("settledBoard");if(!panel||!box)return;
+ const season=league.currentSeason,groups=PredBoard.settledMatches(pred.bets,season,b=>BetSettle.effective(league,pred,b).status).slice(0,8);
+ panel.classList.toggle("hidden",!groups.length);
+ const fresh=new Set(groups.map(g=>g.matchId)),first=seenSettled===null;
+ const row=(b,kind)=>{const mine=b.userId===currentUserId,who=`<button type="button" class="profile-link" data-profile="${esc(b.userId)}">${esc(nameOf(b.userId))}</button>${mine?' <small>(คุณ)</small>':""}`,pickTxt=`ทาย ${esc(nameOf(b.sideId))} • ${credits(b.stake)}`;
+  if(kind==="won")return `<li class="payout won"><div class="payout-who">${who}<small>${pickTxt}</small></div><span class="paid-stamp">${PredBoard.WIN_STAMP}</span><span class="payout-amt positive">+${credits(b.stake)}</span><p class="payout-line">${esc(PredBoard.winLine(b.id))}</p></li>`;
+  if(kind==="lost")return `<li class="payout lost"><div class="payout-who">${who}<small>${pickTxt}</small></div><span class="payout-amt negative">-${credits(b.stake)}</span><p class="payout-line">${esc(PredBoard.teaseLine(b.id))}</p></li>`;
+  return `<li class="payout push"><div class="payout-who">${who}<small>${pickTxt}</small></div><span class="payout-amt">0</span><p class="payout-line">${esc(PredBoard.pushLine(b.id))}</p></li>`};
+ box.innerHTML=groups.map(g=>{const pair=Array.isArray(g.pair)?g.pair:[],m=allMatches().find(x=>x.id===g.matchId),score=m&&hasResult(m)&&m.pair.every((id,i)=>id===pair[i])?`${esc(m.score.a)} – ${esc(m.score.b)}`:"";const strike=!first&&!seenSettled.has(g.matchId);
+  return `<div class="market bill settled${strike?" stamp-in":""}"><div class="bill-head"><span class="bill-round">รอบ ${esc(roundOf(g.matchId))}</span><span class="tag closed">ตัดสินแล้ว</span></div><div class="settled-pair"><b class="nu-red">${esc(nameOf(pair[0]))}</b><span class="settled-score">${score||"VS"}</span><b class="nu-blue">${esc(nameOf(pair[1]))}</b></div><ul class="payouts">${[...g.won.map(b=>row(b,"won")),...g.lost.map(b=>row(b,"lost")),...g.push.map(b=>row(b,"push"))].join("")}</ul></div>`}).join("");
+ seenSettled=fresh;
+}
 function placeBet(id){
  const displayedMatch=allMatches().find(item=>item.id===id);
- const sideId=document.getElementById(`side-${id}`).value;
+ const sideId=betDraft[id]?.side||"";
+ if(!sideId){alert("แตะเลือกมุมที่จะทายก่อน");return false}
  const stake=Number(document.getElementById(`stake-${id}`).value);
  return mutatePred(()=>{
   const match=allMatches().find(item=>item.id===id);
@@ -186,7 +243,7 @@ function renderSettlement(){
 function statusText(s){return esc({pending:"รอผล",won:"ชนะ",lost:"แพ้",push:"คืนยอด",void:"ยกเลิก • คืนยอด"}[s]||s)}
 function renderHistory(){const list=isAdmin()||isDealer()?pred.bets:pred.bets.filter(b=>b.userId===currentUserId);document.getElementById("history").innerHTML=list.slice().reverse().map(b=>{const e=BetSettle.effective(league,pred,b),net=e.net;return `<tr><td>${esc(b.id)}</td><td><button type="button" class="profile-link" data-profile="${esc(b.userId)}">${esc(profile(b.userId)?.displayName||b.userId)}</button></td><td>${esc(`S${b.season??"เดิม"} • ${betPairText(b)}`)}</td><td>${esc(profile(b.sideId)?.displayName||b.sideId)}</td><td>${credits(b.stake)}</td><td>${statusText(e.status)}${e.stale?' <span title="คะแนนถูกแก้หลังคำนวณ รอเจ้ามือยืนยัน">⚠️</span>':""}</td><td class="${net>0?"positive":net<0?"negative":""}">${e.status==="pending"?"–":`${net>0?"+":""}${credits(net)}`}</td></tr>`}).join("")||'<tr><td colspan="7" class="empty">ยังไม่มีประวัติ</td></tr>'}
 function render(){
- renderHeader();renderSummary();renderDealerSelect();renderDealer();renderBetting();renderSettlement();renderHistory();bindProfileLinks();
+ renderHeader();renderSummary();renderDealerSelect();renderDealer();renderBetting();renderSettled();renderSettlement();renderHistory();bindProfileLinks();
 }
 document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;
 document.getElementById("settleAll").onclick=settleAll;

@@ -16,12 +16,10 @@ button,a.btn{padding:10px 13px;font-size:13px;cursor:pointer;text-decoration:non
 .field{display:flex;flex-direction:column;gap:5px;margin-top:8px}.field label{font-size:11px}
 input,select{width:100%;padding:0 10px;font-size:15px}
 .market-controls{display:grid;gap:7px;margin-top:10px}
-.bet-row{display:grid;grid-template-columns:1fr 110px auto;gap:8px;margin-top:10px}
-.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.quick button{min-height:34px;padding:6px 9px;background:#173052;color:#dceaff;border:1px solid #31547e}
 .locked{padding:9px;margin-top:9px;font-size:12px}.history{width:100%;border-collapse:collapse}.history th,.history td{padding:9px 6px;text-align:center;white-space:nowrap}.positive{font-weight:900}.empty{padding:20px;text-align:center}
 .hidden{display:none!important}
 .auth{position:fixed;inset:0;z-index:100;background:rgba(3,9,18,.84);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;padding:18px}.auth-card{width:min(420px,100%);padding:18px}.auth-card h2{margin:0 0 5px}
-@media(max-width:650px){.market-controls{grid-template-columns:1fr}.bet-row{grid-template-columns:1fr 90px}.bet-row button{grid-column:1/-1}}
+@media(max-width:650px){.market-controls{grid-template-columns:1fr}}
 
 /* Player profile + dealer selector */
 .profile-link{
@@ -55,3 +53,85 @@ body.is-admin .dealer-selector{display:block}
 body.is-dealer .dealer-market-controls{display:block}
 .dealer-current-card{margin-top:10px;padding:12px}
 .dealer-current-card b{display:block;font-size:18px;margin-top:3px}
+
+/* ---------- Fight-bill markets (predictions-board.js + renderBetting) ----------
+   Each open market is billed red corner vs blue corner; the corner is the pick button, the odds sit under the name
+   like the price line on a boxing poster, then the live กระดานทาย and the stake slip. Settled markets stamp ได้เงิน. */
+.bet-how{margin:-2px 0 12px}
+body.sport-redesign .market.bill{padding:0;overflow:visible;background:var(--paper);border:var(--rule);border-radius:var(--r);margin-bottom:14px}
+.bill-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:var(--rule-thin)}
+.bill-round{font-family:var(--display);font-size:16px;line-height:1.2}
+.bill-corners{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr);gap:6px;align-items:stretch;padding:10px 8px;background:linear-gradient(90deg,var(--red-field) 0 50%,var(--blue-field) 50% 100%)}
+.bill-vs{align-self:center;justify-self:center;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--poster);font-family:var(--display);font-size:14px;line-height:1;border:3px solid var(--paper);box-shadow:0 0 0 2px var(--ink)}
+body.sport-redesign .corner{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:118px;padding:12px 6px 10px;border:2px solid currentColor;border-radius:var(--r);background:var(--paper);text-align:center;font:inherit;color:var(--corner-red)}
+body.sport-redesign .corner.is-blue{color:var(--corner-blue)}
+.corner-tag{font-size:12px;font-weight:700;color:var(--ink-2)}
+.corner-name{font-family:var(--display);font-weight:400;font-size:clamp(20px,5.6vw,26px);line-height:1.15;overflow-wrap:anywhere;text-wrap:balance}
+.corner-odds{font-family:var(--display);font-size:15px;line-height:1.2;padding:3px 8px 2px;border:1.5px solid var(--ink);border-radius:4px;color:var(--ink);background:var(--paper-2)}
+.corner-odds small{font-family:var(--font);font-weight:700;font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.corner-odds.fav{background:var(--poster)}
+.corner-pick{font-size:12px;font-weight:700}
+body.sport-redesign button.corner:not(.picked):hover{background:#fff;box-shadow:inset 0 0 0 2px currentColor}
+body.sport-redesign .corner.picked{background:currentColor}
+body.sport-redesign .corner.picked :is(.corner-name,.corner-pick,.corner-tag){color:#fff}
+body.sport-redesign .corner.picked .corner-odds{border-color:var(--paper)}
+div.corner:not(.picked){opacity:.9}
+
+/* กระดานทาย: picks and money per corner, split bar red|blue */
+.board{padding:9px 10px 10px;border-top:var(--rule-thin)}
+.board-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;color:var(--ink-2)}
+.board-head span:first-child{font-family:var(--display);font-weight:400;font-size:15px;color:var(--ink)}
+.board-bar{position:relative;height:12px;margin:7px 0 6px;border:1.5px solid var(--ink);border-radius:999px;background:var(--corner-blue);overflow:hidden}
+.board-bar i{position:absolute;inset:0 auto 0 0;width:var(--red,50%);background:var(--corner-red);border-right:1.5px solid var(--paper);transition:width .4s cubic-bezier(.16,1,.3,1)}
+.board-sides{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--ink-2)}
+.board-side b{font-family:var(--display);font-weight:400;font-size:18px;margin-right:2px}
+.board-side span{margin-left:8px;font-family:var(--display);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.board-side.is-red b{color:var(--corner-red)}.board-side.is-blue b{color:var(--corner-blue)}
+.board-side.is-blue{text-align:right}
+body.sport-redesign #dealerMarkets .market .board{margin:10px -12px 0;padding:9px 12px 0}
+
+/* Stake slip: chips add, the go button says what will be recorded */
+.slip{padding:10px;border-top:var(--rule-thin);background:var(--paper-2);border-radius:0 0 var(--r) var(--r)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+body.sport-redesign .chips button{flex:1 1 0;min-width:0;min-height:44px;padding:6px 4px;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);font-family:var(--display);font-weight:400;font-size:16px}
+body.sport-redesign .chips button:hover{background:var(--poster)}
+body.sport-redesign .slip .chip-clear{min-height:52px;padding:6px 10px;background:var(--paper);color:var(--ink-2);border:1.5px solid var(--ink);font-weight:700;font-size:13px}
+.slip-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:8px;margin-top:8px;align-items:center}
+@media (max-width:560px){.slip-row{grid-template-columns:auto auto}.slip-row .slip-go{grid-column:1/-1}.slip-stake input{flex:1}.slip-row{grid-template-columns:minmax(0,1fr) auto}}
+.slip-stake{display:flex;align-items:center;gap:6px;margin:0}
+.slip-stake span{font-size:13px;font-weight:700;color:var(--ink-2)}
+body.sport-redesign .slip-stake input{width:84px;flex:1 1 84px;min-height:52px;font-family:var(--display);font-size:22px;text-align:center;padding:0 6px}
+body.sport-redesign .slip-go{min-height:52px;font-size:16px;line-height:1.25;padding:8px 10px;overflow-wrap:anywhere}
+.bill>.locked{margin:0;border-radius:0 0 var(--r) var(--r)!important;border:0!important;border-top:var(--rule-thin)!important;font-size:14px;font-weight:700;padding:10px 12px;background:var(--paper-2)!important}
+
+/* ใครได้ ใครเสีย */
+#settledBoard .bill+.bill{margin-top:18px}
+.settled-pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;padding:10px 12px;background:linear-gradient(90deg,var(--red-field) 0 50%,var(--blue-field) 50% 100%)}
+.settled-pair b{font-family:var(--display);font-weight:400;font-size:clamp(17px,4.8vw,21px);line-height:1.15;overflow-wrap:anywhere}
+.settled-pair .nu-red{text-align:right;color:var(--corner-red)}.settled-pair .nu-blue{color:var(--corner-blue)}
+.settled-score{font-family:var(--display);font-size:18px;padding:4px 10px 3px;border-radius:4px;background:var(--ink);color:var(--poster);white-space:nowrap;font-variant-numeric:tabular-nums}
+.payouts{list-style:none;margin:0;padding:0 12px}
+.payout{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"who stamp amt" "line line line";gap:2px 10px;align-items:center;padding:11px 0 10px;border-bottom:var(--rule-thin)}
+.payout:last-child{border-bottom:0}
+.payout-who{grid-area:who;display:flex;flex-direction:column;min-width:0}
+.payout-who .profile-link{font-weight:700;font-size:15px;text-align:left;justify-content:flex-start}
+.payout-who small{font-size:12px}
+.payout-amt{grid-area:amt;font-family:var(--display);font-size:19px;font-variant-numeric:tabular-nums}
+.payout-line{grid-area:line;margin:2px 0 0;font-size:13px;font-weight:600;color:var(--ink-2)}
+.payout.lost .payout-line{color:var(--lose)}
+.payout.lost .payout-who{opacity:.8}
+.paid-stamp{grid-area:stamp;font-family:var(--display);font-size:16px;line-height:1;padding:5px 8px 3px;color:var(--win);border:2.5px solid currentColor;border-radius:4px;background:var(--paper);transform:rotate(-6deg)}
+.payout.won:nth-child(even) .paid-stamp{transform:rotate(5deg)}
+@media (prefers-reduced-motion:no-preference){
+ .bill.stamp-in .paid-stamp{animation:paidStrike 420ms cubic-bezier(.2,.9,.3,1) both}
+ .bill.stamp-in .payout.lost .payout-line{animation:teaseIn 320ms cubic-bezier(.16,1,.3,1) 260ms both}
+}
+@keyframes paidStrike{0%{opacity:0;transform:translateY(-12px) scale(1.9) rotate(-6deg)}55%{opacity:1;transform:scale(.94) rotate(-6deg)}100%{opacity:1;transform:scale(1) rotate(-6deg)}}
+@keyframes teaseIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.board-bar i{transition:none}}
+@media (min-width:900px){
+ #bettingMarkets,#settledBoard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+ body.sport-redesign #bettingMarkets .market.bill{margin-bottom:0}
+ #bettingMarkets>.empty,#bettingMarkets>.locked{grid-column:1/-1}
+ #settledBoard .bill+.bill{margin-top:0}
+}
