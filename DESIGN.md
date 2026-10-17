@@ -268,6 +268,17 @@ Facts from the scores, stamped like the ชนะ / แชมป์ stamps (Chon
 ### Toast
 Ink fill, poster-yellow text, 6px corners, the floating shadow.
 
+### Motion
+Operate surface: motion is feedback, continuity and one authored moment (motion.css). Arrivals use `cubic-bezier(.16,1,.3,1)`, exits `cubic-bezier(.4,0,1,1)`; no bounce or overshoot.
+- **The strike (focal moment):** when a match's result changes while the page is open, the ชนะ stamp is struck onto the bill (drops from 1.9× scale to rest in 420ms, the card jolts 2px, the result line inks in). index.js adds `.stamp-in` only on a change, never for results already there at load.
+- **Page to page:** cross-document View Transitions. The magenta masthead morphs into the next masthead (300ms); the content swaps (out 120ms, in 220ms with an 8px rise); the ink tab bar stays put and crossfades its active tab.
+- **Press:** buttons and tiles sink 2px with an inset ink line on the top edge (90ms), like a plate meeting paper; tabs sink 1px; score digits tick down into place.
+- **Not used:** entrance animations on cards or lists at page load; content is visible by default.
+- **Reduced motion:** no travel and no strike; page swaps and state changes become 120-160ms fades.
+
+### Fonts
+Chonburi and Anuphan are self-hosted (`fonts.css`, `fonts/`, SIL OFL 1.1): Thai, Latin and Latin-ext subsets, Anuphan as one variable file per subset (400-700). Chonburi Thai, Anuphan Thai and Anuphan Latin are preloaded on every page. `font-synthesis:none` everywhere so Chonburi is never faux-bolded.
+
 ## Do's and Don'ts
 
 ### Do:

@@ -8,8 +8,8 @@
   function ensureStyles(){
     const required=[
       ['theme.css?v=20261017-polish','theme.css'],
-      ['motion.css?v=20261015-ux','motion.css'],
-      ['poster.css?v=20261017-nextup2','poster.css']
+      ['motion.css?v=20261017-motion2','motion.css'],
+      ['poster.css?v=20261017-motion','poster.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -123,6 +123,8 @@
 
   function elevateImportantCards(){['#standingsCard','#bettingPanel','#dealerPanel','.rank-card'].forEach(sel=>qs(sel)?.classList.add('sport-feature-card'))}
   // Hero, brand and tab bar go in before first paint so cross-page view transitions keep them in place.
+  // iOS Safari only shows :active press states once the page listens for touches.
+  document.addEventListener('touchstart',()=>{},{passive:true});
   addHeroPhoto();addBrand();restyleExistingTabs();addUniversalTabs();addDummyTab();drawTabIcons();markActiveNav();
   // On touch screens the fixed tab bar floats above the on-screen keyboard and covers the fields, so hide it while typing.
   function hideTabsWhileTyping(){

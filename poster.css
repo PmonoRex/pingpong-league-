@@ -298,3 +298,9 @@ body.sport-redesign .d-day[open]{border:var(--rule)}
 .d-day summary:after{content:"▾";color:var(--ink-soft);font-size:18px}
 .d-day[open] summary:after{content:"▴"}
 body.sport-redesign .d-day .d-pay-row{background:transparent;border:0;border-bottom:var(--rule-thin);border-radius:0;padding:9px 2px}
+
+/* Type: Chonburi ships one weight, so never let the browser fake bold or italic from it; headings wrap in balanced lines. */
+body.sport-redesign{font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-kerning:normal}
+body.sport-redesign :is(h1,h2,h3,.d-board-name b,.pair>b){text-wrap:balance}
+body.sport-redesign :is(p,.muted,.hint,small,.status){text-wrap:pretty}
+body.sport-redesign :is(.stat b,.score-control input,.d-cash-amt,.d-pay-amt,.rank-rp,.points,td){font-variant-numeric:tabular-nums lining-nums}
