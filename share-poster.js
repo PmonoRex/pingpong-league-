@@ -1,11 +1,13 @@
-// Share a finished match or the season table as a fight-poster image (1080x1350 PNG) to LINE via the share sheet.
+// Share a finished match or the season table as a poster image (1080x1350 PNG) to LINE via the share sheet.
 // Names are drawn with canvas fillText and never become markup; the pure helpers at the top are covered by tests/share-poster.test.cjs.
 (() => {
   const W = 1080, H = 1350;
   const LEAGUE = "ตีให้สุด หยุดที่เบ้าตา";
-  const C = { poster: "#ffd21f", paper: "#fffdf6", paper2: "#f6f1e3", ink: "#17110f", inkSoft: "rgba(23,17,15,.66)", magenta: "#e0147a", magentaDeep: "#b40d61",
-    red: "#d4252e", blue: "#1c4fc0", redField: "#fde4e3", blueField: "#e2e9fb", gold: "#e7a900", silver: "#9aa3ad", bronze: "#b8763c" };
-  const DISPLAY = "Chonburi, Anuphan, serif", UI = "Anuphan, system-ui, sans-serif";
+  // Night-arena inks: near-black ground, smoked panels, red as the one loud colour (same palette as arena.css).
+  const C = { bg: "#0a0b0e", night: "#0c0d11", paper: "#15171d", paper2: "#1c1f26", ink: "#f4f5f7", inkSoft: "#9ba1ad", line: "rgba(255,255,255,.14)",
+    redHi: "#ff4752", magentaDeep: "#ff4752", red: "#ff5560", redSolid: "#d81e29", blue: "#5b8cff", redField: "#2a1216", blueField: "#121a2e",
+    gold: "#f5b80b", silver: "#c3cad5", bronze: "#d68a4c", onMedal: "#14171c" };
+  const DISPLAY = "Kanit, Anuphan, sans-serif", UI = "Anuphan, system-ui, sans-serif";
 
   // {n} is the loser's name. Friendly ribbing only.
   const TAUNTS = [
@@ -71,13 +73,13 @@
     if (fontsReady) return fontsReady;
     const sample = "ตีให้สุด หยุดที่เบ้าตา ชนะ 0123456789";
     fontsReady = !document.fonts?.load ? Promise.resolve() : Promise.all([
-      document.fonts.load(`80px Chonburi`, sample), document.fonts.load(`700 40px Anuphan`, sample), document.fonts.load(`600 40px Anuphan`, sample)
+      document.fonts.load(`italic 800 80px Kanit`, sample), document.fonts.load(`700 40px Anuphan`, sample), document.fonts.load(`600 40px Anuphan`, sample)
     ]).then(() => document.fonts.ready).catch(() => {});
     return fontsReady;
   }
-  const font = (size, family = DISPLAY, weight = 400) => `${weight} ${size}px ${family}`;
+  const font = (size, family = DISPLAY, weight = 400) => family === DISPLAY ? `italic 800 ${size}px ${family}` : `${weight} ${size}px ${family}`;
   function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath() }
-  function panel(c, x, y, w, h, fill, line = 6) { rrect(c, x, y, w, h, 12); c.fillStyle = fill; c.fill(); c.lineWidth = line; c.strokeStyle = C.ink; c.stroke() }
+  function panel(c, x, y, w, h, fill, line = 3) { rrect(c, x, y, w, h, 18); c.fillStyle = fill; c.fill(); if (line) { c.lineWidth = line; c.strokeStyle = C.line; c.stroke() } }
   // Fits text to maxWidth by shrinking the size; returns the size used.
   function text(c, str, x, y, { size = 40, min = 24, family = DISPLAY, weight = 400, color = C.ink, align = "center", maxWidth = 900 } = {}) {
     const s = fitSize((t, px) => { c.font = font(px, family, weight); return c.measureText(t).width }, str, maxWidth, size, min);
@@ -85,7 +87,7 @@
     return s;
   }
   function disc(c, x, y, r, fill, ring) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fillStyle = fill; c.fill(); c.lineWidth = 6; c.strokeStyle = ring; c.stroke() }
-  // A word in a currentColor border on paper, rotated: the poster's stamp.
+  // A word in a coloured border on a dark plate, rotated: the result stamp.
   function stamp(c, word, x, y, color, deg, size = 88) {
     c.save(); c.translate(x, y); c.rotate(deg * Math.PI / 180); c.font = font(size);
     const w = c.measureText(word).width + 56, h = size + 34;
@@ -94,16 +96,20 @@
   }
   function ribbon(c, str, y) {
     c.font = font(40); const w = c.measureText(str).width + 80;
-    rrect(c, (W - w) / 2, y - 38, w, 76, 38); c.fillStyle = C.ink; c.fill();
-    text(c, str, W / 2, y + 14, { size: 40, color: C.poster });
+    rrect(c, (W - w) / 2, y - 38, w, 76, 38); c.fillStyle = C.redSolid; c.fill();
+    text(c, str, W / 2, y + 14, { size: 40, color: "#fff" });
   }
   function base(c, season, sub) {
-    c.fillStyle = C.poster; c.fillRect(0, 0, W, H);
-    c.lineWidth = 10; c.strokeStyle = C.ink; c.strokeRect(22, 22, W - 44, H - 44);
-    panel(c, 48, 48, W - 96, 250, C.magenta);
-    disc(c, 138, 173, 58, C.ink, C.poster);
-    text(c, "ศึก", 138, 190, { size: 46, color: C.poster });
-    text(c, LEAGUE, 222, 178, { size: 78, min: 44, color: C.poster, align: "left", maxWidth: 770 });
+    c.fillStyle = C.bg; c.fillRect(0, 0, W, H);
+    const glow = c.createRadialGradient(W, 0, 0, W, 0, 900); glow.addColorStop(0, "rgba(229,36,47,.35)"); glow.addColorStop(1, "rgba(229,36,47,0)");
+    c.fillStyle = glow; c.fillRect(0, 0, W, H);
+    c.lineWidth = 4; c.strokeStyle = "rgba(255,71,82,.55)"; c.strokeRect(22, 22, W - 44, H - 44);
+    panel(c, 48, 48, W - 96, 250, C.paper);
+    c.save(); rrect(c, 48, 48, W - 96, 250, 18); c.clip(); c.fillStyle = "rgba(229,36,47,.5)";
+    c.beginPath(); c.moveTo(700, 48); c.lineTo(760, 48); c.lineTo(600, 298); c.lineTo(540, 298); c.closePath(); c.fill(); c.restore();
+    disc(c, 138, 173, 58, C.redSolid, "rgba(255,255,255,.16)");
+    text(c, "ศึก", 138, 190, { size: 44, color: "#fff" });
+    text(c, LEAGUE, 222, 178, { size: 78, min: 44, color: "#fff", align: "left", maxWidth: 770 });
     text(c, `SEASON ${season}  •  ${sub}`, 224, 246, { size: 34, min: 22, family: UI, weight: 700, color: "rgba(255,255,255,.92)", align: "left", maxWidth: 770 });
   }
   function footer(c, season) {
@@ -118,7 +124,7 @@
     const top = 420, h = 540, mid = W / 2, xa = 48 + (mid - 48) / 2, xb = mid + (W - 48 - mid) / 2;
     rrect(c, 48, top, W - 96, h, 12); c.save(); c.clip();
     c.fillStyle = C.redField; c.fillRect(48, top, mid - 48, h); c.fillStyle = C.blueField; c.fillRect(mid, top, mid - 48, h); c.restore();
-    rrect(c, 48, top, W - 96, h, 12); c.lineWidth = 6; c.strokeStyle = C.ink; c.stroke();
+    rrect(c, 48, top, W - 96, h, 18); c.lineWidth = 3; c.strokeStyle = C.line; c.stroke();
     text(c, "มุมแดง", xa, top + 120, { size: 30, family: UI, weight: 700, color: C.red });
     text(c, "มุมน้ำเงิน", xb, top + 120, { size: 30, family: UI, weight: 700, color: C.blue });
     const fade = side => (win === "a" && side === "b") || (win === "b" && side === "a") ? .42 : 1;
@@ -127,15 +133,15 @@
     c.globalAlpha = fade("b"); text(c, b, xb, top + 210, { size: 74, min: 34, color: C.blue, maxWidth: 400 });
     text(c, String(m.b), xb, top + 470, { size: 240, color: C.blue, maxWidth: 400 });
     c.globalAlpha = 1;
-    disc(c, mid, top + 300, 66, C.ink, C.paper); c.beginPath(); c.arc(mid, top + 300, 72, 0, Math.PI * 2); c.lineWidth = 4; c.strokeStyle = C.ink; c.stroke();
-    text(c, "VS", mid, top + 318, { size: 48, color: C.poster });
+    disc(c, mid, top + 300, 66, C.night, "rgba(255,71,82,.7)");
+    text(c, "VS", mid, top + 318, { size: 48, color: C.redHi });
     if (win === "a") stamp(c, "ชนะ", 190, top + 6, C.red, -7);
     else if (win === "b") stamp(c, "ชนะ", W - 190, top + 6, C.blue, 7);
     else stamp(c, "เสมอ", mid, top + 44, C.ink, -4, 72);
     const loser = win === "a" ? b : win === "b" ? a : "";
-    panel(c, 48, 1000, W - 96, 200, C.ink, 0);
-    text(c, loser ? `ฝากถึง ${loser}` : "เสมอกันไป", W / 2, 1062, { size: 32, family: UI, weight: 700, color: "rgba(255,210,31,.8)", maxWidth: 900 });
-    text(c, loser ? taunt(loser) : drawLine(), W / 2, 1150, { size: 60, min: 30, color: C.poster, maxWidth: 920 });
+    panel(c, 48, 1000, W - 96, 200, C.night);
+    text(c, loser ? `ฝากถึง ${loser}` : "เสมอกันไป", W / 2, 1062, { size: 32, family: UI, weight: 700, color: C.inkSoft, maxWidth: 900 });
+    text(c, loser ? taunt(loser) : drawLine(), W / 2, 1150, { size: 60, min: 30, color: C.redHi, maxWidth: 920 });
     footer(c, season);
   }
 
@@ -148,7 +154,7 @@
     const [first, ...under] = bill.top;
     if (first) {
       panel(c, 48, 420, W - 96, 250, C.paper);
-      disc(c, 150, 545, 62, C.poster, C.ink); text(c, "1", 150, 572, { size: 72 });
+      disc(c, 150, 545, 62, C.gold, "rgba(255,255,255,.2)"); text(c, "1", 150, 572, { size: 72, color: C.onMedal });
       text(c, first.label === "แชมป์" ? "คู่เอก • แชมป์ซีซั่น" : "คู่เอก • จ่าฝูง", 240, 490, { size: 30, family: UI, weight: 700, color: C.magentaDeep, align: "left", maxWidth: 560 });
       text(c, cleanName(first.name), 240, 580, { size: 84, min: 40, align: "left", maxWidth: 560 });
       text(c, statLine(first), 240, 636, { size: 32, family: UI, weight: 600, color: C.inkSoft, align: "left", maxWidth: 740 });
@@ -157,7 +163,7 @@
     under.forEach((r, i) => {
       const x = 48 + i * 498, w = 486;
       panel(c, x, 700, w, 220, C.paper);
-      disc(c, x + 70, 775, 42, medal[r.rank - 1], C.ink); text(c, String(r.rank), x + 70, 794, { size: 50 });
+      disc(c, x + 70, 775, 42, medal[r.rank - 1], "rgba(255,255,255,.2)"); text(c, String(r.rank), x + 70, 794, { size: 50, color: C.onMedal });
       text(c, r.label, x + 130, 768, { size: 28, family: UI, weight: 700, color: C.inkSoft, align: "left", maxWidth: w - 150 });
       text(c, cleanName(r.name), x + 130, 818, { size: 54, min: 30, align: "left", maxWidth: w - 150 });
       text(c, `${r.pts} แต้ม`, x + 36, 892, { size: 40, color: C.red, align: "left", maxWidth: 200 });
@@ -170,8 +176,8 @@
       panel(c, 48, top, W - 96, height, C.paper);
       shown.forEach((r, i) => {
         const y = top + 10 + i * rowH, cy = y + rowH / 2;
-        if (i) { c.fillStyle = "rgba(23,17,15,.22)"; c.fillRect(70, y, W - 140, 2) }
-        disc(c, 108, cy, rowH * .3, C.paper2, C.ink); text(c, String(r.rank), 108, cy + rowH * .14, { size: Math.round(rowH * .4) });
+        if (i) { c.fillStyle = "rgba(255,255,255,.1)"; c.fillRect(70, y, W - 140, 2) }
+        disc(c, 108, cy, rowH * .3, C.paper2, C.line); text(c, String(r.rank), 108, cy + rowH * .14, { size: Math.round(rowH * .4) });
         text(c, cleanName(r.name), 160, cy + 14, { size: 40, min: 26, color: C.ink, align: "left", maxWidth: 470 });
         text(c, `${r.w}-${r.d}-${r.l}`, 790, cy + 12, { size: 30, family: UI, weight: 600, color: C.inkSoft, align: "right", maxWidth: 150 });
         text(c, `${r.pts}`, 990, cy + 14, { size: 42, color: C.red, align: "right", maxWidth: 140 });
