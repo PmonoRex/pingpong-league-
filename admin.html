@@ -2,28 +2,28 @@
 <html lang="th">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#05070b">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Chonburi&display=swap">
 <title>Admin • ตีให้สุด หยุดที่เบ้าตา</title>
 <link rel="stylesheet" href="admin.css">
 <link rel="stylesheet" href="theme.css?v=20261017-polish">
-<link rel="stylesheet" href="motion.css?v=20261015-ux">
+<link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-poster2">
 <script src="player-ui.js?v=20261015-design" defer></script>
 </head>
 <body>
 <main>
 <section class="hero">
- <h1>⚙️ Admin Center</h1>
+ <h1>Admin Center</h1>
  <div class="muted">จัดการบัญชีผู้เล่น • เพิ่มผู้เล่นใหม่ได้เฉพาะ Admin</div>
  <div class="muted" id="adminStatus" role="status">กำลังโหลดข้อมูลบัญชี...</div>
- <div class="actions"><a class="secondary" href="backup.html">🛡 Backup Center</a></div>
+ <div class="actions"><a class="secondary" href="backup.html">Backup Center</a></div>
 </section>
-<section class="card"><h2>➕ เพิ่มบัญชีผู้เล่น</h2><div class="notice">บัญชีใหม่จะมี PIN เริ่มต้น <b>1234</b> และประวัติจะยังอยู่แม้เปลี่ยนชื่อ</div><div class="form"><input id="newName" placeholder="ชื่อผู้เล่น"><select id="newRole"><option value="player">Player</option><option value="admin">Admin</option></select><button class="primary" id="create">สร้างบัญชี</button></div></section>
-<section class="card"><h2>👥 บัญชีทั้งหมด</h2><div id="accounts"></div></section>
+<section class="card"><h2>เพิ่มบัญชีผู้เล่น</h2><div class="notice">บัญชีใหม่จะมี PIN เริ่มต้น <b>1234</b> และประวัติจะยังอยู่แม้เปลี่ยนชื่อ</div><div class="form"><input id="newName" placeholder="ชื่อผู้เล่น"><select id="newRole"><option value="player">Player</option><option value="admin">Admin</option></select><button class="primary" id="create">สร้างบัญชี</button></div></section>
+<section class="card"><h2>บัญชีทั้งหมด</h2><div id="accounts"></div></section>
 </main>
 <script src="shared.js?v=20261013-1" defer></script>
 <script src="admin.js?v=hide-id-20260924" defer></script>
 <script src="audit-view.js?v=20261012" defer></script>
-<script src="suite.js?v=20261015-qa" defer></script>
-<script src="sport-ui.js?v=20261017-polish" defer></script>
+<script src="suite.js?v=20261017-poster2" defer></script>
+<script src="sport-ui.js?v=20261017-poster2" defer></script>
 </body>
 </html>

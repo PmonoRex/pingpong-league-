@@ -4,58 +4,58 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05070b">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Chonburi&display=swap">
 <title>ตีให้สุด หยุดที่เบ้าตา</title>
 <link rel="stylesheet" href="index.css?v=smooth-nav-20260924">
 <link rel="stylesheet" href="recovery.css?v=20261012">
 <link rel="stylesheet" href="theme.css?v=20261017-polish">
-<link rel="stylesheet" href="motion.css?v=20261015-ux">
+<link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-poster2">
 <script src="player-ui.js?v=20261015-design" defer></script>
 </head>
 <body>
 <main>
 <section class="hero">
- <h1>🏓 ตีให้สุด หยุดที่เบ้าตา</h1>
+ <h1><span class="nw">ตีให้สุด</span> <span class="nw">หยุดที่เบ้าตา</span></h1>
  <div class="sub" id="leagueInfo">กำลังโหลดลีก...</div>
  <div class="rules"><span class="pill">ชนะ 3</span><span class="pill">เสมอ 1</span><span class="pill">แพ้ 0</span><span class="pill sync" id="syncStatus">กำลังเชื่อมต่อ...</span></div>
  <div class="account-bar">
-   <div class="account-user">👤 <strong id="whoami">-</strong><span class="admin-badge" id="adminBadge" style="display:none">ADMIN</span></div>
-   <div class="actions" style="margin:0"><a class="btn secondary" id="adminLink" href="admin.html" style="display:none">⚙️ Admin</a><a class="btn secondary" href="archive.html">📚 Season Archive</a><a class="btn secondary" href="dummy.html">🃏 นับแต้มดัมมี่</a><button class="danger" id="logout">ออก</button></div>
+   <div class="account-user"><strong id="whoami">-</strong><span class="admin-badge" id="adminBadge" style="display:none">ADMIN</span></div>
+   <div class="actions" style="margin:0"><a class="btn secondary" id="adminLink" href="admin.html" style="display:none">Admin</a><a class="btn secondary" href="archive.html">Season Archive</a><a class="btn secondary" href="dummy.html">นับแต้มดัมมี่</a><button class="danger" id="logout">ออก</button></div>
  </div>
 </section>
 
 <div class="grid">
 <section class="card" id="competition">
  <div class="roster-box" id="rosterBox">
-   <div class="section-head"><div><h2>👥 ผู้เล่น Season นี้</h2><div class="hint">เฉพาะ Admin เปลี่ยนรายชื่อผู้เล่นได้</div></div></div>
+   <div class="section-head"><div><h2>ผู้เล่น Season นี้</h2><div class="hint">เฉพาะ Admin เปลี่ยนรายชื่อผู้เล่นได้</div></div></div>
    <div id="rosterList" class="roster-list"></div>
-   <div class="actions"><button class="blue" id="applyRoster">✅ ใช้รายชื่อที่เลือก / สร้างตารางใหม่</button><a class="btn secondary" href="admin.html" id="addAccountLink">+ เพิ่มบัญชีผู้เล่น</a></div>
+   <div class="actions"><button class="blue" id="applyRoster">ใช้รายชื่อที่เลือก / สร้างตารางใหม่</button><a class="btn secondary" href="admin.html" id="addAccountLink">+ เพิ่มบัญชีผู้เล่น</a></div>
  </div>
  <div class="section-head"><div><h2>การแข่งขัน</h2><div class="hint">แตะ − / + หรือกรอกคะแนนโดยตรง</div></div></div>
  <div id="schedule"></div>
- <div class="actions"><button class="primary" id="saveBtn">💾 บันทึก</button><button class="danger" id="clearScores">ล้างคะแนน</button></div>
+ <div class="actions"><button class="primary" id="saveBtn">บันทึก</button><button class="danger" id="clearScores">ล้างคะแนน</button></div>
 </section>
 <section>
  <section class="card" id="standingsCard">
-   <div class="section-head"><div><h2>🏆 ตารางคะแนน</h2><div class="hint">เรียง: คะแนน → ผลต่าง → ลูกได้ → ชนะ</div></div></div>
+   <div class="section-head"><div><h2>ตารางคะแนน</h2><div class="hint">เรียง: คะแนน → ผลต่าง → ลูกได้ → ชนะ</div></div></div>
    <div class="summary"><div class="stat"><b id="played">0</b><small>แข่งแล้ว</small></div><div class="stat"><b id="remain">0</b><small>เหลือ</small></div><div class="stat"><b id="leader">-</b><small>อันดับ 1</small></div></div>
    <div class="wrap"><table><thead><tr><th>#</th><th style="text-align:left">ผู้เล่น</th><th>แข่ง</th><th>ชนะ</th><th>เสมอ</th><th>แพ้</th><th>ได้</th><th>เสีย</th><th>+/-</th><th>แต้ม</th></tr></thead><tbody id="standings"></tbody></table></div>
-   <div class="actions"><button class="primary" id="finishSeason">🏁 จบ Season / บันทึกแรงค์</button><a class="btn secondary" href="archive.html">📚 ดู Season เก่า</a><button class="secondary" id="openRecovery" type="button">♻️ กู้ข้อมูล Season ก่อนหน้า</button><span class="hint" id="finishHint"></span></div>
+   <div class="actions"><button class="primary" id="finishSeason">จบ Season / บันทึกแรงค์</button><a class="btn secondary" href="archive.html">ดู Season เก่า</a><button class="secondary" id="openRecovery" type="button">กู้ข้อมูล Season ก่อนหน้า</button><span class="hint" id="finishHint"></span></div>
  </section>
- <section class="card rank-card" id="rankCard"><div class="section-head"><div><h2>📈 แรงค์สะสม</h2><div class="hint">เปลี่ยนชื่อแล้วประวัติยังอยู่</div></div></div><div id="rankingList"></div></section>
+ <section class="card rank-card" id="rankCard"><div class="section-head"><div><h2>แรงค์สะสม</h2><div class="hint">เปลี่ยนชื่อแล้วประวัติยังอยู่</div></div></div><div id="rankingList"></div></section>
 </section>
 </div>
 </main>
 <nav class="bottom-nav" aria-label="เมนูหลัก"><a class="active" href="#competition"><span>🏓</span>การแข่งขัน</a><a href="#standingsCard"><span>🏆</span>ตารางคะแนน</a><a href="#rankCard"><span>📈</span>แรงค์</a><a href="predictions.html"><span>🎯</span>ทายผล</a></nav>
-<div class="recovery-backdrop" id="recoveryBackdrop" aria-hidden="true"><div class="recovery-sheet" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle"><div class="recovery-head"><div><h2 id="recoveryTitle">♻️ กู้ข้อมูลการแข่งขัน</h2><div class="hint">ระบบจะค้นหาคะแนนเก่าที่เหลืออยู่ในเครื่องนี้ก่อน และให้ตรวจตัวอย่างก่อนกู้</div></div><button class="recovery-close" id="closeRecovery" type="button" aria-label="ปิด">×</button></div><div class="recovery-note">การกู้จะไม่ลบประวัติแรงค์หรือบัญชีผู้เล่นปัจจุบัน และระบบจะสำรองข้อมูลปัจจุบันก่อนเขียนทับคะแนน หาก Season เดิมถูกบันทึกแรงค์ไปแล้ว ระบบจะไม่สร้างแรงค์ซ้ำอัตโนมัติ</div><div id="recoveryList" class="recovery-list"></div><div id="recoveryPreview" class="recovery-preview"><div class="hint">เลือกข้อมูลที่ต้องการกู้</div></div><div class="recovery-actions"><button class="primary" id="restoreRecovery" type="button" disabled>กู้คะแนนชุดนี้</button><button class="secondary" id="cancelRecovery" type="button">ยกเลิก</button></div></div></div>
+<div class="recovery-backdrop" id="recoveryBackdrop" aria-hidden="true"><div class="recovery-sheet" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle"><div class="recovery-head"><div><h2 id="recoveryTitle">กู้ข้อมูลการแข่งขัน</h2><div class="hint">ระบบจะค้นหาคะแนนเก่าที่เหลืออยู่ในเครื่องนี้ก่อน และให้ตรวจตัวอย่างก่อนกู้</div></div><button class="recovery-close" id="closeRecovery" type="button" aria-label="ปิด">×</button></div><div class="recovery-note">การกู้จะไม่ลบประวัติแรงค์หรือบัญชีผู้เล่นปัจจุบัน และระบบจะสำรองข้อมูลปัจจุบันก่อนเขียนทับคะแนน หาก Season เดิมถูกบันทึกแรงค์ไปแล้ว ระบบจะไม่สร้างแรงค์ซ้ำอัตโนมัติ</div><div id="recoveryList" class="recovery-list"></div><div id="recoveryPreview" class="recovery-preview"><div class="hint">เลือกข้อมูลที่ต้องการกู้</div></div><div class="recovery-actions"><button class="primary" id="restoreRecovery" type="button" disabled>กู้คะแนนชุดนี้</button><button class="secondary" id="cancelRecovery" type="button">ยกเลิก</button></div></div></div>
 <div class="auth-overlay" id="auth"><div class="auth-card"><h2>เข้าสู่ลีก</h2><p>เลือกบัญชีของคุณแล้วใส่ PIN</p><div class="field"><label>บัญชี</label><select id="loginUser"></select></div><div class="field"><label>PIN</label><input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div><button class="blue" id="loginBtn" style="width:100%">เข้าสู่ระบบ</button></div></div>
 <script src="shared.js?v=20261013-1" defer></script>
-<script src="index.js?v=20261015-qa" defer></script>
+<script src="index.js?v=20261017-poster2" defer></script>
 <script src="sync-guard.js?v=20261013-1" defer></script>
 <script src="archive-hook.js?v=20261015-design" defer></script>
 <script src="recovery.js?v=20261015-qa" defer></script>
 <script src="safety-hooks.js?v=20261012" defer></script>
-<script src="suite.js?v=20261015-qa" defer></script>
-<script src="sport-ui.js?v=20261017-polish" defer></script>
+<script src="suite.js?v=20261017-poster2" defer></script>
+<script src="sport-ui.js?v=20261017-poster2" defer></script>
 </body>
 </html>

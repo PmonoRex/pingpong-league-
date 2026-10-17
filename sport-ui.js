@@ -2,12 +2,14 @@
   const qs=(s,r=document)=>r.querySelector(s);
   const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
   const HERO_SRC='hero-player.jpg?v=20261015-ux';
-  const HERO_PAGES=new Set(['index.html','dashboard.html','predictions.html','stats.html','archive.html','backup.html','admin.html']);
+  // The fight-poster masthead carries no photo.
+  const HERO_PAGES=new Set();
 
   function ensureStyles(){
     const required=[
       ['theme.css?v=20261017-polish','theme.css'],
-      ['motion.css?v=20261015-ux','motion.css']
+      ['motion.css?v=20261015-ux','motion.css'],
+      ['poster.css?v=20261017-poster2','poster.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -41,7 +43,7 @@
   function addBrand(){
     const hero=qs('.hero');if(!hero||qs('.sport-brand',hero))return;
     const brand=document.createElement('div');brand.className='sport-brand';
-    brand.innerHTML='<div class="sport-mark">🏓</div><div><b>ตีให้สุด หยุดที่เบ้าตา</b><small>THAI PING PONG LEAGUE</small></div>';
+    brand.innerHTML='<div class="sport-mark" aria-label="ตีให้สุด หยุดที่เบ้าตา">ศึก</div>';
     const photo=qs('.hero-player-photo',hero);
     if(photo)photo.insertAdjacentElement('afterend',brand);else hero.insertBefore(brand,hero.firstChild);
     const l=league();
@@ -130,6 +132,10 @@
     document.addEventListener('focusout',()=>setTimeout(()=>{if(!typing(document.activeElement))document.body.classList.remove('sport-typing')},60));
   }
   hideTabsWhileTyping();
-  function boot(){setupMobileTools();elevateImportantCards();document.body.classList.add('sport-ready')}
+  // A stat with nothing to show ("-") drops out of the bill instead of printing a dash at headline size.
+  function markEmptyStats(){document.querySelectorAll('.stat').forEach(s=>{const v=(s.querySelector('b')?.textContent||'').trim();s.classList.toggle('stat-empty',v==='-'||v==='–'||v==='')})}
+  let statTimer=0;
+  new MutationObserver(()=>{clearTimeout(statTimer);statTimer=setTimeout(markEmptyStats,60)}).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+  function boot(){setupMobileTools();markEmptyStats();elevateImportantCards();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
 })();
