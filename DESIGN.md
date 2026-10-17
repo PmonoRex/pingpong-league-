@@ -274,6 +274,7 @@ Operate surface: motion is feedback, continuity and one authored moment (motion.
 - **Page to page:** cross-document View Transitions. The magenta masthead morphs into the next masthead (300ms); the content swaps (out 120ms, in 220ms with an 8px rise); the ink tab bar stays put and crossfades its active tab.
 - **Press:** buttons and tiles sink 2px with an inset ink line on the top edge (90ms), like a plate meeting paper; tabs sink 1px; score digits tick down into place.
 - **Not used:** entrance animations on cards or lists at page load; content is visible by default.
+- **Sound and haptics:** the strike alone has a voice. At 55% of it (231ms, the stamp meeting paper) stamp-sound.js plays a ~120ms Web Audio thunk (a sine dropping 150→52Hz plus a 30ms low-passed noise slap, modest volume, no audio files) and `navigator.vibrate(18)` where it exists (Android; iOS gets nothing faked). Audio unlocks on the first gesture; nothing plays on load or for results synced while the page is hidden, and a batch synced together gets one hit. The เครื่องมือ menu's "เสียงตีตรา" toggle covers both and is remembered per device; it defaults off under reduced motion.
 - **Reduced motion:** no travel and no strike; page swaps and state changes become 120-160ms fades.
 
 ### Fonts
