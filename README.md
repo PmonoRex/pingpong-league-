@@ -15,7 +15,7 @@
 | Season Archive | `archive.html`, `archive.js`, `archive-hook.js`, `archive-export.js` | เปิดดู Season เก่า, ส่งออก CSV / แชร์ |
 | Backup Center | `backup.html`, `backup.js`, `safety-hooks.js`, `recovery.js` | Snapshot ในเครื่อง, Restore คะแนน / ทั้ง Season |
 | Admin | `admin.html`, `admin.js`, `audit-view.js` | สร้าง/เปลี่ยนชื่อ/ปิดบัญชี, รีเซ็ต PIN, Audit Log |
-| นับแต้มดัมมี่ | `dummy.html`, `dummy.js`, `dummy.css` | นับแต้มไพ่ดัมมี่ 2–4 คน แยกจากลีก เก็บใน `localStorage` ของเครื่องเท่านั้น |
+| นับแต้มดัมมี่ | `dummy.html`, `dummy.js`, `dummy.css` | นับแต้มไพ่ดัมมี่ 2–4 คน แยกจากลีก ซิงก์ข้ามเครื่องผ่านคอลัมน์ `dummy` (สำเนาออฟไลน์ใน `localStorage`), สรุปรายวัน + ปุ่มเริ่มวันใหม่ |
 
 ไฟล์ที่ใช้ร่วมกัน:
 
@@ -49,11 +49,22 @@ npx serve .
 ## ตั้งค่า Supabase
 
 1. สร้างโปรเจกต์ใน [Supabase](https://supabase.com)
-2. เปิด **SQL Editor** แล้วรันไฟล์ใน `supabase/migrations/` ตามลำดับชื่อไฟล์ (ตอนนี้มี `20260919163000_create_shared_state.sql`) ซึ่งจะสร้างตาราง `public.app_state`, เปิด RLS, ตั้ง policy และ insert แถว `main` เริ่มต้น หรือใช้ Supabase CLI: `supabase db push`
+2. เปิด **SQL Editor** แล้วรันไฟล์ใน `supabase/migrations/` ตามลำดับชื่อไฟล์ (`20260919163000_create_shared_state.sql` แล้วตามด้วย `20261017120000_add_dummy_state.sql`) ซึ่งจะสร้างตาราง `public.app_state`, เปิด RLS, ตั้ง policy และ insert แถว `main` เริ่มต้น หรือใช้ Supabase CLI: `supabase db push`
 3. แก้ `SUPABASE_URL` และ `SUPABASE_KEY` (publishable/anon key) ที่ต้นไฟล์ `shared.js` ให้เป็นของโปรเจกต์ตัวเอง
 4. เปิดเว็บ — ครั้งแรกบัญชีเริ่มต้นจะถูกสร้างจากรายชื่อผู้เล่นเดิม โดย PIN เริ่มต้นคือ `1234` (Admin เริ่มต้นคือบัญชีชื่อ "มอส") ควรให้ Admin ตรวจและรีเซ็ตที่หน้า Admin
 
-โครงสร้างข้อมูลในแถว `main`: คอลัมน์ `league` เก็บ `{ uidLeague: {...} }` (profiles, seasonPlayerIds, rounds, results, rankHistory, seasonArchives, auditLog, schemaVersion), คอลัมน์ `predictions` เก็บ `{ uidPredictions: {...} }` (dealerId, markets, bets), และ `updated_at` ใช้เป็น optimistic lock ตอนเขียน
+### อัปเดตโปรเจกต์ที่ใช้งานอยู่แล้ว: เปิดซิงก์หน้าดัมมี่
+
+หน้าดัมมี่จะซิงก์ข้ามเครื่องได้ก็ต่อเมื่อมีคอลัมน์ `dummy` แล้ว ให้ Owner เปิด **SQL Editor** ของโปรเจกต์ที่ใช้งานจริงแล้วรัน `supabase/migrations/20261017120000_add_dummy_state.sql` ครั้งเดียว:
+
+```sql
+alter table public.app_state
+  add column if not exists dummy jsonb not null default '{}'::jsonb;
+```
+
+ก่อนรัน หน้าดัมมี่ยังใช้ได้ตามเดิมแบบเก็บในเครื่อง (ป้ายสถานะขึ้น "ยังไม่เปิดซิงก์ • เก็บในเครื่อง") หลังรันแล้ว เปิดหน้าดัมมี่บนเครื่องที่มีแต้มเดิม แต้มในเครื่องจะถูกส่งขึ้น Cloud ให้อัตโนมัติ (ถ้าหลายเครื่องมีแต้มเก่าคนละชุดและผู้เล่นคนละชุด ชุดที่ขึ้น Cloud ก่อนจะถูกใช้ และของเครื่องที่มาทีหลังถูกเก็บสำรองไว้ใน `localStorage` คีย์ `pp_dummy_conflict_v1`)
+
+โครงสร้างข้อมูลในแถว `main`: คอลัมน์ `league` เก็บ `{ uidLeague: {...} }` (profiles, seasonPlayerIds, rounds, results, rankHistory, seasonArchives, auditLog, schemaVersion), คอลัมน์ `predictions` เก็บ `{ uidPredictions: {...} }` (dealerId, markets, bets), และ `updated_at` ใช้เป็น optimistic lock ตอนเขียน ส่วนคอลัมน์ `dummy` เก็บแต้มดัมมี่ (players, rounds, ตั้งค่าเงิน, `dayStart`) โดยใช้ `dummy.rev` เป็น lock ของตัวเองและไม่แตะ `updated_at` เพื่อไม่ให้การบันทึกดัมมี่ไปชนกับการบันทึกลีก/ทายผล
 
 ## รันเทสต์
 

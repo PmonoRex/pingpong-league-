@@ -96,3 +96,94 @@ test('settlePoints: score ÷ divisor, every pair pays the difference', () => {
   assert.deepEqual(JSON.parse(JSON.stringify(D.settlePoints([105, 0, -25, 14, 4], 10).vals)), [11, 0, -3, 1, 0]);
   assert.deepEqual(JSON.parse(JSON.stringify(D.settlePoints([100, 40], 20).vals)), [5, 2]);
 });
+
+const plainJson = v => JSON.parse(JSON.stringify(v));
+// Noon UTC keeps every test timestamp on the same local calendar day in any time zone from UTC−11 to UTC+11.
+const noon = day => Date.parse(`${day}T12:00:00Z`);
+
+test('normalize keeps dayStart and rev; currentRounds only shows games since the new day', () => {
+  const D = load();
+  const s = D.normalize({ players: ['A', 'B'], dayStart: noon('2026-10-17'), rev: '4', rounds: [{ scores: [1, 0], at: noon('2026-10-16') }, { scores: [2, 0], at: noon('2026-10-17') + 1 }] });
+  assert.equal(s.rev, 4);
+  assert.deepEqual(plainJson(D.currentRounds(s).map(r => r.scores[0])), [2]);
+  assert.equal(D.currentRounds({ ...s, dayStart: 0 }).length, 2);
+  assert.equal(D.normalize({ dayStart: -5, rev: 'x' }).dayStart, 0);
+});
+
+test('dayKey gives the local calendar day, empty for games without a timestamp', () => {
+  const D = load();
+  assert.equal(D.dayKey(noon('2026-10-17')), '2026-10-17');
+  assert.equal(D.dayKey(0), '');
+  assert.equal(D.dayKey(undefined), '');
+});
+
+test('daySummaries groups games per day, newest first, with that day\'s money and pair debts only', () => {
+  const D = load();
+  const s = D.normalize({ players: ['A', 'B', 'C'], rounds: [
+    { scores: [100, 40, 0], at: noon('2026-10-16'), ...D.settlePoints([100, 40, 0], 10) },
+    { scores: [0, 0, 0], at: 0 },
+    { scores: [20, 60, 0], at: noon('2026-10-17'), ...D.settlePoints([20, 60, 0], 10) },
+    { scores: [50, 0, 10], at: noon('2026-10-16') + 60000, ...D.settlePoints([50, 0, 10], 10) }
+  ] });
+  const days = plainJson(D.daySummaries(s));
+  assert.deepEqual(days.map(d => [d.day, d.games, d.indices]), [['2026-10-17', 1, [2]], ['2026-10-16', 2, [0, 3]], ['', 1, [1]]]);
+  assert.deepEqual(days[1].totals, [150, 40, 10]);
+  // 16 Oct: game 1 is worth [10, 4, 0] baht, game 4 [5, 0, 1]
+  assert.deepEqual(days[1].money, [16 + 9, -2 - 6, -14 - 3]);
+  // pair rule per day: B owes A 6 + 5, C owes A 10 + 4, C owes B 4 and B owes C 1 → only that pair nets (C pays B 3)
+  assert.deepEqual(days[1].debts.map(x => [x.from, x.to, x.amount]), [[1, 0, 11], [2, 0, 14], [2, 1, 3]]);
+  assert.deepEqual(days[0].debts.map(x => [x.from, x.to, x.amount]), [[0, 1, 4], [2, 0, 2], [2, 1, 6]]);
+  assert.equal(days[2].hasMoney, false);
+  assert.deepEqual(days[2].debts, []);
+});
+
+test('mergeDummy keeps games added and deleted on both devices and the setting each side changed', () => {
+  const D = load();
+  const g = (at, a) => ({ scores: [a, 0], at });
+  const base = { players: ['A', 'B'], rev: 3, divisor: 10, rounds: [g(1, 10), g(2, 20)] };
+  const local = { ...base, divisor: 5, rounds: [g(1, 10), g(3, 30)] };          // deleted game 2, added game 3, changed divisor
+  const remote = { ...base, rev: 4, moneyMode: 'winner', rounds: [g(1, 10), g(2, 20), g(4, 40)] }; // added game 4, changed mode
+  const { state, conflict } = plainJson(D.mergeDummy(base, local, remote));
+  assert.equal(conflict, false);
+  assert.deepEqual(state.rounds.map(r => r.at), [1, 3, 4]);
+  assert.equal(state.divisor, 5);
+  assert.equal(state.moneyMode, 'winner');
+  assert.equal(state.rev, 4);
+  // the same game saved on both sides is not doubled; dayStart takes the later start
+  const both = plainJson(D.mergeDummy(base, { ...base, dayStart: 9, rounds: [...base.rounds, g(5, 50)] }, { ...base, rev: 4, dayStart: 7, rounds: [...base.rounds, g(5, 50)] }).state);
+  assert.deepEqual(both.rounds.map(r => r.at), [1, 2, 5]);
+  assert.equal(both.dayStart, 9);
+});
+
+test('mergeDummy with different line-ups: the side that changed players wins, the cloud on a tie', () => {
+  const D = load();
+  const base = { players: ['A', 'B'], rev: 1, rounds: [{ scores: [1, 0], at: 1 }] };
+  const mine = { players: ['A', 'C'], rounds: [{ scores: [5, 0], at: 2 }] };
+  const r1 = plainJson(D.mergeDummy(base, mine, { ...base, rev: 2 }));
+  assert.deepEqual([r1.state.players, r1.state.rev, r1.conflict], [['A', 'C'], 2, false]);
+  const r2 = plainJson(D.mergeDummy(base, mine, { players: ['B', 'D'], rev: 2, rounds: [] }));
+  assert.deepEqual([r2.state.players, r2.conflict], [['B', 'D'], true]);
+  // a device with an old local sheet (no base yet) and an empty one: nothing to lose
+  const r3 = plainJson(D.mergeDummy({}, { players: ['A', 'B'], rounds: [] }, { players: ['X', 'Y'], rev: 5, rounds: [] }));
+  assert.equal(r3.conflict, false);
+});
+
+test('shared.js Dummy cloud helpers read the dummy column and lock on dummy.rev, never updated_at', async () => {
+  const requests = [];
+  let reply = [{ dummy: { players: ['A', 'B'], rev: 2 } }];
+  const context = { localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetch: async (url, options) => { requests.push({ url, options }); return { ok: true, json: async () => reply }; } };
+  vm.runInNewContext(fs.readFileSync('shared.js', 'utf8') + '\nglobalThis.shared = LeagueShared;', context);
+  const S = context.shared;
+  assert.deepEqual(plainJson(await S.loadDummyCloud()), { players: ['A', 'B'], rev: 2 });
+  assert.match(requests[0].url, /id=eq\.main&select=dummy$/);
+  reply = [{ dummy: { rev: 3 } }];
+  assert.deepEqual(plainJson(await S.saveDummyCloud({ rev: 3 }, 2)), { rev: 3 });
+  assert.match(requests[1].url, /dummy->>rev=eq\.2&select=dummy$/);
+  assert.equal(requests[1].options.method, 'PATCH');
+  assert.deepEqual(JSON.parse(requests[1].options.body), { dummy: { rev: 3 } });
+  await S.saveDummyCloud({ rev: 1 }, 0);
+  assert.match(requests[2].url, /dummy->>rev=is\.null/);
+  reply = [];
+  assert.equal(await S.saveDummyCloud({ rev: 3 }, 2), null);
+  await assert.rejects(S.loadDummyCloud(), /row missing/);
+});
