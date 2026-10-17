@@ -9,7 +9,7 @@
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
       ['motion.css?v=20261018-arena','motion.css'],
-      ['arena.css?v=20261018-hero','arena.css']
+      ['arena.css?v=20261018-pics','arena.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -103,13 +103,17 @@
   };
   const TAB_KEYS={'index.html':'home','dashboard.html':'dashboard','predictions.html':'predict','stats.html':'stats','dummy.html':'dummy',
     '#competition':'matches','#standingsCard':'table','#rankCard':'ranking','#bettingPanel':'predict','#dealerPanel':'dealer','#historySection':'history'};
+  // Picture icons (the owner's Gemini art, img/icons/<name>-96.webp). A key listed here shows its picture instead of the
+  // drawn line icon; every other key keeps the line icon until its picture arrives.
+  const ICON_IMAGES={home:'paddle',matches:'paddle'};
   function drawTabIcons(){
     document.querySelectorAll('.bottom-nav a,.sport-tabbar a').forEach(a=>{
       const href=a.getAttribute('href')||'',i=href.indexOf('#');
       const key=TAB_KEYS[i>=0?href.slice(i):href.split('?')[0].toLowerCase()];
       const span=a.querySelector('span');if(!key||!span||span.dataset.icon)return;
       span.dataset.icon=key;span.setAttribute('aria-hidden','true');
-      span.innerHTML=`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[key]}</svg>`;
+      const pic=ICON_IMAGES[key];
+      span.innerHTML=pic?`<img class="tab-pic" src="img/icons/${pic}-96.webp" width="28" height="28" alt="" decoding="async">`:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[key]}</svg>`;
     });
   }
   function markActiveNav(){

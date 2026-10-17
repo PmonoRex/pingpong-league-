@@ -376,3 +376,11 @@ body.sport-redesign .round-tab{flex:none;min-width:44px;min-height:44px;padding:
 body.sport-redesign .round-tab.done{color:var(--win);border-color:rgba(52,210,124,.45)}
 body.sport-redesign .round-tab[aria-selected=true]{background:linear-gradient(180deg,#dc2530,#b0121a);border-color:#ff5c66;color:#fff;box-shadow:0 6px 16px rgba(229,36,47,.3)}
 body.sport-redesign .round-tab.all{font-family:var(--font);font-style:normal;font-weight:700;font-size:14px;padding:0 14px}
+/* Picture icons (owner's Gemini art in img/icons). Tab pictures sit dimmed until their tab is the active one. */
+body.sport-redesign .tab-pic{display:block;width:28px;height:28px;border-radius:8px;object-fit:cover;opacity:.55;filter:saturate(.6);transition:opacity var(--motion-base,200ms),filter var(--motion-base,200ms)}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a.active .tab-pic{opacity:1;filter:none;box-shadow:0 0 12px var(--red-glow)}
+.empty-state .empty-pic{display:block;margin:0 auto 6px;border-radius:22px;box-shadow:0 0 30px rgba(229,36,47,.25)}
+/* Quick tiles get their picture on the left; add each tile's href to the :is() list and give it a --pic as pictures arrive. */
+body.sport-redesign .quick-tile:is([href^="index.html"]){display:grid;grid-template-columns:56px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center}
+body.sport-redesign .quick-tile:is([href^="index.html"]):before{content:"";grid-row:1/3;width:56px;height:56px;border-radius:14px;background:var(--pic) center/cover no-repeat;box-shadow:0 0 16px rgba(229,36,47,.25)}
+body.sport-redesign .quick-tile[href^="index.html"]{--pic:url(img/icons/paddle-256.webp)}

@@ -41,9 +41,9 @@
   const chip = (id, name = nameOf(id), size = "") => `<span class="pchip">${avatar(id, name, size)}<span class="pchip-name">${esc(name)}</span></span>`;
 
   const ART = {
-    table: '<svg viewBox="0 0 96 64" aria-hidden="true"><rect x="8" y="30" width="80" height="6" rx="2" fill="#16202c"/><rect x="47" y="18" width="2" height="18" fill="#2b3745"/><path d="M14 36v18M82 36v18" stroke="#202b37" stroke-width="3" stroke-linecap="round"/><circle cx="66" cy="14" r="5" fill="#ff464b"/><path d="M58 20q-6 6-14 4" stroke="#ff464b" stroke-opacity=".35" stroke-width="2" fill="none" stroke-dasharray="2 3"/></svg>',
+    table: '<img class="empty-pic" src="img/icons/paddle-256.webp" width="112" height="112" alt="" decoding="async">',
     trophy: '<svg viewBox="0 0 96 64" aria-hidden="true"><path d="M34 8h28v14a14 14 0 0 1-28 0z" fill="#16202c" stroke="#ffba45" stroke-opacity=".55" stroke-width="2"/><path d="M34 12h-8a8 8 0 0 0 9 11M62 12h8a8 8 0 0 1-9 11" stroke="#ffba45" stroke-opacity=".45" stroke-width="2" fill="none"/><rect x="44" y="35" width="8" height="10" fill="#202b37"/><rect x="36" y="45" width="24" height="7" rx="2" fill="#202b37"/></svg>',
-    paddle: '<svg viewBox="0 0 96 64" aria-hidden="true"><circle cx="40" cy="28" r="18" fill="#cb0f23" fill-opacity=".8"/><rect x="50" y="40" width="7" height="20" rx="3" transform="rotate(-40 53 50)" fill="#2b3745"/><circle cx="72" cy="16" r="5" fill="#f7f8fa" fill-opacity=".85"/></svg>'
+    paddle: '<img class="empty-pic" src="img/icons/paddle-256.webp" width="112" height="112" alt="" decoding="async">'
   };
   // Empty state: illustration + what it means + what to do next (optional link).
   function empty(title, hint = "", action = null, art = "table") {
