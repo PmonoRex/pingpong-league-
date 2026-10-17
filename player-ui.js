@@ -19,14 +19,24 @@
     const words = s.split(/\s+/).filter(Boolean);
     return ((words[0]?.[0] || "?") + (words[1]?.[0] || "")).toUpperCase();
   }
+  // index.js keeps the live league in `state`; other pages read the local copy (LeagueShared is a const, not on window).
+  // The parsed copy is reused for half a second so a page full of chips parses it once.
+  let cached = null, cachedAt = 0;
   function league() {
     try { if (typeof state !== "undefined" && state?.profiles) return state; } catch {}
-    try { if (typeof league !== "undefined" && league?.profiles) return league; } catch {}
-    try { return window.LeagueShared?.readLocalLeague?.() || null; } catch { return null; }
+    if (cached && Date.now() - cachedAt < 500) return cached;
+    try { cached = typeof LeagueShared !== "undefined" ? LeagueShared.readLocalLeague() : null; } catch { cached = null; }
+    cachedAt = Date.now(); return cached;
   }
   const nameOf = id => league()?.profiles?.[id]?.displayName || id;
+  // Pictures live in the shared row as data URLs (profile-me.js compresses them); anything else is never used as a src.
+  const LIMITS = Object.freeze({ avatar: 12 * 1024, payQr: 20 * 1024 });
+  function imageOk(url, max) { return typeof url === "string" && url.length <= max && /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/]+={0,2}$/.test(url); }
+  const pictureOf = id => { const url = league()?.profiles?.[id]?.avatar; return imageOk(url, LIMITS.avatar) ? url : ""; };
+  const IMG_STYLE = "width:100%;height:100%;border-radius:50%;object-fit:cover;display:block";
   function avatar(id, name = nameOf(id), size = "") {
-    return `<span class="pa ${size}" style="--pa:${color(id)}" aria-hidden="true">${esc(initials(name))}</span>`;
+    const pic = pictureOf(id);
+    return `<span class="pa ${size}${pic ? " pa-img" : ""}" style="--pa:${color(id)}" aria-hidden="true">${pic ? `<img src="${esc(pic)}" alt="" decoding="async" style="${IMG_STYLE}">` : esc(initials(name))}</span>`;
   }
   const chip = (id, name = nameOf(id), size = "") => `<span class="pchip">${avatar(id, name, size)}<span class="pchip-name">${esc(name)}</span></span>`;
 
@@ -47,6 +57,7 @@
   ];
   // A name cell may also carry banter stamps (banter.js); they are not part of the name.
   function ownName(el) { let t = ""; el.childNodes.forEach(n => { if (!n.classList?.contains("banter-stamp")) t += n.textContent; }); return t.replace(/^👑\s*/, "").trim(); }
+  const taglineOf = id => { const t = id ? league()?.profiles?.[id]?.tagline : ""; return typeof t === "string" && t.trim() ? `“${t.trim().slice(0, 40)}”` : ""; };
   function idByName() { const m = new Map(); Object.values(league()?.profiles || {}).forEach(p => p?.displayName && m.set(p.displayName.trim(), p.id)); return m; }
   function decorate(root = document) {
     let map = null;
@@ -59,12 +70,21 @@
       el.classList.add("has-pa"); el.insertAdjacentHTML("afterbegin", avatar(id, known || ownName(el) || id, "sm"));
     }));
     const sheetName = document.getElementById("profileName"), sheetAvatar = document.querySelector(".profile-avatar");
-    if (sheetName && sheetAvatar) { const id = (map || idByName()).get(sheetName.textContent.trim()); if (id && sheetAvatar.dataset.pid !== id) { sheetAvatar.dataset.pid = id; sheetAvatar.textContent = initials(nameOf(id)); sheetAvatar.style.background = color(id); } }
+    if (sheetName && sheetAvatar) { const id = (map || idByName()).get(sheetName.textContent.trim()), pic = id ? pictureOf(id) : ""; if (id && sheetAvatar.dataset.pid !== id + pic.length) { sheetAvatar.dataset.pid = id + pic.length; sheetAvatar.style.background = color(id); if (pic) sheetAvatar.innerHTML = `<img src="${esc(pic)}" alt="" style="${IMG_STYLE.replace("50%", "inherit")}">`; else sheetAvatar.textContent = initials(nameOf(id)); } }
+    // A player's catchphrase rides under their name in the roster and the predictions profile sheet.
+    root.querySelectorAll?.(".roster-item strong").forEach(el => {
+      const id = el.closest(".roster-item")?.querySelector("[data-roster]")?.dataset.roster, line = taglineOf(id), box = el.parentElement;
+      const shown = box.querySelector(":scope > .pa-tagline");
+      if (shown?.textContent === line) return; shown?.remove();
+      if (line) el.insertAdjacentHTML("afterend", `<small class="pa-tagline">${esc(line)}</small>`);
+    });
+    const meta = document.getElementById("profileMeta");
+    if (sheetName && meta) { const id = (map || idByName()).get(sheetName.textContent.trim()), line = taglineOf(id), shown = meta.querySelector(".pa-tagline"); if ((shown?.textContent || "") !== line) { shown?.remove(); if (line) meta.insertAdjacentHTML("beforeend", ` <span class="pa-tagline">${esc(line)}</span>`); } }
   }
   let queued = false;
   const schedule = () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; try { decorate(); } catch {} }); };
   function boot() { decorate(); new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 
-  window.LeagueUI = Object.freeze({ color, initials, avatar, chip, empty, decorate });
+  window.LeagueUI = Object.freeze({ color, initials, avatar, chip, empty, decorate, imageOk, pictureOf, LIMITS });
 })();
