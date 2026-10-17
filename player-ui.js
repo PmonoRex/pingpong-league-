@@ -43,16 +43,18 @@
     ["#standings td.name", "text"], [".rank-row strong", "text"], [".pair>b", "text"], [".roster-item strong", "text"],
     [".profile-link[data-profile]", "data"], ["#dealerCurrentPublic", "text"], ["#whoami", "text"]
   ];
+  // A name cell may also carry banter stamps (banter.js); they are not part of the name.
+  function ownName(el) { let t = ""; el.childNodes.forEach(n => { if (!n.classList?.contains("banter-stamp")) t += n.textContent; }); return t.replace(/^👑\s*/, "").trim(); }
   function idByName() { const m = new Map(); Object.values(league()?.profiles || {}).forEach(p => p?.displayName && m.set(p.displayName.trim(), p.id)); return m; }
   function decorate(root = document) {
     let map = null;
     DECORATE.forEach(([sel, how]) => root.querySelectorAll?.(sel).forEach(el => {
       if (el.querySelector(":scope > .pa")) return;
       let id = how === "data" ? el.dataset.profile : null;
-      if (!id) { map = map || idByName(); id = map.get(el.textContent.replace(/^👑\s*/, "").trim()); }
+      if (!id) { map = map || idByName(); id = map.get(ownName(el)); }
       if (!id) return;
       const known = league()?.profiles?.[id]?.displayName;
-      el.classList.add("has-pa"); el.insertAdjacentHTML("afterbegin", avatar(id, known || el.textContent.trim() || id, "sm"));
+      el.classList.add("has-pa"); el.insertAdjacentHTML("afterbegin", avatar(id, known || ownName(el) || id, "sm"));
     }));
     const sheetName = document.getElementById("profileName"), sheetAvatar = document.querySelector(".profile-avatar");
     if (sheetName && sheetAvatar) { const id = (map || idByName()).get(sheetName.textContent.trim()); if (id && sheetAvatar.dataset.pid !== id) { sheetAvatar.dataset.pid = id; sheetAvatar.textContent = initials(nameOf(id)); sheetAvatar.style.background = color(id); } }

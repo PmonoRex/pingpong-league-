@@ -1,0 +1,65 @@
+/* Banter layer (banter.js): streak stamps, rivalry strip, Season-end poster. Loaded after poster.css.
+   Stamps follow the ชนะ / แชมป์ stamps: a Chonburi word in a currentColor border, slightly rotated.
+   Win green / lose red only for the W/L streaks; ink for the comeback and the revenge match. */
+.banter-stamp{display:inline-block;margin-left:6px;padding:2px 6px 1px;font-family:var(--display);font-weight:400;font-size:11px;line-height:1.2;letter-spacing:0;white-space:nowrap;border:1.5px solid currentColor;border-radius:3px;background:var(--paper);transform:rotate(-4deg);vertical-align:2px}
+.banter-stamp.hot{color:var(--win)}
+.banter-stamp.cold{color:var(--lose);transform:rotate(3deg)}
+.banter-stamp.comeback{color:var(--ink);background:var(--poster)}
+.banter-stamp.revenge{color:var(--ink);background:var(--poster);font-size:13px;padding:3px 8px 2px;border-width:2px;margin-left:0}
+[hidden].banter-line,[hidden].rivalry,[hidden].season-poster{display:none!important}
+
+/* Standings: the stamp sits after the name; on phones it drops under the name like the champion stamp. */
+@media (max-width:600px){
+ body.sport-redesign #standings td.name .banter-stamp{display:block;width:max-content;margin:3px 0 0;font-size:10px}
+}
+
+/* Dashboard rows and the stats player head */
+.form-who{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0}
+.form-who .banter-stamp{margin-left:2px}
+.banter-line{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
+.banter-line .banter-stamp{margin-left:0;font-size:13px;padding:3px 8px 2px}
+.banter-line small{font-weight:600;color:var(--ink-2)}
+
+/* Rivalry: a ruled strip inside the match bill, above the status strip; also used on the stats H2H card. */
+.rivalry{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 8px;padding:7px 10px;font-weight:700;font-size:13px;color:var(--ink);text-align:center}
+.rivalry small{font-weight:600;color:var(--ink-2)}
+body.sport-redesign .match .rivalry{border-top:var(--rule-thin);background:var(--paper)}
+#hRivalry{margin-top:12px;border:var(--rule-thin);border-radius:var(--r);background:var(--paper-2)}
+
+/* ---------- Season-end poster (archive) ---------- */
+body.sport-redesign .season-poster{padding:12px}
+.poster-bill{border:3px solid var(--ink);border-radius:var(--r);background:var(--poster);color:var(--ink);overflow:hidden;text-align:center}
+.poster-band{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 12px 10px;background:var(--magenta);border-bottom:3px solid var(--ink)}
+.poster-league{font-family:var(--display);font-size:clamp(20px,6vw,30px);line-height:1.15;color:var(--poster)}
+.poster-season{font-family:var(--display);font-size:15px;line-height:1.2;color:#fff}
+.poster-champ{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 14px 18px}
+.poster-champ b{font-family:var(--display);font-weight:400;font-size:clamp(44px,15vw,92px);line-height:1.08;overflow-wrap:anywhere;max-width:100%}
+.poster-champ>span:last-child{font-weight:700;font-size:14px;color:var(--ink-2)}
+.poster-stamp{display:inline-block;font-family:var(--display);font-size:24px;line-height:1;padding:5px 12px 4px;color:var(--magenta-deep);background:var(--paper);border:3px solid currentColor;border-radius:4px;transform:rotate(-6deg)}
+.poster-podium{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--ink)}
+.poster-side{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 8px;background:var(--paper);min-width:0}
+.poster-side+.poster-side{border-left:2px solid var(--ink)}
+.poster-side:only-child{grid-column:1/-1}
+.poster-side small{font-weight:700;color:var(--ink-2)}
+.poster-side b{font-family:var(--display);font-weight:400;font-size:clamp(21px,6vw,30px);line-height:1.15;overflow-wrap:anywhere;max-width:100%}
+.poster-side span{font-size:13px;color:var(--ink-soft)}
+.poster-side.silver{border-top:5px solid var(--medal-silver)}
+.poster-side.bronze{border-top:5px solid var(--medal-bronze)}
+.poster-facts{list-style:none;margin:0;padding:0;background:var(--paper);border-top:2px solid var(--ink);text-align:left}
+.poster-facts li{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;padding:10px 12px;border-bottom:var(--rule-thin)}
+.poster-facts li:last-child{border-bottom:0}
+.poster-facts small{font-size:14px;font-weight:700;color:var(--ink-2)}
+.poster-facts b{font-family:var(--display);font-weight:400;font-size:clamp(17px,4.8vw,21px);line-height:1.25;margin-left:auto;text-align:right}
+.poster-foot{padding:8px 12px;background:var(--ink);color:var(--poster);font-weight:700;font-size:13px}
+.poster-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px}
+.poster-facts .nw{white-space:nowrap}
+@media (min-width:900px){.season-poster .poster-bill{max-width:620px;margin:0 auto}.poster-actions{justify-content:center}}
+
+/* Print just the poster, in its inks. */
+@media print{
+ html,body.sport-redesign{background:#fff!important}
+ body>*:not(main),main>*:not(#seasonPoster),.poster-actions{display:none!important}
+ main{padding:0!important;max-width:none!important}
+ body.sport-redesign .season-poster{border:0;padding:0;margin:0}
+ .poster-bill{-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid;max-width:none}
+}

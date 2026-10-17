@@ -21,6 +21,7 @@
 
 - `shared.js` — บัญชี/สิทธิ์ (admin, dealer), login + lockout, validate/normalize ข้อมูล, `cloudRequest` ไปยัง Supabase, logic ตัดสินผลทาย
 - `sync-guard.js` — ป้องกันการเขียนทับกันเมื่อ Admin หลายเครื่องแก้พร้อมกัน (ทับ `pushCloud` ของ `index.js`)
+- `banter.js` + `banter.css` — แซวจากผลจริง: ป้ายสตรีค (ไฟลุก / ฟอร์มตก / คืนชีพ), สถิติคู่ปรับ + ป้าย ศึกล้างตา, โปสเตอร์แชมป์จบ Season (pure functions, เทสต์ใน `tests/banter.test.cjs`)
 - `suite.js` — League Assistant, Export (CSV/PNG/PDF/แชร์), Toast, Data health badge
 - `sport-ui.js` + `*.css` — ธีม, hero, motion, ปรับ UI มือถือ
 - `manifest.webmanifest`, `icons/`, `sw.js` — ติดตั้งเป็นแอปบนหน้าโฮม (PWA): `sw.js` เก็บหน้าเว็บ/CSS/JS/ฟอนต์ไว้ในเครื่องให้เปิดได้แม้เน็ตหลุด (หน้า HTML ดึงจากเน็ตก่อน, ไฟล์ asset อัปเดตตาม `?v=`) และไม่แคชคำขอไป Supabase เด็ดขาด ถ้าแก้ logic ใน `sw.js` ให้เปลี่ยนค่า `CACHE`
