@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="index.css?v=smooth-nav-20260924">
 <link rel="stylesheet" href="recovery.css?v=20261012">
 <link rel="stylesheet" href="theme.css?v=20261017-polish">
-<link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-nextup2"><link rel="stylesheet" href="banter.css?v=20261017-banter">
+<link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-nextup2"><link rel="stylesheet" href="banter.css?v=20261017-banter"><link rel="stylesheet" href="share-poster.css?v=20261017-share2">
 <script src="player-ui.js?v=20261017-banter" defer></script>
 </head>
 <body>
@@ -48,7 +48,7 @@
    <div class="section-head"><div><h2>ตารางคะแนน</h2><div class="hint">เรียง: คะแนน → ผลต่าง → ลูกได้ → ชนะ</div></div></div>
    <div class="summary"><div class="stat"><b id="played">0</b><small>แข่งแล้ว</small></div><div class="stat"><b id="remain">0</b><small>เหลือ</small></div><div class="stat"><b id="leader">-</b><small>อันดับ 1</small></div></div>
    <div class="wrap"><table><thead><tr><th>#</th><th style="text-align:left">ผู้เล่น</th><th>แข่ง</th><th>ชนะ</th><th>เสมอ</th><th>แพ้</th><th>ได้</th><th>เสีย</th><th>+/-</th><th>แต้ม</th></tr></thead><tbody id="standings"></tbody></table></div>
-   <div class="actions"><button class="primary" id="finishSeason">จบ Season / บันทึกแรงค์</button><a class="btn secondary" href="archive.html">ดู Season เก่า</a><button class="secondary" id="openRecovery" type="button">กู้ข้อมูล Season ก่อนหน้า</button><span class="hint" id="finishHint"></span></div>
+   <div class="actions"><button class="secondary" id="shareStandingsPoster" type="button">แชร์โปสเตอร์ตาราง</button><button class="primary" id="finishSeason">จบ Season / บันทึกแรงค์</button><a class="btn secondary" href="archive.html">ดู Season เก่า</a><button class="secondary" id="openRecovery" type="button">กู้ข้อมูล Season ก่อนหน้า</button><span class="hint" id="finishHint"></span></div>
  </section>
  <section class="card rank-card" id="rankCard"><div class="section-head"><div><h2>แรงค์สะสม</h2><div class="hint">เปลี่ยนชื่อแล้วประวัติยังอยู่</div></div></div><div id="rankingList"></div></section>
 </section>
@@ -65,5 +65,6 @@
 <script src="safety-hooks.js?v=20261012" defer></script>
 <script src="suite.js?v=20261017-banter" defer></script>
 <script src="sport-ui.js?v=20261017-nextup2" defer></script>
+<script src="share-poster.js?v=20261017-share2" defer></script>
 </body>
 </html>
