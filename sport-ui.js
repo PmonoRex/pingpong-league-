@@ -8,7 +8,7 @@
   function ensureStyles(){
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
-      ['motion.css?v=20261017-motion2','motion.css'],
+      ['motion.css?v=20261018-arena','motion.css'],
       ['arena.css?v=20261018-arena','arena.css']
     ];
     required.forEach(([href,file])=>{

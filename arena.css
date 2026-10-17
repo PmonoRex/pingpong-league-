@@ -153,7 +153,6 @@ body.sport-redesign tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)
 body.sport-redesign td.name{font-weight:700}
 /* The leader's row glows gold, like the #1 card in the reference */
 body.sport-page-index-html #standings tr:first-child td{background:rgba(245,184,11,.09)}
-body.sport-page-index-html #standings tr:first-child td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
 
 /* ---------- Signature: every match is a face-off card ----------
    Red corner on the left, blue on the right, a glowing VS disc between, score steppers underneath.
@@ -290,7 +289,7 @@ body.sport-redesign .recovery-backdrop{background:rgba(5,6,8,.72);backdrop-filte
 body.sport-redesign :is(.recovery-item,.recovery-close){background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:var(--r-sm)}
 body.sport-redesign .recovery-item.active{background:rgba(229,36,47,.16);border:1px solid rgba(255,71,82,.6)}
 body.sport-redesign .danger:disabled,body.sport-redesign .primary:disabled{opacity:.45}
-.d-toast,.toast{background:var(--panel-3);color:var(--text);border:1px solid var(--line-2);border-left:3px solid var(--red-hi);border-radius:var(--r-sm);box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.d-toast,.toast{background:var(--panel-3);color:var(--text);border:1px solid var(--line-2);border-radius:var(--r-sm);box-shadow:0 12px 30px rgba(0,0,0,.5)}
 .toast small{color:var(--text-soft)!important}
 .skeleton{background:var(--panel-2)!important}
 .skeleton:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent)!important}
@@ -339,8 +338,8 @@ body.sport-redesign .form-row{border-bottom:1px solid var(--line)}
 body.sport-redesign .d-day{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--text)}
 body.sport-redesign .d-day[open]{border-color:var(--line-2)}
 .d-day summary b{font-family:var(--display);font-weight:600;color:var(--text)}
-.d-day summary:after{content:"▾";color:var(--text-soft);font-size:18px}
-.d-day[open] summary:after{content:"▴"}
+.d-day summary:after{content:"";flex:none;width:8px;height:8px;margin-left:4px;border-right:2px solid var(--text-soft);border-bottom:2px solid var(--text-soft);transform:translateY(-2px) rotate(45deg);transition:transform var(--motion-base,200ms) var(--motion-ease,ease)}
+.d-day[open] summary:after{content:"";transform:translateY(2px) rotate(-135deg)}
 body.sport-redesign .d-day .d-pay-row{background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:9px 2px}
 
 /* Type: Kanit ships 600 upright and 800 italic only, so never let the browser fake the others. */
