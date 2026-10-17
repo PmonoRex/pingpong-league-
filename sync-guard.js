@@ -70,12 +70,12 @@
       const conflictingScore=localKeys.find(key=>remoteKeySet.has(key)&&json(local.results?.[key])!==json(remote.results?.[key]));
 
       if(remoteLeagueChanged&&localStructureChanged){
-        saveConflict(local,'โครงสร้าง Season ถูกแก้จากหลายเครื่องพร้อมกัน');
-        adoptRemote(remote,latest?.updated_at,'พบการแก้ไข Season จากอีกเครื่อง • เก็บ Draft ไว้ใน Backup');return;
+        saveConflict(local,'โครงสร้างซีซั่นถูกแก้จากหลายเครื่องพร้อมกัน');
+        adoptRemote(remote,latest?.updated_at,'พบการแก้ไขซีซั่นจากอีกเครื่อง • เก็บร่างไว้ในข้อมูลสำรอง');return;
       }
       if(conflictingScore){
         saveConflict(local,`คะแนน ${conflictingScore} ถูกแก้จากหลายเครื่องพร้อมกัน`);
-        adoptRemote(remote,latest?.updated_at,'คะแนนคู่นี้ถูกแก้จากอีกเครื่อง • เก็บ Draft ไว้ใน Backup');return;
+        adoptRemote(remote,latest?.updated_at,'คะแนนคู่นี้ถูกแก้จากอีกเครื่อง • เก็บร่างไว้ในข้อมูลสำรอง');return;
       }
 
       let next=remoteLeagueChanged?applyResultDelta(syncBase,local,remote):local;
@@ -85,7 +85,7 @@
       if(!rows?.length){
         saveConflict(local,'ข้อมูลเปลี่ยนระหว่างกำลังบันทึก');
         const refreshed=(await cloudRequest())[0],newest=refreshed?.league?.uidLeague;
-        if(newest?.profiles){adoptRemote(newest,refreshed?.updated_at,'มีข้อมูลใหม่จากอีกเครื่อง • เก็บ Draft ไว้ใน Backup');return}
+        if(newest?.profiles){adoptRemote(newest,refreshed?.updated_at,'มีข้อมูลใหม่จากอีกเครื่อง • เก็บร่างไว้ในข้อมูลสำรอง');return}
         throw new Error('ข้อมูลถูกแก้จากอีกเครื่อง');
       }
       state=next;lastCloudUpdate=rows[0]?.updated_at||now;baseUpdatedAt=lastCloudUpdate;syncBase=clone(next);

@@ -99,7 +99,7 @@ const LeagueShared = (() => {
   function renderLoginOptions(select, league, selectedId = "") {
     const people = activeProfiles(league);
     select.innerHTML = people.length
-      ? people.map(person => `<option value="${escapeHtml(person.id)}">${escapeHtml(person.displayName)}${person.role === "admin" ? " • Admin" : ""}</option>`).join("")
+      ? people.map(person => `<option value="${escapeHtml(person.id)}">${escapeHtml(person.displayName)}${person.role === "admin" ? " • แอดมิน" : ""}</option>`).join("")
       : '<option value="">ไม่มีบัญชีผู้เล่น</option>';
     if (selectedId && activeProfile(league, selectedId)) select.value = selectedId;
   }

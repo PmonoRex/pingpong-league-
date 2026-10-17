@@ -93,7 +93,7 @@ test('Back-fill rebuilds a lost archive only from a complete snapshot that match
   const found = run('LeagueArchiveBackfill.find()');
   assert.equal(found.length, 1);
   assert.equal(found[0].backfilled.snapshotAt, good.savedAt);
-  assert.match(elements.get('archiveBackfill').textContent, /1 Season/);
+  assert.match(elements.get('archiveBackfill').textContent, /1 ซีซั่น/);
   assert.equal(run('LeagueArchiveBackfill.apply()'), 1);
   assert.deepEqual(run('state.seasonArchives.map(a => [a.season, Object.keys(a.results).length])'), [[1, 3]]);
   assert.equal(run('LeagueArchiveBackfill.find().length'), 0);

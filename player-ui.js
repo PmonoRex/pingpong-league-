@@ -2,12 +2,12 @@
 // and a small illustrated empty state. Pages owned by other work (index.js, predictions.js) are decorated after render.
 (() => {
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  // 12 hues spaced around the wheel. LMAX caps lightness per hue so the white initials keep >= 4.5:1 contrast
-  // (yellow/green/cyan hues need a darker shade than red/blue/purple).
-  const HUES = [4,24,42,88,142,168,192,212,232,262,288,318];
-  const LMAX = [47,42,34,30,31,30,35,47,47,47,47,47];
+  // Fight-poster inks: [ground, initials]. Every pair keeps >= 5.4:1 contrast; the yellow plate takes ink initials.
+  const INKS = [["#c8202a","#fff"],["#1c4fc0","#fff"],["#c0106a","#fff"],["#17110f","#ffd21f"],["#0b7a40","#fff"],["#ffd21f","#17110f"],["#b8420e","#fff"],["#5b2a86","#fff"]];
   function hash(id) { let h = 2166136261; for (const ch of String(id)) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
-  function color(id) { const h = hash(id), i = h % HUES.length; return `hsl(${HUES[i]} ${58 + (h >>> 8) % 12}% ${Math.min(40 + (h >>> 16) % 8, LMAX[i])}%)`; }
+  const ink = id => INKS[hash(id) % INKS.length];
+  function color(id) { return ink(id)[0]; }
+  function inkOn(id) { return ink(id)[1]; }
   const THAI_LEAD = /^[เ-ไ]/, THAI_PREFIX = /^(พี่|น้อง|นาย|นาง|คุณ)\s*/;
   function graphemes(s) { try { return [...new Intl.Segmenter("th", { granularity: "grapheme" }).segment(s)].map(x => x.segment); } catch { return [...s]; } }
   function initials(name) {
@@ -36,7 +36,7 @@
   const IMG_STYLE = "width:100%;height:100%;border-radius:50%;object-fit:cover;display:block";
   function avatar(id, name = nameOf(id), size = "") {
     const pic = pictureOf(id);
-    return `<span class="pa ${size}${pic ? " pa-img" : ""}" style="--pa:${color(id)}" aria-hidden="true">${pic ? `<img src="${esc(pic)}" alt="" decoding="async" style="${IMG_STYLE}">` : esc(initials(name))}</span>`;
+    return `<span class="pa ${size}${pic ? " pa-img" : ""}" style="--pa:${color(id)};--pa-fg:${inkOn(id)}" aria-hidden="true">${pic ? `<img src="${esc(pic)}" alt="" decoding="async" style="${IMG_STYLE}">` : esc(initials(name))}</span>`;
   }
   const chip = (id, name = nameOf(id), size = "") => `<span class="pchip">${avatar(id, name, size)}<span class="pchip-name">${esc(name)}</span></span>`;
 
@@ -86,5 +86,5 @@
   function boot() { decorate(); new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 
-  window.LeagueUI = Object.freeze({ color, initials, avatar, chip, empty, decorate, imageOk, pictureOf, LIMITS });
+  window.LeagueUI = Object.freeze({ color, inkOn, initials, avatar, chip, empty, decorate, imageOk, pictureOf, LIMITS });
 })();

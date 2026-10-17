@@ -164,7 +164,7 @@ body.hero-compact .hero .account-bar{margin-top:8px!important;padding:6px 8px;di
 body.hero-compact .hero .account-bar :is(button,a){min-height:44px;padding:6px 10px;font-size:var(--fs-xs)}
 
 /* Player avatar: initials on a colour derived from the profile id (player-ui.js) */
-.pa{width:var(--s);height:var(--s);border-radius:50%;background:var(--pa,#2b3745);display:inline-grid;place-items:center;flex:none;color:#fff;font-weight:700;font-size:calc(var(--s)*.42);line-height:1;letter-spacing:0;vertical-align:middle;font-family:var(--font)}
+.pa{width:var(--s);height:var(--s);border-radius:50%;background:var(--pa,#2b3745);display:inline-grid;place-items:center;flex:none;color:var(--pa-fg,#fff);font-weight:700;font-size:calc(var(--s)*.42);line-height:1;letter-spacing:0;vertical-align:middle;font-family:var(--font)}
 .pa.sm{--s:24px}.pa.lg{--s:52px}.pa.xl{--s:58px}
 .has-pa>.pa{margin-right:7px;vertical-align:-6px}
 .pair>b.has-pa>.pa{margin-right:4px}

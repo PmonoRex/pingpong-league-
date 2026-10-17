@@ -15,6 +15,6 @@
   function wrapButton(id,reason,action){
     const btn=document.getElementById(id);if(!btn||btn.dataset.safetyWrapped)return;const original=btn.onclick;if(typeof original!=="function")return;btn.dataset.safetyWrapped="1";btn.onclick=function(e){if(typeof isAdmin==="function"&&!isAdmin())return original.call(this,e);snapshot(reason);audit(action);return original.call(this,e)};
   }
-  function boot(){wrapButton("applyRoster","ก่อนเปลี่ยนรายชื่อ Season","roster_change");wrapButton("clearScores","ก่อนล้างคะแนน","scores_clear");wrapButton("finishSeason","ก่อนจบ Season","season_finish");wrapButton("saveBtn","ก่อนบันทึกด้วยมือ","manual_save")}
+  function boot(){wrapButton("applyRoster","ก่อนเปลี่ยนรายชื่อซีซั่น","roster_change");wrapButton("clearScores","ก่อนล้างคะแนน","scores_clear");wrapButton("finishSeason","ก่อนจบซีซั่น","season_finish");wrapButton("saveBtn","ก่อนบันทึกด้วยมือ","manual_save")}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,80));else setTimeout(boot,80);
 })();

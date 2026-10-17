@@ -279,7 +279,8 @@ body.sport-redesign .d-pay-row{background:transparent;border:0;border-bottom:var
 @media (min-width:900px){
  body.sport-page-index-html .grid{grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);align-items:start}
  body.sport-page-index-html .grid>section:not(.card){position:sticky;top:12px}
- body.sport-page-index-html .grid>.workflow-card{grid-column:1/-1}
+ body.sport-page-index-html .grid>#competition{grid-row:span 2}
+ body.sport-page-index-html .grid>.workflow-card{grid-column:2;margin:0}
  body.sport-page-index-html .bottom-nav{display:none}
  body.sport-page-index-html main{padding-bottom:24px}
 }
@@ -312,3 +313,13 @@ html{color-scheme:light}
 body.sport-redesign .me-entry{display:inline-flex;align-items:center;min-height:40px;cursor:pointer}
 /* Red money on the yellow total cells: the plain lose red is 4.1:1 on poster yellow; this darker red is 5.4:1 */
 body.sport-redesign .d-sum td .neg{color:#a3141f}
+/* Home leads with the fight card: a shorter masthead, and the season roster folds away under the queue. */
+body.sport-page-index-html .hero{padding:14px 16px 14px}
+body.sport-page-index-html .hero h1{font-size:clamp(30px,8.4vw,44px)!important;margin:6px 0 4px}
+body.sport-page-index-html .hero .account-bar{margin-top:12px}
+body.sport-redesign details.roster-box>summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0}
+body.sport-redesign details.roster-box>summary::-webkit-details-marker{display:none}
+body.sport-redesign details.roster-box>summary:after{content:"";flex:none;width:10px;height:10px;border-right:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);transform:translateY(-3px) rotate(45deg);transition:transform var(--motion-base,200ms) var(--motion-ease,ease)}
+body.sport-redesign details.roster-box[open]>summary:after{transform:translateY(2px) rotate(-135deg)}
+body.sport-redesign details.roster-box[open]>summary{margin-bottom:10px}
+body.sport-redesign .account-user{flex:none;display:flex;align-items:center;gap:8px;white-space:nowrap}

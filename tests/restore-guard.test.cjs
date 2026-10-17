@@ -57,7 +57,7 @@ test('planScores restores only matches whose id still maps to the same pair (QA 
 
   const other = ctx.RG.planScores({ ...current(), currentSeason: 2 }, backupState());
   assert.equal(other.ok, false);
-  assert.match(other.message, /Season 1 แต่ตอนนี้เป็น Season 2/);
+  assert.match(other.message, /ซีซั่น 1 แต่ตอนนี้เป็นซีซั่น 2/);
   const none = ctx.RG.planScores(current(), { ...backupState(), rounds: [{ m: [['d', 'a'], ['b', 'c']] }], results: { r0m0: { a: 1, b: 11 } } });
   assert.equal(none.ok, false);
   assert.match(none.message, /ไม่มีคะแนนที่ตรงคู่/);

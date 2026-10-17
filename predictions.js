@@ -61,12 +61,12 @@ function openProfile(userId){
   const p=profile(userId);if(!p)return;
   const r=playerRankProfile(userId);
   document.getElementById("profileName").textContent=p.displayName;
-  document.getElementById("profileMeta").textContent=p.role==="admin"?"Admin":"Player";
+  document.getElementById("profileMeta").textContent=p.role==="admin"?"แอดมิน":"Player";
   document.getElementById("profileRp").textContent=r.rp;
   document.getElementById("profileTitles").textContent=r.titles;
   document.getElementById("profileBest").textContent=r.best?`#${r.best}`:"-";
   document.getElementById("profileAvg").textContent=r.avg?r.avg.toFixed(2):"-";
-  document.getElementById("profileHistory").innerHTML=r.seasons.length?r.seasons.slice().reverse().map(x=>`<div class="profile-history-row"><div><b>S${esc(x.season)}</b><br><small>${x.date?new Date(x.date).toLocaleDateString("th-TH"):""}</small></div><div><b>อันดับ #${esc(x.rank)}</b><br><small>${esc(p.displayName)}</small></div><div class="positive">+${esc(x.rp)} RP</div></div>`).join(""):'<div class="empty">ยังไม่มีประวัติ Season</div>';
+  document.getElementById("profileHistory").innerHTML=r.seasons.length?r.seasons.slice().reverse().map(x=>`<div class="profile-history-row"><div><b>S${esc(x.season)}</b><br><small>${x.date?new Date(x.date).toLocaleDateString("th-TH"):""}</small></div><div><b>อันดับ #${esc(x.rank)}</b><br><small>${esc(p.displayName)}</small></div><div class="positive">+${esc(x.rp)} RP</div></div>`).join(""):'<div class="empty">ยังไม่มีประวัติซีซั่น</div>';
   document.getElementById("profileBackdrop").classList.add("open");
   document.body.style.overflow="hidden";
 }
@@ -81,7 +81,7 @@ function renderDealerSelect(){
   if(!isAdmin())return;
   const sel=document.getElementById("dealerSelect");if(!sel)return;
   const current=pred.dealerId;
-  sel.innerHTML=activeProfiles().map(p=>`<option value="${esc(p.id)}">${esc(p.displayName)}${p.role==="admin"?" • Admin":""}</option>`).join("");
+  sel.innerHTML=activeProfiles().map(p=>`<option value="${esc(p.id)}">${esc(p.displayName)}${p.role==="admin"?" • แอดมิน":""}</option>`).join("");
   if(current&&profile(current))sel.value=current;
   const hint=document.getElementById("dealerHint");
   if(hint)hint.textContent=current&&profile(current)?`เจ้ามือปัจจุบัน: ${profile(current).displayName}`:"ยังไม่ได้เลือกเจ้ามือ";
@@ -199,7 +199,7 @@ function placeBet(id){
 async function saveDealer(){
  const id=document.getElementById("dealerSelect").value;
  const saved=await mutatePred(()=>{
-  if(!isAdmin()){alert("เฉพาะ Admin เท่านั้น");return false}
+  if(!isAdmin()){alert("เฉพาะแอดมินเท่านั้น");return false}
   if(!id||!LeagueShared.activeProfile(league,id))return false;
   if(pred.bets.some(b=>b.season===league.currentSeason&&b.status==="pending")&&pred.dealerId&&pred.dealerId!==id){
    if(!confirm("มีรายการทายที่ยังรอผลอยู่ เปลี่ยนเจ้ามือจะมีผลต่อการสรุปยอด ยืนยันหรือไม่?"))return false;
@@ -229,17 +229,17 @@ function renderSettlement(){
  const season=settlementSeasonShown(),sum=BetSettle.summary(league,pred,season),old=pred.bets.filter(b=>BetSettle.isOldPending(league,b)),staff=isAdmin()||isDealer();
  document.getElementById("settlementSeason").textContent=season;
  const sel=document.getElementById("settlementSeasonSelect");
- if(sel){sel.innerHTML=BetSettle.seasons(league,pred).map(s=>`<option value="${s}">Season ${s}${s===Number(league.currentSeason)?" (ปัจจุบัน)":""}${old.some(b=>Number(b.season)===s)?" • มีรายการค้าง":""}</option>`).join("");sel.value=String(season);sel.onchange=()=>{settlementPick=Number(sel.value);renderSettlement();bindProfileLinks()}}
+ if(sel){sel.innerHTML=BetSettle.seasons(league,pred).map(s=>`<option value="${s}">ซีซั่น ${s}${s===Number(league.currentSeason)?" (ปัจจุบัน)":""}${old.some(b=>Number(b.season)===s)?" • มีรายการค้าง":""}</option>`).join("");sel.value=String(season);sel.onchange=()=>{settlementPick=Number(sel.value);renderSettlement();bindProfileLinks()}}
  const rows=sum.rows.map(r=>`<tr><td><button type="button" class="profile-link" data-profile="${esc(r.id)}">${esc(r.name)}</button>${r.inactive?' <small class="muted">ปิดบัญชีแล้ว</small>':""}${r.pending?` <small class="muted">รอผล ${r.pending}</small>`:""}</td><td>${credits(r.cost)}</td><td>${credits(r.won)}</td><td>${credits(r.lost)}</td><td class="${r.net>0?"positive":r.net<0?"negative":""}">${r.net>0?"+":""}${credits(r.net)}${payButton(r)}</td></tr>`).join("");
  document.getElementById("dealerReceives").textContent=credits(sum.receive);document.getElementById("dealerPays").textContent=credits(sum.pay);const e=document.getElementById("dealerNet");e.textContent=`${sum.net>0?"+":""}${credits(sum.net)}`;e.className=sum.net>0?"positive":sum.net<0?"negative":"";document.getElementById("settlement").innerHTML=rows||'<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>';
  const staleAll=pred.bets.filter(b=>BetSettle.effective(league,pred,b).stale).length,notes=[];
  if(staleAll)notes.push(`⚠️ คะแนนถูกแก้/ลบหลังคำนวณ ${staleAll} รายการ • ตารางและยอดส่งออกแสดงตามคะแนนล่าสุดแล้ว${staff?" • กด \"ดึงคะแนนล่าสุด + คำนวณผล\" เพื่อบันทึก":" • รอเจ้ามือยืนยัน"}`);
- if(old.length)notes.push(`⚠️ มีรายการทายค้างจาก Season ก่อน ${old.length} รายการ (Season ${[...new Set(old.map(b=>b.season))].map(Number).join(", ")}) • คำนวณจาก Archive ด้วยปุ่มคำนวณ หรือยกเลิกและคืนยอดทีละรายการ`);
+ if(old.length)notes.push(`⚠️ มีรายการทายค้างจากซีซั่นก่อน ${old.length} รายการ (ซีซั่น ${[...new Set(old.map(b=>b.season))].map(Number).join(", ")}) • คำนวณจากคลังด้วยปุ่มคำนวณ หรือยกเลิกและคืนยอดทีละรายการ`);
  const alertBox=document.getElementById("settleAlert");if(alertBox){alertBox.textContent=notes.join("\n");alertBox.classList.toggle("hidden",!notes.length)}
  const key=`${staleAll}:${old.length}`;if(!notes.length)staleToastKey="";else if(staff&&key!==staleToastKey&&window.LeagueToast){window.LeagueToast(notes[0],"bad");staleToastKey=key}
  const box=document.getElementById("settlementPending");if(!box)return;
  const waiting=season===Number(league.currentSeason)?[]:sum.pending;
- box.innerHTML=waiting.map(b=>`<div class="locked old-bet"><span>#${esc(b.id)} • ${esc(profile(b.userId)?.displayName||b.userId)} • S${esc(b.season)} ${esc(betPairText(b))} • เลือก ${esc(profile(b.sideId)?.displayName||b.sideId)} • ${credits(b.stake)}${BetSettle.matchFor(league,b)?" • มี Archive":" • ไม่มี Archive"}</span>${staff?`<button type="button" class="danger" data-void="${esc(b.id)}">ยกเลิก • คืนยอด</button>`:""}</div>`).join("");
+ box.innerHTML=waiting.map(b=>`<div class="locked old-bet"><span>#${esc(b.id)} • ${esc(profile(b.userId)?.displayName||b.userId)} • S${esc(b.season)} ${esc(betPairText(b))} • เลือก ${esc(profile(b.sideId)?.displayName||b.sideId)} • ${credits(b.stake)}${BetSettle.matchFor(league,b)?" • มีในคลัง":" • ไม่มีในคลัง"}</span>${staff?`<button type="button" class="danger" data-void="${esc(b.id)}">ยกเลิก • คืนยอด</button>`:""}</div>`).join("");
  box.querySelectorAll("[data-void]").forEach(x=>x.onclick=()=>voidOldBet(x.dataset.void));
 }
 function statusText(s){return esc({pending:"รอผล",won:"ชนะ",lost:"แพ้",push:"คืนยอด",void:"ยกเลิก • คืนยอด"}[s]||s)}
