@@ -108,3 +108,10 @@ td .d-icon{min-height:34px;width:34px;min-width:34px;flex:none}
 .d-div-row{display:grid;grid-template-columns:auto 96px 1fr;gap:10px;align-items:center;margin-top:12px;padding:10px 12px;border:1px solid #3a2a0b;border-radius:14px;background:#140f05}
 .d-div-row label{color:#ffd38a;font-size:14px;font-weight:800}
 .d-div-row input{min-height:42px;text-align:center;font-size:18px;font-weight:800}
+
+/* Polish 2026-10-17 */
+body.sport-page-dummy-html main{max-width:760px}
+.d-pay-list{gap:6px}
+.d-pay-row{padding:9px 12px;gap:4px 8px}
+.d-pay-note{font-size:11.5px}
+#dPayCopy{width:100%}

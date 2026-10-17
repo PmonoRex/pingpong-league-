@@ -48,7 +48,7 @@ body.sport-redesign .hero-photo-ready .hero-player-photo{transform:scale(1.001)}
 body.sport-redesign .hero h1{font-size:clamp(35px,7vw,66px);line-height:.98;max-width:72%;margin:10px 0 10px;font-weight:950;letter-spacing:-.035em;text-wrap:balance;text-shadow:0 4px 30px rgba(0,0,0,.52)}
 body.sport-redesign .hero .sub,body.sport-redesign .hero p,body.sport-redesign .hero>.muted{color:#aab3bf;max-width:520px;line-height:1.55}
 body.sport-redesign .hero>.muted,body.sport-redesign .hero>.sub,body.sport-redesign .hero>p{max-width:72%}
-body.sport-redesign .hero .eyebrow,body.sport-redesign .hero>.muted:first-of-type{font-size:11px;color:#f27c82;font-weight:900;letter-spacing:.17em;text-transform:uppercase}
+body.sport-redesign .hero .eyebrow{font-size:11px;color:#f27c82;font-weight:900;letter-spacing:.17em;text-transform:uppercase}
 body.sport-redesign .hero>.actions{max-width:74%}
 .sport-season-badge{display:inline-flex;align-items:baseline;gap:8px;margin:12px 0 4px;font-weight:950;letter-spacing:.04em}.sport-season-badge span{font-size:34px;color:var(--sport-red)}.sport-season-badge small{color:#929ca9;font-size:10px;letter-spacing:.18em}
 body.sport-redesign .hero .rules{max-width:620px}
@@ -263,7 +263,7 @@ body.hero-compact .hero-player-photo{object-position:70% 38%!important;opacity:.
 body.hero-compact .sport-brand{position:absolute!important;top:12px;right:12px;margin:0!important}
 body.hero-compact .sport-brand>div:not(.sport-mark){display:none}
 body.hero-compact .sport-mark{width:34px;height:34px;border-radius:11px;font-size:17px}
-body.hero-compact .hero>:is(.eyebrow,.muted:first-of-type){font-size:var(--fs-2xs);margin:0;padding-right:44px}
+body.hero-compact .hero>.eyebrow{font-size:var(--fs-2xs);margin:0;padding-right:44px}
 body.hero-compact .hero h1{font-size:var(--fs-2xl)!important;max-width:calc(100% - 44px)!important;margin:2px 0!important;line-height:1.15}
 body.hero-compact .hero>:is(.muted,.sub,p){max-width:100%!important;font-size:var(--fs-sm);margin:0}
 body.hero-compact .hero>.actions{max-width:100%!important;display:flex!important;flex-wrap:nowrap;align-items:center;overflow-x:auto;gap:6px;margin-top:6px;scrollbar-width:none}
@@ -345,3 +345,20 @@ td>.empty-state{position:sticky;left:0;width:calc(min(100vw,1180px) - 64px)}
 td:has(>.empty-state){padding:0;text-align:left}
 body.sport-redesign a.quick-tile{display:block}
 body.sport-typing :is(.bottom-nav,.sport-tabbar){display:none!important}
+
+/* Polish 2026-10-17 */
+/* main is width:100% + side padding; without border-box it ran 16px past a phone screen and clipped every card's right edge */
+body.sport-redesign main{box-sizing:border-box}
+/* Tab bar: drawn icons, labels at the 11px floor */
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a{font-size:var(--fs-xs);gap:3px}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a span{display:flex;line-height:0}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a span svg{width:22px;height:22px}
+body.sport-redesign :is(.bottom-nav,.sport-tabbar) a:not(.active) span{opacity:.85}
+/* Compact hero: the signed-in name and badge stay on one line and the buttons wrap beneath instead */
+body.hero-compact .hero .account-bar{flex-wrap:wrap}
+body.hero-compact .hero .account-bar .account-user{flex:1 0 auto;white-space:nowrap;overflow-wrap:normal;display:flex;align-items:center;gap:6px}
+body.hero-compact .hero .account-bar .actions{flex:1 1 auto;justify-content:flex-end;flex-wrap:wrap;gap:6px}
+/* Browser surfaces */
+body.sport-redesign ::selection{background:rgba(255,45,50,.35);color:#fff}
+body.sport-redesign{caret-color:#ff464b;accent-color:#ff3a3f}
+body.sport-redesign :is(td,th,.stat b){font-variant-numeric:tabular-nums}
