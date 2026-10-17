@@ -92,11 +92,26 @@ function renderSchedule(){
  box.querySelectorAll("[data-share-match]").forEach(btn=>btn.onclick=()=>shareMatchPoster(btn.dataset.shareMatch,btn));
  box.querySelectorAll("[data-score]").forEach(btn=>btn.onclick=()=>{if(!isAdmin())return;const [id,side,delta]=btn.dataset.score.split(":");const inp=document.getElementById(id+side),v=inp.value===""?0:Number(inp.value);inp.value=Math.max(0,v+Number(delta));updateFromInputs(id)});
  state.rounds.forEach((r,ri)=>r.m.forEach((p,mi)=>["a","b"].forEach(side=>document.getElementById(mid(ri,mi)+side).oninput=()=>updateFromInputs(mid(ri,mi)))));
- updateLabels();
+ updateLabels();renderRoundTabs();
+}
+// Round picker: the schedule shows one round at a time so the page stays short. It opens on the round being played
+// and then stays where the user put it (finishing a round does not yank it away mid-stamp); "ทั้งหมด" shows every round.
+let roundView=null;
+function roundDone(ri){return (state.rounds[ri]?.m||[]).every((p,mi)=>{const x=state.results[mid(ri,mi)];return x&&[x.a,x.b].every(v=>Number.isInteger(v)&&v>=0)})}
+function showRound(v){roundView=v;renderRoundTabs()}
+function renderRoundTabs(){
+ const bar=document.getElementById("roundTabs"),box=document.getElementById("schedule");if(!bar||!box?.querySelectorAll)return;
+ const rounds=[...box.querySelectorAll(".round")];
+ if(rounds.length<2){bar.hidden=true;rounds.forEach(r=>r.hidden=false);return}
+ if(roundView===null||(roundView!=="all"&&roundView>=rounds.length)){const n=LeagueShared.nextUpMatches(state.rounds,state.results,1)[0];roundView=n?n.round-1:rounds.length-1}
+ bar.hidden=false;
+ bar.innerHTML=state.rounds.map((r,ri)=>`<button type="button" role="tab" class="round-tab${roundDone(ri)?" done":""}" aria-selected="${roundView===ri}" aria-label="รอบ ${ri+1}${roundDone(ri)?" (ครบแล้ว)":""}" data-round="${ri}">${ri+1}</button>`).join("")+`<button type="button" role="tab" class="round-tab all" aria-selected="${roundView==="all"}" data-round="all">ทั้งหมด</button>`;
+ rounds.forEach((r,ri)=>r.hidden=roundView!=="all"&&roundView!==ri);
+ bar.querySelectorAll("[data-round]").forEach(b=>b.onclick=()=>showRound(b.dataset.round==="all"?"all":Number(b.dataset.round)));
 }
 // Every meeting so far, told from the side that leads; while this Season's meeting is unplayed the last loser gets a ศึกล้างตา stamp.
 function rivalryStrip(pair){const r=BANTER?.matchRivalry(state,pair);if(!r)return"";const nm=id=>profile(id)?.displayName||id;const revenge=r.revengeBy?`${BANTER.stampHtml({...BANTER.REVENGE,fact:`${nm(r.revengeBy)} แพ้นัดล่าสุด (S${r.last.season})`})}<small>${esc(nm(r.revengeBy))} ขอแก้มือ</small>`:"";return `<span>${esc(BANTER.rivalryLine(r,pair[0],pair[1],nm))}</span>${revenge}`}
-function updateFromInputs(id){if(!isAdmin())return;const a=document.getElementById(id+"a").value,b=document.getElementById(id+"b").value;if(a===""&&b==="")delete state.results[id];else state.results[id]={a:a===""?null:Number(a),b:b===""?null:Number(b)};saveState();updateLabels();calc();renderNextUp()}
+function updateFromInputs(id){if(!isAdmin())return;const a=document.getElementById(id+"a").value,b=document.getElementById(id+"b").value;if(a===""&&b==="")delete state.results[id];else state.results[id]={a:a===""?null:Number(a),b:b===""?null:Number(b)};saveState();updateLabels();calc();renderNextUp();renderRoundTabs()}
 // "คิวต่อไป": the next 1-2 unplayed matches as a mini fight bill, each with a button down to its match card.
 function renderNextUp(){
  const box=document.getElementById("nextUp");if(!box)return;
@@ -105,7 +120,7 @@ function renderNextUp(){
  box.hidden=false;
  const name=id=>profile(id)?.displayName||id;
  box.innerHTML=`<div class="next-up-head"><h2>คิวต่อไป</h2></div>`+(next.length?`<ol class="next-up-list">${next.map((m,i)=>`<li class="next-up-item"><div class="next-up-tag">${i?"เตรียมตัว":"ขึ้นโต๊ะ"} • รอบ ${m.round}</div><div class="next-up-bill"><b class="nu-red">${esc(name(m.pair[0]))}</b><span class="nu-vs" aria-label="พบ">VS</span><b class="nu-blue">${esc(name(m.pair[1]))}</b></div><button type="button" class="secondary next-up-go" data-goto="${esc(m.id)}" aria-label="ไปที่คู่ ${esc(name(m.pair[0]))} พบ ${esc(name(m.pair[1]))}">ไปที่คู่นี้</button></li>`).join("")}</ol>`:`<div class="next-up-done">แข่งครบทุกคู่แล้ว${isAdmin()?" • กดจบซีซั่นที่ตารางคะแนน":" • รอแอดมินจบซีซั่น"}</div>`);
- box.querySelectorAll("[data-goto]").forEach(btn=>btn.onclick=()=>{const card=document.getElementById(`match-${btn.dataset.goto}`);if(!card)return;LeagueShared.smoothScrollTo(card);card.classList.remove("cued");void card.offsetWidth;card.classList.add("cued");setTimeout(()=>card.classList.remove("cued"),1800)});
+ box.querySelectorAll("[data-goto]").forEach(btn=>btn.onclick=()=>{const ri=Number(/^r(\d+)m/.exec(btn.dataset.goto)?.[1]);if(roundView!=="all"&&Number.isInteger(ri)&&ri!==roundView)showRound(ri);const card=document.getElementById(`match-${btn.dataset.goto}`);if(!card)return;LeagueShared.smoothScrollTo(card);card.classList.remove("cued");void card.offsetWidth;card.classList.add("cued");setTimeout(()=>card.classList.remove("cued"),1800)});
 }
 // The "ชนะ" stamp is struck (with stamp-sound.js's thunk and buzz) only when a match's result changes while the page is open (typed here or synced from a friend),
 // never for results that were already there when the page loaded.
