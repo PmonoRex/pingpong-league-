@@ -1,1 +1,21 @@
-body{margin:0}main{margin:auto}.hero,.card{margin-bottom:14px}h1,h2,h3{margin:0 0 7px}a,button{border:0;padding:10px 13px;text-decoration:none;cursor:pointer}.stats{display:grid}.stat{text-align:center}.stat b{display:block}select{width:100%;padding:0 10px;font-size:15px}.form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.formline{margin-top:10px}.formline label{display:block;font-size:11px;margin-bottom:5px}.dot{display:flex;align-items:center;justify-content:center}.dot.d{background:#4d431d;color:#ffe08a}table{width:100%;border-collapse:collapse}th,td{padding:9px 7px;text-align:center}td.name{text-align:left}.empty{text-align:center;padding:22px;color:#91a4be}
+body{margin:0}main{margin:auto}.hero,.card{margin-bottom:14px}h1,h2,h3{margin:0 0 7px}a,button{border:0;padding:10px 13px;text-decoration:none;cursor:pointer}.stats{display:grid}.stat{text-align:center}.stat b{display:block}select{width:100%;padding:0 10px;font-size:15px}.form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.formline{margin-top:10px}.formline label{display:block;font-size:11px;margin-bottom:5px}.dot{display:flex;align-items:center;justify-content:center}table{width:100%;border-collapse:collapse}th,td{padding:9px 7px;text-align:center}td.name{text-align:left}.empty{text-align:center;padding:22px}
+
+/* Poster polish: player numbers as stat lines beside the ring, head-to-head as one ruled tally (red corner, draws, blue corner) */
+body.sport-redesign.sport-page-stats-html .player-body .stats{grid-template-columns:1fr;gap:0;border-top:var(--rule)}
+body.sport-redesign.sport-page-stats-html .player-body .stats .stat{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 2px;background:transparent;border:0;border-bottom:var(--rule-thin);border-radius:0;text-align:left}
+body.sport-redesign.sport-page-stats-html .player-body .stats .stat b{font-size:clamp(20px,5.6vw,26px);line-height:1.1;text-align:right;white-space:nowrap}
+body.sport-redesign.sport-page-stats-html .stats .stat small{font-size:13px;color:var(--ink-2);letter-spacing:0}
+body.sport-redesign.sport-page-stats-html .stats:not(.compact){gap:0;border-top:var(--rule);border-bottom:var(--rule-thin)}
+body.sport-redesign.sport-page-stats-html .stats:not(.compact) .stat{padding:10px 4px 9px;background:transparent;border:0;border-radius:0}
+body.sport-redesign.sport-page-stats-html .stats:not(.compact) .stat+.stat{border-left:var(--rule-thin)}
+body.sport-redesign.sport-page-stats-html .stats:not(.compact) .stat b{font-size:clamp(24px,7vw,32px);line-height:1.1}
+body.sport-redesign.sport-page-stats-html #hA{color:var(--corner-red)}
+body.sport-redesign.sport-page-stats-html #hB{color:var(--corner-blue)}
+body.sport-redesign.sport-page-stats-html .stats:not(.compact) small{overflow-wrap:anywhere}
+body.sport-redesign.sport-page-stats-html .delta svg{width:10px;height:10px;margin-right:4px;vertical-align:0;fill:currentColor}
+body.sport-redesign.sport-page-stats-html .delta small{color:var(--ink-soft)}
+body.sport-redesign.sport-page-stats-html th{font-size:12px}
+body.sport-redesign.sport-page-stats-html .player-card h3,body.sport-redesign.sport-page-stats-html .rival-row h3{font-size:15px;margin:14px 0 8px}
+@media (min-width:720px){
+ body.sport-redesign.sport-page-stats-html .player-body{grid-template-columns:auto minmax(0,440px);justify-content:start;gap:28px}
+}
