@@ -1,0 +1,66 @@
+/* Arena effects, after Magic UI (magicui.design, MIT) and rebuilt in plain CSS/JS for this site (effects.js):
+   number ticker, border beam, shimmer button, confetti, embers and meteors in the masthead, animated gradient text,
+   and a marquee of results under the home masthead. Everything here switches off under prefers-reduced-motion. */
+@property --beam-angle{syntax:"<angle>";inherits:false;initial-value:0deg}
+
+/* ---------- Embers + meteors in every masthead (spans added by effects.js) ---------- */
+.fx-sky{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;border-radius:inherit}
+.fx-ember{position:absolute;bottom:-8px;width:var(--s,3px);height:var(--s,3px);border-radius:50%;background:#ff5a63;box-shadow:0 0 6px 1px rgba(255,71,82,.8);opacity:0;animation:fxEmber var(--d,7s) linear var(--delay,0s) infinite}
+@keyframes fxEmber{0%{transform:translate(0,0);opacity:0}12%{opacity:.95}80%{opacity:.5}100%{transform:translate(var(--drift,20px),-340px);opacity:0}}
+.fx-meteor{position:absolute;top:var(--top,10%);left:var(--left,60%);width:2px;height:2px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 8px 2px rgba(255,90,99,.8);opacity:0;transform:rotate(215deg);animation:fxMeteor var(--d,6s) linear var(--delay,0s) infinite}
+.fx-meteor:before{content:"";position:absolute;top:50%;width:90px;height:1px;transform:translateY(-50%);background:linear-gradient(90deg,rgba(255,71,82,.9),transparent)}
+@keyframes fxMeteor{0%{transform:rotate(215deg) translateX(0);opacity:0}6%{opacity:1}55%{opacity:1}70%,100%{transform:rotate(215deg) translateX(-520px);opacity:0}}
+
+/* ---------- Animated gradient text: the league name and the champion's name catch a moving light ---------- */
+body.sport-redesign .hero h1,.poster-champ b,.pod-1 b,body.sport-redesign .d-board-row.lead .d-board-name b{
+  background:linear-gradient(100deg,#fff 0%,#fff 38%,#ff4752 48%,#ffd0d3 52%,#fff 62%,#fff 100%);background-size:250% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent!important;-webkit-text-fill-color:transparent;
+  text-shadow:none!important;filter:drop-shadow(0 2px 10px rgba(229,36,47,.35));animation:fxTextShine 5.5s linear infinite}
+.poster-champ b,.pod-1 b{background-image:linear-gradient(100deg,#ffe28a 0%,#ffe28a 36%,#fff 48%,#f5b80b 56%,#ffe28a 66%,#ffe28a 100%)}
+@keyframes fxTextShine{0%{background-position:120% 0}100%{background-position:-120% 0}}
+
+/* ---------- Border beam: a red light runs round the card that matters now ---------- */
+body.sport-redesign .next-up-item:first-child .next-up-bill,body.sport-redesign .d-board-row.lead,body.sport-redesign .workflow-card{position:relative}
+body.sport-redesign .next-up-item:first-child .next-up-bill:after,body.sport-redesign .d-board-row.lead:after,.pod-1 .pod-step:after{
+  content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;pointer-events:none;
+  background:conic-gradient(from var(--beam-angle),transparent 0 68%,rgba(255,71,82,0) 70%,#ff4752 86%,#fff 90%,transparent 92%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  animation:fxBeam 3.2s linear infinite}
+.pod-1 .pod-step{position:relative}
+.pod-1 .pod-step:after{background:conic-gradient(from var(--beam-angle),transparent 0 70%,#f5b80b 86%,#fff 90%,transparent 92%)}
+@keyframes fxBeam{to{--beam-angle:360deg}}
+
+/* ---------- Shimmer button: a light sweeps across the main action every few seconds ---------- */
+body.sport-redesign :is(.primary,.round-tab[aria-selected=true]):not(:disabled){position:relative;overflow:hidden;isolation:isolate}
+body.sport-redesign :is(.primary,.round-tab[aria-selected=true]):not(:disabled):after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.38) 48%,rgba(255,255,255,.05) 56%,transparent 70%);background-size:250% 100%;background-repeat:no-repeat;
+  animation:fxShimmer 3.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes fxShimmer{0%,55%{background-position:160% 0}100%{background-position:-60% 0}}
+
+/* ---------- Marquee: results and the table scroll past under the home masthead ---------- */
+.fx-marquee{position:relative;overflow:hidden;margin:0 0 14px;border:1px solid var(--line,rgba(255,255,255,.08));border-radius:var(--r-sm,10px);background:rgba(12,13,17,.8);
+  -webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.fx-marquee[hidden]{display:none}
+.fx-track{display:flex;width:max-content;animation:fxMarquee var(--dur,40s) linear infinite}
+.fx-marquee:hover .fx-track,.fx-marquee:focus-within .fx-track{animation-play-state:paused}
+.fx-group{display:flex;flex:none;align-items:center;gap:22px;padding:10px 11px;white-space:nowrap;font-size:14px;font-weight:600;color:var(--text-2,#c9cdd5)}
+.fx-item{display:inline-flex;align-items:center;gap:8px}
+.fx-item:before{content:"";width:6px;height:6px;border-radius:50%;background:#ff4752;box-shadow:0 0 8px rgba(255,71,82,.8)}
+.fx-item b{font-family:var(--display);font-style:italic;font-weight:800;color:#fff}
+.fx-item.gold:before{background:#f5b80b;box-shadow:0 0 8px rgba(245,184,11,.8)}
+@keyframes fxMarquee{to{transform:translateX(-50%)}}
+
+/* ---------- Confetti canvas (effects.js fires it) ---------- */
+.fx-confetti{position:fixed;inset:0;z-index:500;pointer-events:none}
+
+/* ---------- Number ticker: no layout jump while the digits run ---------- */
+.fx-ticking{font-variant-numeric:tabular-nums}
+
+@media (prefers-reduced-motion:reduce){
+  .fx-sky,.fx-confetti{display:none!important}
+  body.sport-redesign .hero h1,.poster-champ b,.pod-1 b,body.sport-redesign .d-board-row.lead .d-board-name b{animation:none;background-position:0 0}
+  body.sport-redesign .next-up-item:first-child .next-up-bill:after,body.sport-redesign .d-board-row.lead:after,.pod-1 .pod-step:after,
+  body.sport-redesign :is(.primary,.round-tab[aria-selected=true]):after{animation:none;display:none}
+  .fx-track{animation:none;flex-wrap:wrap;width:auto}
+  .fx-group[aria-hidden=true]{display:none}
+}
