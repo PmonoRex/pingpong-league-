@@ -159,7 +159,7 @@ const LeagueProfile = (() => {
     if (saving) return; readForm();
     const local = LeagueShared.readLocalLeague(), id = local ? LeagueShared.sessionUserId(local) : "";
     const first = checkEdit(local, id, draft); if (first.error) return status(first.error, "bad");
-    saving = true; $("meSave").disabled = true; status("กำลังบันทึก...");
+    saving = true; $("meSave").disabled = true; status("กำลังบันทึก…");
     try {
       for (let attempt = 0; attempt < 3; attempt++) {
         const row = (await LeagueShared.cloudRequest("league,updated_at"))[0], latest = row?.league?.uidLeague;
@@ -199,7 +199,7 @@ const LeagueProfile = (() => {
     };
   }
   async function pick(file) {
-    const kind = picking; status("กำลังย่อรูป...");
+    const kind = picking; status("กำลังย่อรูป…");
     try {
       const source = await decode(file), url = kind === "avatar" ? compress(encoder(source, true), AVATAR_PLAN, LIMITS.avatar) : compress(encoder(source, false), QR_PLAN, LIMITS.payQr);
       source.close?.();

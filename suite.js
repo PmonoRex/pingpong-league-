@@ -6,7 +6,7 @@
   // Toasts: tap or swipe sideways to dismiss; hover/touch pauses the timer; thin bar shows the time left.
   function toast(message,type="",detail="",ms=3200){
     let stack=qs("#toastStack");
-    if(!stack){stack=document.createElement("div");stack.id="toastStack";stack.className="toast-stack";stack.setAttribute("aria-live","polite");document.body.appendChild(stack)}
+    if(!stack){stack=document.createElement("div");stack.id="toastStack";stack.className="toast-stack";stack.setAttribute("role","status");stack.setAttribute("aria-live","polite");stack.setAttribute("aria-live","polite");document.body.appendChild(stack)}
     const el=document.createElement("div");el.className=`toast ${type}`;el.setAttribute("role","status");el.title="แตะหรือปัดเพื่อปิด";el.style.setProperty("--toast-ms",`${ms}ms`);
     el.innerHTML=`<b>${LeagueShared.escapeHtml(message)}</b>${detail?`<small>${LeagueShared.escapeHtml(detail)}</small>`:""}<i class="toast-progress" aria-hidden="true"></i>`;stack.appendChild(el);
     let remain=ms,started=0,timer=0,gone=false,startX=0,dx=0,dragging=false;

@@ -41,7 +41,7 @@ function makeRoundRobin(ids){
 function setSync(text,status=""){const e=document.getElementById("syncStatus");e.textContent=text;e.className=`pill sync ${status}`}
 const cloudRequest=(method="GET",body=null,extraQuery="")=>LeagueShared.cloudRequest("league,updated_at",method,body,extraQuery);
 function cloudPayload(){return {uidLeague:state}}
-function saveState(){if(!isAdmin())return;saveLocal();if(!cloudReady)return;dirty=true;changeVersion++;setSync("กำลังบันทึก...");clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,400)}
+function saveState(){if(!isAdmin())return;saveLocal();if(!cloudReady)return;dirty=true;changeVersion++;setSync("กำลังบันทึก…");clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,400)}
 async function pushCloud(){
  if(!cloudReady||cloudSaving||!dirty)return;
  cloudSaving=true;

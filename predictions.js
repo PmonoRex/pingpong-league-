@@ -19,7 +19,7 @@ async function mutatePred(change){
   reconcileSession();
   renderLogin();
   if(change()===false){render();return false}
-  setSync("กำลังบันทึก...");
+  setSync("กำลังบันทึก…");
   const now=new Date().toISOString();
   const expected=row?.updated_at||"";
   const filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:"";

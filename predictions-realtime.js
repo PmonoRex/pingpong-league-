@@ -16,8 +16,8 @@ async function refreshLeagueAndSettle(){
   if(!btn||!status)return;
   const oldText=btn.textContent;
   btn.disabled=true;
-  btn.textContent="กำลังดึงคะแนนล่าสุด...";
-  status.textContent="กำลังซิงก์คะแนนจากฐานข้อมูลแบบเรียลไทม์...";
+  btn.textContent="กำลังดึงคะแนนล่าสุด…";
+  status.textContent="กำลังซิงก์คะแนนจากฐานข้อมูลแบบเรียลไทม์…";
   status.className="realtime-state loading";
   try{
     const rows=await cloudRequest();
