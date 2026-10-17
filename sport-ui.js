@@ -58,7 +58,7 @@
     const bar=qs('.account-bar'),actions=bar&&qs('.actions',bar);
     if(!bar||!actions||qs('.sport-tools-toggle',bar))return;
     actions.classList.add('sport-tools-actions');
-    const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary sport-tools-toggle';toggle.textContent='☰ เครื่องมือ';
+    const toggle=document.createElement('button');toggle.type='button';toggle.className='secondary sport-tools-toggle';toggle.textContent='เครื่องมือ';
     toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','เปิดเมนูเครื่องมือ');bar.insertBefore(toggle,actions);
     const close=()=>{actions.classList.remove('open');toggle.setAttribute('aria-expanded','false')};
     toggle.addEventListener('click',event=>{event.stopPropagation();const open=actions.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});

@@ -1,0 +1,508 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T10:46:12+00:00",
+  "title": "Design System: ตีให้สุด หยุดที่เบ้าตา",
+  "extensions": {
+    "colorMeta": {
+      "poster": {
+        "role": "primary",
+        "displayName": "Poster Yellow",
+        "canonical": "#ffd21f",
+        "tonalRamp": [
+          "#3d3000",
+          "#665000",
+          "#8f7000",
+          "#b89000",
+          "#f2bd00",
+          "#ffd21f",
+          "#ffe36b",
+          "#fff4c2"
+        ]
+      },
+      "poster-deep": {
+        "role": "primary",
+        "displayName": "Poster Deep",
+        "canonical": "#f2bd00",
+        "tonalRamp": [
+          "#332700",
+          "#5c4600",
+          "#856600",
+          "#ad8500",
+          "#d6a500",
+          "#f2bd00",
+          "#ffd84d",
+          "#fff0b3"
+        ]
+      },
+      "magenta": {
+        "role": "primary",
+        "displayName": "บานเย็น Magenta",
+        "canonical": "#e0147a",
+        "tonalRamp": [
+          "#3a0520",
+          "#5e0834",
+          "#870b4a",
+          "#b40d61",
+          "#e0147a",
+          "#ef4d9a",
+          "#f78fc0",
+          "#fcd3e6"
+        ]
+      },
+      "magenta-deep": {
+        "role": "primary",
+        "displayName": "Magenta Deep",
+        "canonical": "#b40d61",
+        "tonalRamp": [
+          "#2e0319",
+          "#52062d",
+          "#7a0942",
+          "#b40d61",
+          "#d61f78",
+          "#ec5c9f",
+          "#f59cc6",
+          "#fbd9ea"
+        ]
+      },
+      "corner-red": {
+        "role": "secondary",
+        "displayName": "Red Corner",
+        "canonical": "#d4252e",
+        "tonalRamp": [
+          "#3a0a0c",
+          "#601014",
+          "#8a161c",
+          "#b81e26",
+          "#d4252e",
+          "#e65a61",
+          "#f29a9e",
+          "#fde4e3"
+        ]
+      },
+      "corner-red-hover": {
+        "role": "secondary",
+        "displayName": "Red Corner Pressed",
+        "canonical": "#b81e26",
+        "tonalRamp": [
+          "#300809",
+          "#550e11",
+          "#7d1419",
+          "#b81e26",
+          "#d4252e",
+          "#e65a61",
+          "#f29a9e",
+          "#fde4e3"
+        ]
+      },
+      "corner-blue": {
+        "role": "secondary",
+        "displayName": "Blue Corner",
+        "canonical": "#1c4fc0",
+        "tonalRamp": [
+          "#08173a",
+          "#0e2660",
+          "#143788",
+          "#1c4fc0",
+          "#3d6cd6",
+          "#7096e3",
+          "#a9c0f0",
+          "#e2e9fb"
+        ]
+      },
+      "red-field": {
+        "role": "secondary",
+        "displayName": "Red Field",
+        "canonical": "#fde4e3",
+        "tonalRamp": [
+          "#8a161c",
+          "#b81e26",
+          "#d4252e",
+          "#e65a61",
+          "#f29a9e",
+          "#f8c4c4",
+          "#fde4e3",
+          "#fff3f3"
+        ]
+      },
+      "blue-field": {
+        "role": "secondary",
+        "displayName": "Blue Field",
+        "canonical": "#e2e9fb",
+        "tonalRamp": [
+          "#143788",
+          "#1c4fc0",
+          "#3d6cd6",
+          "#7096e3",
+          "#a9c0f0",
+          "#cbd8f6",
+          "#e2e9fb",
+          "#f2f6fe"
+        ]
+      },
+      "win": {
+        "role": "tertiary",
+        "displayName": "Win Green",
+        "canonical": "#0b7a40",
+        "tonalRamp": [
+          "#03230f",
+          "#06401f",
+          "#0b7a40",
+          "#14994f",
+          "#3fb873",
+          "#7dd3a1",
+          "#bde9cf",
+          "#e9f7ee"
+        ]
+      },
+      "lose": {
+        "role": "tertiary",
+        "displayName": "Lose Red",
+        "canonical": "#c21f2a",
+        "tonalRamp": [
+          "#350709",
+          "#5a0c11",
+          "#8a1219",
+          "#c21f2a",
+          "#d9464f",
+          "#e8838a",
+          "#f4bcc0",
+          "#fde8e9"
+        ]
+      },
+      "medal-gold": {
+        "role": "tertiary",
+        "displayName": "Medal Gold",
+        "canonical": "#e7a900",
+        "tonalRamp": [
+          "#3a2a00",
+          "#664a00",
+          "#996f00",
+          "#c99100",
+          "#e7a900",
+          "#f5c84a",
+          "#fadf95",
+          "#fdf3d6"
+        ]
+      },
+      "medal-silver": {
+        "role": "tertiary",
+        "displayName": "Medal Silver",
+        "canonical": "#9aa3ad",
+        "tonalRamp": [
+          "#25292e",
+          "#3c4249",
+          "#58606a",
+          "#79828c",
+          "#9aa3ad",
+          "#b9c0c7",
+          "#d7dbe0",
+          "#f0f2f4"
+        ]
+      },
+      "medal-bronze": {
+        "role": "tertiary",
+        "displayName": "Medal Bronze",
+        "canonical": "#b8763c",
+        "tonalRamp": [
+          "#2e1c0d",
+          "#4f3116",
+          "#734823",
+          "#96602f",
+          "#b8763c",
+          "#cf9a6a",
+          "#e3c19f",
+          "#f6e8da"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#17110f",
+        "tonalRamp": [
+          "#17110f",
+          "#3b322c",
+          "#5e534b",
+          "#82766d",
+          "#a69a91",
+          "#c8beb6",
+          "#e6dfd8",
+          "#fffdf6"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#3b322c",
+        "tonalRamp": [
+          "#17110f",
+          "#3b322c",
+          "#5e534b",
+          "#82766d",
+          "#a69a91",
+          "#c8beb6",
+          "#e6dfd8",
+          "#fffdf6"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "rgba(23,17,15,.66)",
+        "tonalRamp": [
+          "#17110f",
+          "#3b322c",
+          "#5e534b",
+          "#82766d",
+          "#a69a91",
+          "#c8beb6",
+          "#e6dfd8",
+          "#fffdf6"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#fffdf6",
+        "tonalRamp": [
+          "#3b3826",
+          "#5e5a44",
+          "#8a8466",
+          "#b5ae8c",
+          "#d9d2b3",
+          "#ebe5cf",
+          "#f6f1e3",
+          "#fffdf6"
+        ]
+      },
+      "paper-2": {
+        "role": "neutral",
+        "displayName": "Paper 2",
+        "canonical": "#f6f1e3",
+        "tonalRamp": [
+          "#3b3826",
+          "#5e5a44",
+          "#8a8466",
+          "#b5ae8c",
+          "#d9d2b3",
+          "#ebe5cf",
+          "#f6f1e3",
+          "#fffdf6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "League name in the league-home masthead only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles in the compact masthead."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel and section headings."
+      },
+      "fighter": {
+        "displayName": "Fighter",
+        "purpose": "Player names in the match fight bill."
+      },
+      "score": {
+        "displayName": "Score",
+        "purpose": "Score inputs; the Chonburi number voice."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running UI text in Anuphan."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons and stat-line captions."
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating",
+        "value": "0 6px 18px rgba(23,17,15,.28)",
+        "purpose": "Fixed tab bar and toast only."
+      },
+      {
+        "name": "stamp-ring",
+        "value": "0 0 0 2px #17110f",
+        "purpose": "Outer ring of the VS disc around its 3px paper border; an outline, not depth."
+      },
+      {
+        "name": "focus-halo",
+        "value": "0 0 0 3px rgba(224,20,122,.18)",
+        "purpose": "Input focus halo with magenta border."
+      }
+    ],
+    "motion": [
+      {
+        "name": "loser-fade",
+        "value": "opacity .2s",
+        "purpose": "Loser name fades to 42% when a match is decided."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stamp-stack",
+        "value": "600px",
+        "purpose": "Below: champion stamp drops under the name."
+      },
+      {
+        "name": "tools-menu",
+        "value": "640px",
+        "purpose": "Below: account tools collapse into a toggle menu."
+      },
+      {
+        "name": "two-column",
+        "value": "900px",
+        "purpose": "At and above: league home splits into bill and sticky standings; bottom nav hides."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Red-corner fill for the main action on a panel (save, create).",
+      "html": "<button class=\"ds-btn-primary\">บันทึก</button>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-btn-primary{background:var(--corner-red);color:#fff;border:var(--rule);border-radius:var(--r);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:40px;cursor:pointer}.ds-btn-primary:hover{background:#b81e26}.ds-btn-primary:focus-visible{outline:3px solid var(--magenta);outline-offset:2px}.ds-btn-primary:disabled{opacity:.45}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Paper button with ink rule; turns poster yellow on hover.",
+      "html": "<button class=\"ds-btn-secondary\">ล้างคะแนน</button>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-btn-secondary{background:var(--paper);color:var(--ink);border:var(--rule);border-radius:var(--r);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:40px;cursor:pointer}.ds-btn-secondary:hover{background:var(--poster)}.ds-btn-secondary:focus-visible{outline:3px solid var(--magenta);outline-offset:2px}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action: paper with lose-red text and rule.",
+      "html": "<button class=\"ds-btn-danger\">กู้ทั้ง Season</button>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-btn-danger{background:var(--paper);color:var(--lose);border:2px solid var(--lose);border-radius:var(--r);font:700 14px/1.2 var(--font);padding:9px 14px;min-height:40px;cursor:pointer}.ds-btn-danger:focus-visible{outline:3px solid var(--magenta);outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "White field on a 2px ink rule; magenta border and halo on focus.",
+      "html": "<label class=\"ds-field\"><span>ผู้เล่นหลัก</span><input class=\"ds-input\" placeholder=\"ชื่อเล่น\"></label>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-field{display:grid;gap:4px;font:400 14px/1.55 var(--font);color:var(--ink-2)}.ds-input{background:#fff;color:var(--ink);border:var(--rule);border-radius:var(--r);padding:9px 10px;font:400 15px var(--font);outline:none}.ds-input::placeholder{color:rgba(23,17,15,.45)}.ds-input:focus{border-color:var(--magenta);box-shadow:0 0 0 3px rgba(224,20,122,.18)}"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "Ink strip with drawn icons; active tab is a poster-yellow block.",
+      "html": "<nav class=\"ds-tabbar\"><a class=\"active\" href=\"#\"><span><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z\"/></svg></span>Home</a><a href=\"#\"><span><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"4\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"13\" y=\"4\" width=\"7\" height=\"4\" rx=\"1.5\"/><rect x=\"13\" y=\"10\" width=\"7\" height=\"10\" rx=\"1.5\"/><rect x=\"4\" y=\"13\" width=\"7\" height=\"7\" rx=\"1.5\"/></svg></span>Dashboard</a><a href=\"#\"><span><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"8\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"12\" cy=\"12\" r=\".6\" fill=\"currentColor\"/></svg></span>Predict</a><a href=\"#\"><span><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 20h16\"/><path d=\"M5 16l4.5-5 3.5 3 6-7\"/><path d=\"M15 7h4v4\"/></svg></span>Stats</a></nav>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-tabbar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;background:var(--ink);border-radius:var(--r);box-shadow:0 6px 18px rgba(23,17,15,.28)}.ds-tabbar a{display:grid;justify-items:center;gap:2px;padding:6px 4px;color:rgba(255,255,255,.72);border-radius:4px;font:600 11px var(--font);text-decoration:none}.ds-tabbar a:hover{color:#fff}.ds-tabbar a.active{background:var(--poster);color:var(--ink)}.ds-tabbar a:focus-visible{outline:3px solid var(--magenta);outline-offset:2px}"
+    },
+    {
+      "name": "Paper Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Paper panel on a 2px ink rule with a Chonburi title and ruled rows.",
+      "html": "<section class=\"ds-panel\"><h2>ตารางคะแนน</h2><div class=\"ds-row\"><span>มอส</span><b>30 RP</b></div><div class=\"ds-row\"><span>บอส</span><b>26 RP</b></div></section>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-panel{background:var(--paper);border:var(--rule);border-radius:var(--r);padding:14px 16px;color:var(--ink);font:400 14px/1.55 var(--font)}.ds-panel h2{margin:0 0 8px;font:400 clamp(21px,5.6vw,27px)/1.2 var(--display)}.ds-row{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:var(--rule-thin)}.ds-row b{font:400 18px var(--display);color:var(--corner-red)}"
+    },
+    {
+      "name": "Masthead",
+      "kind": "custom",
+      "refersTo": "masthead",
+      "description": "Magenta band, ศึก ink mark, league name in yellow Chonburi.",
+      "html": "<header class=\"ds-mast\"><div class=\"ds-mark\">ศึก</div><h1>ตีให้สุด หยุดที่เบ้าตา</h1><p>Season 4 • 7 คน • 21 แมตช์</p></header>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-mast{background:var(--magenta);border:var(--rule);border-radius:var(--r);padding:20px 18px 18px;color:#fff;font:400 14px var(--font)}.ds-mark{width:40px;height:40px;border-radius:50%;background:var(--ink);border:2px solid var(--poster);color:var(--poster);display:grid;place-items:center;font:400 13px/1 var(--display);margin-bottom:6px}.ds-mast h1{margin:4px 0 8px;font:400 clamp(40px,10vw,72px)/1.05 var(--display);color:var(--poster);letter-spacing:0}.ds-mast p{margin:0;color:rgba(255,255,255,.9)}"
+    },
+    {
+      "name": "Match Fight Bill",
+      "kind": "custom",
+      "refersTo": "vs-stamp",
+      "description": "Red corner vs blue corner with VS disc; finished match stamps the winner.",
+      "html": "<div class=\"ds-bill\"><span class=\"ds-stamp\">ชนะ</span><div class=\"ds-pair\"><b class=\"a\">มอส</b><span class=\"ds-vs\">VS</span><b class=\"b\">เฟิร์น</b><input class=\"sa\" value=\"2\"><input class=\"sb\" value=\"0\"></div><div class=\"ds-status\">มอส ชนะ 2 0</div></div>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-bill{position:relative;margin-top:26px;background:linear-gradient(90deg,var(--red-field) 0 50%,var(--blue-field) 50% 100%);border:var(--rule);border-radius:var(--r)}.ds-pair{display:grid;grid-template-columns:minmax(0,1fr) 52px minmax(0,1fr);grid-template-areas:'na vs nb' 'sa vs sb';gap:8px 6px;align-items:center;padding:20px 10px 10px}.ds-pair b{font:400 clamp(20px,5.6vw,26px)/1.15 var(--display)}.ds-pair .a{grid-area:na;justify-self:end;color:var(--corner-red)}.ds-pair .b{grid-area:nb;color:var(--corner-blue);opacity:.42}.ds-pair input{min-height:44px;background:#fff;border:2px solid;border-radius:var(--r);text-align:center;font:400 22px var(--display);color:var(--ink);min-width:0}.ds-pair .sa{grid-area:sa;border-color:var(--corner-red)}.ds-pair .sb{grid-area:sb;border-color:var(--corner-blue)}.ds-pair input:focus{outline:none;border-color:var(--magenta);box-shadow:0 0 0 3px rgba(224,20,122,.18)}.ds-vs{grid-area:vs;justify-self:center;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--poster);font:400 16px/1 var(--display);border:3px solid var(--paper);box-shadow:0 0 0 2px var(--ink)}.ds-status{padding:7px 10px 9px;border-top:var(--rule-thin);background:var(--paper);border-radius:0 0 var(--r) var(--r);text-align:center;font:400 19px var(--display);color:var(--corner-red)}.ds-stamp{position:absolute;top:-16px;left:10px;z-index:2;font:400 24px/1 var(--display);padding:5px 10px 4px;border:3px solid currentColor;border-radius:4px;background:var(--paper);color:var(--corner-red);transform:rotate(-7deg)}"
+    },
+    {
+      "name": "Stat Lines",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Stats as ruled lines: Anuphan caption left, Chonburi value right.",
+      "html": "<div class=\"ds-stats\"><div class=\"ds-stat\"><b>9</b><small>แข่งแล้ว</small></div><div class=\"ds-stat\"><b>12</b><small>เหลือ</small></div><div class=\"ds-stat\"><b>มอส</b><small>อันดับ 1</small></div></div>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-stats{display:grid;border-top:var(--rule);background:var(--paper);padding:0 12px}.ds-stat{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 2px;border-bottom:var(--rule-thin)}.ds-stat b{font:400 clamp(22px,6vw,28px)/1.1 var(--display);color:var(--ink)}.ds-stat small{font:400 14px var(--font);color:var(--ink-2)}"
+    },
+    {
+      "name": "Tag and Form Dots",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Pill tag on a 1.5px ink rule; W/D/L dots in result colours.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-tag\">พัก: มอส</span><span class=\"ds-tag closed\">ปิดแล้ว</span><span class=\"ds-dot w\">W</span><span class=\"ds-dot d\">D</span><span class=\"ds-dot l\">L</span></div>",
+      "css": ":host{--ink:#17110f;--ink-2:#3b322c;--ink-soft:rgba(23,17,15,.66);--poster:#ffd21f;--paper:#fffdf6;--paper-2:#f6f1e3;--magenta:#e0147a;--magenta-deep:#b40d61;--corner-red:#d4252e;--corner-blue:#1c4fc0;--win:#0b7a40;--lose:#c21f2a;--red-field:#fde4e3;--blue-field:#e2e9fb;--rule:2px solid #17110f;--rule-thin:1px solid rgba(23,17,15,.22);--r:6px;--display:\"Chonburi\",\"Anuphan\",serif;--font:\"Anuphan\",system-ui,sans-serif} .ds-chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ds-tag{background:var(--paper-2);border:1.5px solid var(--ink);color:var(--ink);border-radius:999px;padding:2px 9px;font:600 12px var(--font)}.ds-tag.closed{background:var(--ink);color:var(--poster)}.ds-dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--ink);font:400 12px var(--display)}.ds-dot.w{background:var(--win);color:#fff}.ds-dot.l{background:var(--lose);color:#fff}.ds-dot.d{background:var(--poster);color:var(--ink)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Fight Bill at the Hall",
+    "overview": "**Creative North Star: \"The Fight Bill at the Hall\"**\n\nThe league reads as a Thai boxing poster (โปสเตอร์มวย) pasted up next to the table. The ground is poster yellow; content sits on newsprint-white paper panels held by 2px ink rules; the masthead is a บานเย็น magenta band with the league name in looped yellow Chonburi. Every pairing is billed red corner versus blue corner with a VS stamp between, and a finished match gets a rotated ชนะ stamp on the winner while the loser fades back. It is loud the way a poster is loud: flat inks, heavy display type, no glow.\n\nDensity is phone-first and operational. Panels are tight (6px corners, 12-18px insets), numbers and names carry the page in display type, and everything else stays standard Anuphan UI text on standard controls. Desktop widens the league home into two columns (bill on the left, sticky standings on the right) without changing the vocabulary. This world replaces the dark glass sports-app card grid with a neon accent that the site had before.",
+    "keyCharacteristics": [
+      "Poster-yellow page ground, paper panels, 2px ink rules, 6px corners.",
+      "Two-faced type: Chonburi for titles, names, scores, money and stamps; Anuphan for everything else.",
+      "Red corner / blue corner as the colour pair for every match-up; green and red only for won/lost money and W/L.",
+      "Magenta is the masthead and the interaction colour (focus, caret, selection, progress).",
+      "Stamps, not glyphs: winners and champions get a bordered, slightly rotated Chonburi word.",
+      "Flat surfaces; depth only for the floating tab bar and toast."
+    ],
+    "rules": [
+      {
+        "name": "The Two Corners Rule",
+        "body": "Any head-to-head pairing is red on the left, blue on the right, every time. Red/blue never encode good/bad.",
+        "section": "colors"
+      },
+      {
+        "name": "The Money Is Green and Red Rule",
+        "body": "Win green and lose red are reserved for won/lost amounts, W/L results and rank movement.",
+        "section": "colors"
+      },
+      {
+        "name": "The Magenta Means Here Rule",
+        "body": "Outside the masthead, magenta marks where the user is acting: focus, caret, selection, progress.",
+        "section": "colors"
+      },
+      {
+        "name": "The Bill Voice Rule",
+        "body": "Chonburi is for what the poster would print: titles, names, scores, money, stamps. Controls, labels and explanations stay in Anuphan.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Tracking Rule",
+        "body": "Display type is set at letter-spacing 0 and never in faux bold; Chonburi ships one weight.",
+        "section": "typography"
+      },
+      {
+        "name": "The Pasted-Up Rule",
+        "body": "Panels, cards, buttons and sheets have no shadow and no blur; overlays are flat ink at 55% with no backdrop filter.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** put every page on the poster-yellow ground and every content block on paper with a 2px ink rule and 6px corners.",
+      "**Do** bill every pairing red corner left, blue corner right, with the ink VS disc between.",
+      "**Do** set names, scores, money, titles and stamps in Chonburi 400 at letter-spacing 0; keep controls and labels in Anuphan.",
+      "**Do** mark a winner with a rotated Chonburi word stamp in their colour, and fade the loser, rather than adding an icon.",
+      "**Do** flatten lists inside a panel into rows divided by thin ink rules.",
+      "**Do** use drawn SVG icons (24px grid, 1.8 stroke, round caps) where an icon is needed.",
+      "**Do** keep magenta for the masthead and for focus, caret, selection and progress."
+    ],
+    "donts": [
+      "**Don't** bring back the dark glass card grid with a neon accent, backdrop blur or glow.",
+      "**Don't** put shadows on panels, buttons or sheets; only the floating tab bar and toast lift.",
+      "**Don't** use red or blue corner colours to mean good or bad; won/lost is green and red.",
+      "**Don't** use emoji or text glyphs as icons.",
+      "**Don't** nest boxed cards inside paper panels, or lay stats out as a wall of big-number tiles.",
+      "**Don't** print an empty stat as a headline-size dash; drop it."
+    ]
+  }
+}
