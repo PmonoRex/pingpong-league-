@@ -5,8 +5,8 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="ตีให้สุด">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="mobile-web-app-capable" content="yes"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Chonburi&display=swap"><title>นับแต้มดัมมี่ • ตีให้สุด หยุดที่เบ้าตา</title><link rel="stylesheet" href="dummy.css?v=20261017-bold"><link rel="stylesheet" href="theme.css?v=20261017-polish"><link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-nextup"></head><body><main id="dummyApp">
-<section class="hero"><h1>นับแต้มไพ่ดัมมี่</h1><div class="muted">เก็บแต้มไว้ในเครื่องนี้เท่านั้น ไม่ปนกับข้อมูลลีกปิงปอง</div></section>
+<meta name="mobile-web-app-capable" content="yes"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Chonburi&display=swap"><title>นับแต้มดัมมี่ • ตีให้สุด หยุดที่เบ้าตา</title><link rel="stylesheet" href="dummy.css?v=20261017-dummy"><link rel="stylesheet" href="theme.css?v=20261017-polish"><link rel="stylesheet" href="motion.css?v=20261015-ux"><link rel="stylesheet" href="poster.css?v=20261017-nextup2"></head><body><main id="dummyApp">
+<section class="hero"><h1>นับแต้มไพ่ดัมมี่</h1><div class="muted">แต้มซิงก์ข้ามเครื่อง และเก็บสำรองไว้ในเครื่องนี้ด้วย ไม่ปนกับข้อมูลลีกปิงปอง</div><div class="rules"><span class="pill sync" id="dSync" role="status">กำลังเชื่อมต่อ...</span></div></section>
 
 <section class="card" id="dSetup" hidden><h2>ตั้งค่าเกม</h2>
  <div class="muted">ผู้เล่น 2–4 คน</div>
@@ -20,12 +20,12 @@
 </section>
 
 <div id="dGame" hidden>
-<section class="card"><h2>สรุปรวมทุกเกม</h2>
+<section class="card"><h2 id="dBoardTitle">สรุปรวมทุกเกม</h2>
  <div class="muted" id="dMeta"></div>
  <div class="d-winner" id="dWinner" role="status" hidden></div>
  <div id="dBoard" class="d-board"></div>
  <div id="dPay" class="d-pay" hidden><h3>ใครจ่ายใคร</h3><div class="muted">คิดแยกเป็นคู่ ใครแพ้ใครก็จ่ายคนนั้น (ถ้าสองคนติดกันไปมา หักกันเฉพาะคู่นั้น)</div><div id="dPayList" class="d-pay-list"></div><button type="button" class="secondary" id="dPayCopy">คัดลอกไปส่งในไลน์</button></div>
- <div class="actions"><button type="button" class="secondary" id="dUndo">ลบเกมล่าสุด</button><button type="button" class="secondary" id="dRematch">ล้างผลทั้งหมด</button><button type="button" class="secondary" id="dEdit">ผู้เล่น / ตั้งค่า</button></div>
+ <div class="actions"><button type="button" class="secondary" id="dUndo">ลบเกมล่าสุด</button><button type="button" class="secondary" id="dNewDay">เริ่มวันใหม่</button><button type="button" class="secondary" id="dRematch">ล้างผลทั้งหมด</button><button type="button" class="secondary" id="dEdit">ผู้เล่น / ตั้งค่า</button></div>
 </section>
 
 <section class="card" id="dEntryCard"><h2>จบเกม: ใส่แต้ม</h2>
@@ -50,9 +50,14 @@
  <div class="d-calc-apply"><select id="dCalcPlayer" aria-label="ผู้เล่น"></select><button type="button" class="primary" data-calc="plus">+ บวก</button><button type="button" class="secondary" data-calc="minus">− หัก</button></div>
 </details></section>
 
+<section class="card" id="dDaysCard" hidden><h2>สรุปรายวัน</h2>
+ <div class="muted">แยกตามวันที่เล่น ใครจ่ายใครคิดเฉพาะเกมของวันนั้น (เป็นคู่เหมือนเดิม)</div>
+ <div id="dDays" class="d-days"></div>
+</section>
+
 <section class="card"><h2>ประวัติแต่ละเกม</h2>
  <div class="wrap"><table><thead id="dHistHead"></thead><tbody id="dHistBody"></tbody></table></div>
 </section>
 </div>
 <div class="d-toast" id="dToast" role="status" aria-live="polite"></div>
-</main><script src="dummy.js?v=20261017-poster2" defer></script><script src="sport-ui.js?v=20261017-nextup" defer></script></body></html>
+</main><script src="shared.js?v=20261017-nextup2" defer></script><script src="dummy.js?v=20261017-dummy" defer></script><script src="sport-ui.js?v=20261017-nextup2" defer></script></body></html>

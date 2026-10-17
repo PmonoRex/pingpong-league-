@@ -125,3 +125,13 @@ body.sport-page-dummy-html main{max-width:760px}
 .d-cash.lead .d-board-name b{font-size:19px}
 .d-cash.lead .d-cash-amt{font-size:clamp(34px,10vw,46px)}
 .d-cash .d-board-name small{font-variant-numeric:tabular-nums}
+
+.hero .rules{margin-top:10px}
+.hero .pill{display:inline-block;padding:6px 10px;border:1px solid #2b3744;border-radius:999px;font-size:12px;font-weight:700}
+.d-days{display:grid;gap:8px;margin-top:10px}
+.d-day{padding:12px;border:1px solid #202c38;border-radius:14px;background:#080d13}
+.d-day summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;min-height:28px}
+.d-day summary::-webkit-details-marker{display:none}
+.d-day summary b{font-size:15px}
+.d-day .d-pay-list{margin:10px 0 8px}
+.d-day summary .muted{margin-left:auto}

@@ -9,7 +9,7 @@
     const required=[
       ['theme.css?v=20261017-polish','theme.css'],
       ['motion.css?v=20261015-ux','motion.css'],
-      ['poster.css?v=20261017-nextup','poster.css']
+      ['poster.css?v=20261017-nextup2','poster.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;

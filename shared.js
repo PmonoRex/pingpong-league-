@@ -141,8 +141,21 @@ const LeagueShared = (() => {
     if (!response.ok) throw new Error(`Cloud request failed: ${response.status}`);
     return response.json();
   }
+  // Dummy card scores live in their own `dummy` column. Their optimistic lock is `dummy.rev` (not updated_at),
+  // so a Dummy save never makes an in-flight league or predictions save look stale.
+  async function loadDummyCloud() {
+    const row = (await cloudRequest("dummy"))[0];
+    if (!row) throw new Error("Cloud row missing");
+    return row.dummy && typeof row.dummy === "object" ? row.dummy : {};
+  }
+  // Writes only if the cloud copy is still at `baseRev`; returns the saved object, or null when another device got there first.
+  async function saveDummyCloud(dummy, baseRev) {
+    const rev = Math.max(0, Math.floor(Number(baseRev) || 0));
+    const rows = await cloudRequest("dummy", "PATCH", { dummy }, rev ? `dummy->>rev=eq.${rev}` : "dummy->>rev=is.null");
+    return rows?.[0]?.dummy || null;
+  }
 
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
-    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest });
+    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud });
 })();
