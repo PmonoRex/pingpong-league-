@@ -41,7 +41,7 @@ body.sport-redesign .hero{background:var(--magenta);border:var(--rule);border-ra
 body.sport-redesign .hero:before,body.sport-redesign .hero:after{display:none}
 body.sport-redesign .hero-player-photo{display:none}
 body.sport-redesign .hero h1{font-family:var(--display);font-weight:400;color:var(--poster);text-shadow:none;letter-spacing:0;line-height:1.12;max-width:100%!important}
-body.sport-redesign .hero :is(.muted,.sub,p,small){color:rgba(255,255,255,.9)!important}
+body.sport-redesign .hero :is(.muted,.sub,p,small){color:#fff!important}
 body.sport-redesign .hero .eyebrow{display:none}
 .sport-brand{margin-bottom:12px}
 body.sport-redesign .sport-mark{width:40px;height:40px;border-radius:50%;background:var(--ink);border:2px solid var(--poster);box-shadow:none;font-size:0!important;color:transparent;position:relative}
@@ -65,7 +65,7 @@ body.hero-compact .sport-mark{width:34px;height:34px}
 body.hero-compact .sport-mark:after{font-size:11px}
 body.sport-redesign .hero .account-bar :is(button,a){background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.55)}
 body.sport-redesign .hero .account-bar .danger{color:#ffb3b8;border-color:#ff8a92}
-body.sport-redesign .hero>.actions :is(a,button){background:var(--paper);color:var(--ink);border:var(--rule);border-radius:var(--r)!important;min-height:36px;padding:6px 12px;line-height:1.2}
+body.sport-redesign .hero>.actions :is(a,button){background:var(--paper);color:var(--ink);border:var(--rule);border-radius:var(--r)!important;min-height:44px;padding:6px 12px;line-height:1.2}
 
 /* ---------- Paper panels ---------- */
 body.sport-redesign :is(.card,.workflow-card){background:var(--paper);border:var(--rule);border-radius:var(--r);box-shadow:none;color:var(--ink)}
@@ -74,7 +74,7 @@ body.sport-redesign :is(.card h2,.section-head h2,.workflow-title b){font-family
 body.sport-redesign .card h3{font-weight:700}
 body.sport-redesign :is(.roster-box,.rest,.roster-item,.match,.market,.backup,.season-item,.account,.season-btn,.dealer-current-card,.dealer-selector,.workflow-item,.quick-tile,.stat,.profile-metric,.locked,.d-board-row,.d-entry-row,.d-line,.d-pay-row,.d-preview,.d-rates){background:var(--paper);border:var(--rule-thin);border-radius:var(--r);box-shadow:none;color:var(--ink)}
 body.sport-redesign .workflow-item{background:var(--paper-2)}
-body.sport-redesign .workflow-item a{color:var(--magenta-deep);font-weight:700}
+body.sport-redesign .workflow-item a{color:var(--magenta-deep);font-weight:700;display:inline-flex;align-items:center;min-height:44px;min-width:44px;justify-content:center;margin:-12px -10px}
 body.sport-redesign .roster-box{background:var(--paper-2)}
 body.sport-redesign .rh{color:var(--ink)}
 body.sport-redesign .rh b{font-family:var(--display);font-weight:400;font-size:18px}

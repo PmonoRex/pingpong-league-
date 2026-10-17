@@ -229,7 +229,7 @@
   // ---- setup ----
   function renderSetup() {
     const names = state.players.length ? state.players : ["", ""];
-    $("dNames").innerHTML = names.map((n, i) => `<div class="d-name-row"><input data-name="${i}" maxlength="30" placeholder="ผู้เล่น ${i + 1}" value="${esc(n)}">${names.length > 2 ? `<button type="button" class="secondary d-icon" data-remove="${i}" aria-label="ลบผู้เล่น ${i + 1}">✕</button>` : ""}</div>`).join("");
+    $("dNames").innerHTML = names.map((n, i) => `<div class="d-name-row"><input data-name="${i}" maxlength="30" placeholder="ผู้เล่น ${i + 1}" aria-label="ชื่อผู้เล่น ${i + 1}" value="${esc(n)}">${names.length > 2 ? `<button type="button" class="secondary d-icon" data-remove="${i}" aria-label="ลบผู้เล่น ${i + 1}">✕</button>` : ""}</div>`).join("");
     $("dAddPlayer").disabled = names.length >= 4;
     $("dTarget").value = state.target || "";
     $("dKnock").value = state.knockBonus;
