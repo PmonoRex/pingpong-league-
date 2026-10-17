@@ -18,7 +18,7 @@ Pages: `index`, `dashboard`, `stats`, `predictions`, `archive`, `backup`, `admin
 | # | Dimension | Before | After | Key finding |
 |---|-----------|:-----:|:-----:|-------------|
 | 1 | Accessibility | 2 | 3 | Was: 42 unlabeled score inputs, avatar initials at 2.8:1, masthead subtitles at 3.9:1. All fixed. Left: login labels (PIN area, excluded), focus order in the sheets is untested. |
-| 2 | Performance | 2 | 3 | The 3 s full-row poll kept running in background tabs; now skipped while the tab is hidden. Left: the poll still downloads the whole league JSON every tick, 6–8 blocking stylesheets per page, desktop CLS 0.10 on index. |
+| 2 | Performance | 2 | 3 | The 3 s full-row poll kept running in background tabs; now skipped while the tab is hidden. Left: the poll still downloads the whole league JSON every tick, 6–8 blocking stylesheets per page, desktop CLS 0.10–0.15 on index. |
 | 3 | Theming | 3 | 3 | Tokens are used almost everywhere. A few dark-theme colours were left over (`backup.css` meta/badge/empty; fixed). `predictions.css` and `suite.js` PNG export still have some (see P3). No dark mode, by design (poster world). |
 | 4 | Responsive Design | 3 | 3 | No horizontal scroll at 390 or 1280 on any page. Masthead and header buttons were 34–36 px tall; now 44. Score steppers stay 36×44 on purpose (see P2). |
 | 5 | Implementation Integrity | 3 | 3 | Coherent, product-specific poster system. Detector warnings are mostly false positives (verified below). |
@@ -62,7 +62,7 @@ Legend: ✅ fixed in this PR · ⏭ left for later
 - Fix: `aria-label="คะแนน {name}"`, `"ลดคะแนน {name}"`, `"เพิ่มคะแนน {name}"`. Attributes only; the template didn't change otherwise.
 
 **✅ [P1] Form fields with visible but unassociated labels, or no label**
-- Location: `stats.html` (`#playerA`, `#playerB`), `predictions.html` (`#dealerSelect`), `predictions.js` (bet `side-*` / `stake-*`; dealer `fav-*`, `hcp-*`, `open-*`), `admin.html` (`#newName`, `#newRole`), `dummy.js` (player-name inputs)
+- Location: `stats.html` (`#playerA`, `#playerB`), `predictions.html` (`#dealerSelect`), `predictions.js` (dealer `fav-*`, `hcp-*`, `open-*`; the old bet `side-*` / `stake-*` controls were replaced by #31's labelled slip), `admin.html` (`#newName`, `#newRole`), `dummy.js` (player-name inputs)
 - Category: Accessibility (WCAG 1.3.1, 3.3.2, 4.1.2)
 - Impact: labels sat next to the fields but weren't linked (`<label>` without `for`). Placeholder-only inputs lose their name once text is typed.
 - Fix: added `for=` to the existing labels; added `aria-label` where there is no visible label. No visual change.
@@ -104,7 +104,7 @@ Legend: ✅ fixed in this PR · ⏭ left for later
 - Impact: the payload grows with every season (`rankHistory`, `seasonArchives`, `auditLog`). On mobile data it's the biggest recurring cost.
 - Recommendation: poll `select=updated_at` first and fetch the full row only when it changed. This changes the data flow, so it was left for its own PR. → `/impeccable optimize`
 
-**⏭ [P2] Layout shift on the desktop league home (CLS 0.10)**
+**⏭ [P2] Layout shift on the desktop league home (CLS 0.10–0.15 across runs)**
 - Location: `suite.js` `addWorkflowCard` (runs `setTimeout(boot,100)` after DOMContentLoaded) and `sport-ui.js` `boot` (+40 ms) insert the League Assistant card and the tools toggle after first paint. `#competition` moves down about 196 px.
 - Also: `stats.html` 0.074 (rival skeleton → content), `archive` 0.05, `admin` 0.049 at 1280. Mobile CLS is 0 on every page, because the shift happens below the fold.
 - Recommendation: put a static `#workflowCard` placeholder with a reserved height in `index.html` and let `suite.js` fill it, or build the card synchronously. That means editing `index.html` / `suite.js` structure, so it was left. → `/impeccable optimize`
@@ -174,7 +174,7 @@ You can ask me to run these one at a time, all at once, or in any order you pref
 | File | Change |
 |---|---|
 | `index.js` | `aria-label` on score inputs and −/+ steppers; `pullCloud` skips while `document.hidden` |
-| `predictions.js` | `aria-label` on bet side/stake; `for=` on dealer market labels; `pull` skips while hidden |
+| `predictions.js` | `for=` on dealer market labels; `pull` skips while hidden (the bet slip from #31 is already labelled) |
 | `dummy.js` | `aria-label` on player-name inputs |
 | `player-ui.js` | per-hue lightness cap so avatar initials reach ≥ 4.5:1 |
 | `poster.css` | masthead secondary text `#fff`; masthead buttons min-height 44; League Assistant link hit area |
@@ -187,4 +187,4 @@ You can ask me to run these one at a time, all at once, or in any order you pref
 
 Not touched: PIN/login/security code, data flow and sync logic (apart from the hidden-tab early return), the layout of the predictions and dummy pages.
 
-Re-measured after the fixes, with the same seed and both viewports: **0 contrast failures, 0 unnamed fields, and no overflow on any page.** The only targets under 44 px left are the 36×44 score steppers (see P2). `npm test`: 61/61 pass.
+Re-measured after the fixes and after merging main (PRs #30–#32: stamp sound, predictions fight bill, Dummy fast entry), with the same seed and both viewports: **0 contrast failures, 0 unnamed fields, and no overflow on any page.** The only targets under 44 px left are the 36×44 score steppers (see P2). `npm test`: 76/76 pass on the merged branch. The new predictions bet slip from #31 wraps the stake input in a `<label>`, so it no longer needs the `aria-label` this PR first added; the merge drops it.

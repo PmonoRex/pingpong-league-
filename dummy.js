@@ -166,7 +166,34 @@
     return { state: { ...remote, moneyMode: pick("moneyMode"), rates: pick("rates"), divisor: pick("divisor"), target: pick("target"), knockBonus: pick("knockBonus"), dayStart: Math.max(local.dayStart, remote.dayStart), rounds }, conflict: false };
   }
 
-  window.DummyScore = { normalize, totals, moneyTotals, standings, winner, cardPoints, settleWinner, settlePoints, multiplier, pairDebts, currentRounds, dayKey, daySummaries, mergeDummy, CARD_VALUES };
+  // Mistake guard before a game is saved: every score still 0, or a score far outside what this sheet usually sees
+  // (over `floor`, or 3× the median size of earlier scores if this group plays bigger hands). `big` lists those seats.
+  function entryCheck(scores, rounds = [], floor = 1000) {
+    const seen = rounds.flatMap(r => r.scores.map(v => Math.abs(int(v)))).filter(v => v > 0).sort((a, b) => a - b);
+    const median = seen.length ? seen[Math.floor(seen.length / 2)] : 0, limit = Math.max(floor, median * 3);
+    return { allZero: scores.every(v => int(v) === 0), big: scores.map((v, i) => Math.abs(int(v)) > limit ? i : -1).filter(i => i >= 0), limit };
+  }
+  // Undo a save, delete or edit. Games are found by content (another device may have shifted the list since),
+  // so the result is a new list, or null when the game is no longer there to undo.
+  function undoChange(rounds, change) {
+    const list = [...rounds], find = r => { const k = roundKey(r); for (let i = list.length - 1; i >= 0; i--) if (roundKey(list[i]) === k) return i; return -1; };
+    if (change.type === "add" || change.type === "edit") {
+      const i = find(change.type === "add" ? change.round : change.after); if (i < 0) return null;
+      if (change.type === "add") list.splice(i, 1); else list[i] = change.before;
+      return list;
+    }
+    if (change.type === "delete") {
+      // Back where it was when that still fits the time order, otherwise in time order.
+      const r = change.round, at = int(r.at), hint = Math.min(Math.max(0, int(change.index)), list.length);
+      const fits = (!list[hint - 1] || int(list[hint - 1].at) <= at) && (!list[hint] || at <= int(list[hint].at));
+      const pos = fits ? hint : (j => j < 0 ? list.length : j)(list.findIndex(x => int(x.at) > at));
+      list.splice(pos, 0, r);
+      return list;
+    }
+    return null;
+  }
+
+  window.DummyScore = { normalize, totals, moneyTotals, standings, winner, cardPoints, settleWinner, settlePoints, multiplier, pairDebts, currentRounds, dayKey, daySummaries, mergeDummy, entryCheck, undoChange, roundKey, CARD_VALUES };
 
   const $ = id => document.getElementById(id);
   if (!$("dummyApp")) return;
@@ -223,7 +250,25 @@
       else setSync("ออฟไลน์ • เก็บในเครื่อง", "offline");
     } finally { syncing = false; }
   }
-  function toast(msg) { const el = $("dToast"); el.textContent = msg; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2200); }
+  // `action` ({ label, run }) adds a button and keeps the toast up for 5 seconds (used for เลิกทำ).
+  function toast(msg, action) {
+    const el = $("dToast"), hide = () => el.classList.remove("show");
+    el.textContent = msg;
+    if (action) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "d-toast-act"; b.textContent = action.label;
+      b.addEventListener("click", () => { clearTimeout(toast.t); hide(); action.run(); });
+      el.append(b);
+    }
+    el.classList.toggle("has-action", !!action); placeToast(); el.classList.add("show");
+    clearTimeout(toast.t); toast.t = setTimeout(hide, action ? 5000 : 2200);
+  }
+  // With the number pad open the layout viewport sits behind the keyboard, so lift the toast into the visible part.
+  function placeToast() {
+    const vv = window.visualViewport; if (!vv) return;
+    $("dToast").style.setProperty("--kb", `${Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop))}px`);
+  }
+  window.visualViewport?.addEventListener("resize", placeToast);
+  window.visualViewport?.addEventListener("scroll", placeToast);
   const moneyOn = () => state.moneyMode !== "none", winnerMode = () => state.moneyMode === "winner";
 
   // ---- setup ----
@@ -265,7 +310,9 @@
   // ---- round entry ----
   function entrySig() { return JSON.stringify([state.players, state.moneyMode]); }
   function renderEntry() {
-    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon d-sign" data-sign="${i}" aria-pressed="false" aria-label="ติดลบ ${esc(n)}">+</button><input type="number" inputmode="numeric" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts">${winnerMode() ? `<label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>` : ""}${winnerMode() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
+    const last = state.players.length - 1;
+    $("dEntry").innerHTML = state.players.map((n, i) => `<div class="d-line"><b class="d-line-name">${esc(n)}</b><button type="button" class="secondary d-icon d-sign" data-sign="${i}" aria-pressed="false" aria-label="ติดลบ ${esc(n)}">+</button><input type="number" inputmode="numeric" enterkeyhint="${i < last ? "next" : "done"}" data-score="${i}" placeholder="แต้ม" aria-label="แต้มของ ${esc(n)}"><span class="d-line-opts">${winnerMode() ? `<label class="d-knock"><input type="radio" name="dKnockWho" value="${i}"> น็อค</label>` : ""}${winnerMode() ? `<label class="d-knock"><input type="checkbox" data-dumb="${i}"> โง่</label>` : ""}</span></div>`).join("");
+    setEditing(null);
     $("dDivRow").hidden = state.moneyMode !== "points"; $("dDivQuick").value = state.divisor;
     $("dKnockNone").checked = true; $("dKnockNoneLabel").hidden = !winnerMode();
     $("dFlags").hidden = !winnerMode();
@@ -310,17 +357,93 @@
   });
   $("dEntryCard").addEventListener("input", updatePreview);
   $("dEntryCard").addEventListener("change", updatePreview);
+  function flipSign(i) {
+    const el = scoreInput(i); if (!el) return;
+    setNegative(i, signButton(i).getAttribute("aria-pressed") !== "true"); el.value = el.value ? Math.abs(int(el.value)) : ""; updatePreview();
+  }
   $("dEntry").addEventListener("click", e => {
     const sign = e.target.closest("[data-sign]");
-    if (sign) { const i = int(sign.dataset.sign), el = scoreInput(i); setNegative(i, sign.getAttribute("aria-pressed") !== "true"); el.value = el.value ? Math.abs(int(el.value)) : ""; updatePreview(); }
+    if (sign) flipSign(int(sign.dataset.sign));
   });
+  // "Next" / Enter walks down the score boxes; after the last one it lands on the save button.
+  $("dEntry").addEventListener("keydown", e => {
+    const el = e.target.closest("[data-score]"); if (!el || e.key !== "Enter") return;
+    e.preventDefault(); (scoreInput(int(el.dataset.score) + 1) || $("dSaveRound")).focus();
+  });
+  // A double-tap or a long-press on a score box flips its sign too, so the thumb never leaves the box.
+  let press = null, lastTap = { i: -1, t: 0 };
+  const endPress = () => { if (press) clearTimeout(press.timer); press = null; };
+  $("dEntry").addEventListener("pointerdown", e => {
+    const el = e.target.closest("[data-score]"); if (!el) return;
+    endPress();
+    const p = { i: int(el.dataset.score), x: e.clientX, y: e.clientY, long: false };
+    p.timer = setTimeout(() => { p.long = true; lastTap = { i: -1, t: 0 }; flipSign(p.i); navigator.vibrate?.(12); }, 550);
+    press = p;
+  });
+  $("dEntry").addEventListener("pointermove", e => { if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) endPress(); });
+  $("dEntry").addEventListener("pointercancel", endPress);
+  $("dEntry").addEventListener("pointerup", e => {
+    if (!press) return;
+    const { i, long } = press; endPress();
+    if (long) { e.preventDefault(); return; }
+    const now = Date.now();
+    if (lastTap.i === i && now - lastTap.t < 350) { lastTap = { i: -1, t: 0 }; flipSign(i); }
+    else lastTap = { i, t: now };
+  });
+  $("dEntry").addEventListener("contextmenu", e => { if (e.target.closest("[data-score]")) e.preventDefault(); });
+
+  // ---- edit a saved game ----
+  // `editing` points at the saved game loaded into the form, by content so a cloud update cannot retarget it.
+  let editing = null;
+  function setEditing(r) {
+    editing = r ? { key: roundKey(r), at: r.at } : null;
+    const n = r ? state.rounds.indexOf(r) + 1 : 0;
+    $("dEntryCard").classList.toggle("editing", !!r);
+    $("dEntryTitle").textContent = r ? `แก้เกมที่ ${n}` : "จบเกม: ใส่แต้ม";
+    $("dSaveRound").textContent = r ? "บันทึกแก้ไข" : "บันทึกผล & คิดเงิน";
+    $("dCancelEdit").hidden = !r;
+  }
+  function editIndex() { return editing ? state.rounds.findIndex(r => roundKey(r) === editing.key) : -1; }
+  function fillEntry(r) {
+    state.players.forEach((_, i) => setScore(i, int(r.scores[i]) - (r.knock === i ? state.knockBonus : 0)));
+    const k = document.querySelector(`input[name="dKnockWho"][value="${r.knock ?? ""}"]`); if (k) k.checked = true;
+    KNOCK_FLAGS.forEach(([f]) => { const c = document.querySelector(`[data-flag="${f}"]`); if (c) c.checked = !!r.flags?.[f]; });
+    state.players.forEach((_, i) => { const c = document.querySelector(`[data-dumb="${i}"]`); if (c) c.checked = !!r.dumb?.[i]; });
+    updatePreview();
+  }
+  function startEdit(i) {
+    const r = state.rounds[i]; if (!r) return;
+    renderEntry(); fillEntry(r); setEditing(r); renderHistory();
+    $("dEntryCard").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    scoreInput(0)?.focus({ preventScroll: true });
+  }
+  $("dCancelEdit").addEventListener("click", () => { renderEntry(); renderHistory(); scoreInput(0)?.focus(); });
+
+  // ---- save + undo ----
+  function undo(change) {
+    const next = undoChange(state.rounds, change);
+    if (!next) return toast("เลิกทำไม่ได้ • เกมนี้ถูกแก้จากอีกเครื่องแล้ว");
+    state.rounds = next; save(); render();
+    // An undone save goes back into the form so it can be fixed and saved again.
+    if (change.type === "add") { fillEntry(change.round); scoreInput(0)?.focus(); }
+    toast("เลิกทำแล้ว");
+  }
+  const undoAction = change => ({ label: "เลิกทำ", run: () => undo(change) });
   $("dSaveRound").addEventListener("click", () => {
-    const entry = readEntry(), { money: m, vals } = settle(entry), scores = [...entry.scores];
+    const entry = readEntry(), { money: m, vals } = settle(entry), scores = [...entry.scores], idx = editIndex();
+    if (editing && idx < 0) { renderEntry(); renderHistory(); return toast("เกมนี้ถูกลบหรือแก้จากอีกเครื่องแล้ว"); }
     if (entry.knock !== null) scores[entry.knock] += state.knockBonus;
-    if (scores.every(v => v === 0) && entry.knock === null) return toast("ยังไม่ได้ใส่แต้ม");
-    state.rounds.push({ scores, knock: entry.knock, flags: entry.flags, dumb: entry.dumb, money: m, vals, at: Date.now() }); save(); render();
+    const check = entryCheck(scores, state.rounds.filter((_, i) => i !== idx));
+    if (check.allZero && entry.knock === null && !confirm("ทุกคนยังเป็น 0 แต้ม บันทึกเกมนี้เลยไหม?")) return scoreInput(0)?.focus();
+    if (check.big.length && !confirm(`${check.big.map(i => `${state.players[i]} ${scores[i].toLocaleString()}`).join(", ")} แต้มเยอะผิดปกติ (เกิน ${check.limit.toLocaleString()}) ใส่ถูกแล้วใช่ไหม?`)) return scoreInput(check.big[0])?.focus();
+    const round = { scores, knock: entry.knock, flags: entry.flags, dumb: entry.dumb, money: m, vals, at: idx >= 0 ? editing.at : Date.now() };
+    let change, msg;
+    if (idx >= 0) { change = { type: "edit", before: state.rounds[idx], after: round }; state.rounds[idx] = round; msg = `แก้เกมที่ ${idx + 1} แล้ว`; }
+    else { change = { type: "add", round }; state.rounds.push(round); msg = `บันทึกเกมที่ ${state.rounds.length} แล้ว`; }
+    save(); render();
+    scoreInput(0)?.focus();
     const w = m ? m.indexOf(Math.max(...m)) : -1;
-    toast(`บันทึกเกมที่ ${state.rounds.length} แล้ว${w >= 0 && m[w] > 0 ? ` • ${state.players[w]} ได้ ${baht(m[w])}` : ""}`);
+    toast(`${msg}${w >= 0 && m[w] > 0 ? ` • ${state.players[w]} ได้ ${baht(m[w])}` : ""}`, undoAction(change));
   });
 
   // ---- card calculator ----
@@ -370,17 +493,21 @@
   function renderHistory() {
     $("dHistHead").innerHTML = `<tr><th>เกม</th>${state.players.map(n => `<th>${esc(n)}</th>`).join("")}<th></th></tr>`;
     const t = totals(state), m = moneyTotals(state), showMoney = hasMoney(state);
-    $("dHistBody").innerHTML = state.rounds.length ? state.rounds.map((r, i) => `<tr><td>${i + 1}</td>${r.scores.map((v, p) => `<td><span class="${v < 0 ? "neg" : ""}">${v > 0 ? "+" : ""}${v}</span>${roundTags(r, p)}${r.money ? `<small class="d-cell-money ${r.money[p] < 0 ? "neg" : r.money[p] > 0 ? "pos" : ""}">${baht(r.money[p])}</small>` : ""}</td>`).join("")}<td><button type="button" class="secondary d-icon" data-del="${i}" aria-label="ลบเกมที่ ${i + 1}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg></button></td></tr>`).reverse().join("")
+    $("dHistBody").innerHTML = state.rounds.length ? state.rounds.map((r, i) => `<tr data-edit="${i}" class="${editIndex() === i ? "editing" : ""}"><td><button type="button" class="d-hist-num" data-edit="${i}" aria-label="แก้เกมที่ ${i + 1}">${i + 1}</button></td>${r.scores.map((v, p) => `<td><span class="${v < 0 ? "neg" : ""}">${v > 0 ? "+" : ""}${v}</span>${roundTags(r, p)}${r.money ? `<small class="d-cell-money ${r.money[p] < 0 ? "neg" : r.money[p] > 0 ? "pos" : ""}">${baht(r.money[p])}</small>` : ""}</td>`).join("")}<td><button type="button" class="secondary d-icon" data-del="${i}" aria-label="ลบเกมที่ ${i + 1}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg></button></td></tr>`).reverse().join("")
       + `<tr class="d-sum"><td>รวม</td>${t.map((v, p) => `<td>${v.toLocaleString()}${showMoney ? `<small class="d-cell-money ${m[p] < 0 ? "neg" : m[p] > 0 ? "pos" : ""}">${baht(m[p])}</small>` : ""}</td>`).join("")}<td></td></tr>`
       : `<tr><td colspan="${state.players.length + 2}" class="empty">ยังไม่มีเกมที่บันทึก</td></tr>`;
   }
+  function deleteRound(i, msg) {
+    const [round] = state.rounds.splice(i, 1); save(); render();
+    toast(msg, undoAction({ type: "delete", round, index: i }));
+  }
+  // Tap a game (anywhere on its row) to load it back into the entry form; the bin deletes it.
   $("dHistBody").addEventListener("click", e => {
-    const b = e.target.closest("[data-del]"); if (!b) return;
-    const i = int(b.dataset.del);
-    if (!confirm(`ลบเกมที่ ${i + 1}?`)) return;
-    state.rounds.splice(i, 1); save(); render();
+    const b = e.target.closest("[data-del]");
+    if (b) { const i = int(b.dataset.del); if (confirm(`ลบเกมที่ ${i + 1}?`)) deleteRound(i, `ลบเกมที่ ${i + 1} แล้ว`); return; }
+    const row = e.target.closest("[data-edit]"); if (row) startEdit(int(row.dataset.edit));
   });
-  $("dUndo").addEventListener("click", () => { if (!currentRounds(state).length) return toast("วันนี้ยังไม่มีเกม"); if (!confirm(`ลบผลเกมที่ ${state.rounds.length}?`)) return; state.rounds.pop(); save(); render(); toast("ลบเกมล่าสุดแล้ว"); });
+  $("dUndo").addEventListener("click", () => { if (!currentRounds(state).length) return toast("วันนี้ยังไม่มีเกม"); if (!confirm(`ลบผลเกมที่ ${state.rounds.length}?`)) return; deleteRound(state.rounds.length - 1, "ลบเกมล่าสุดแล้ว"); });
   $("dRematch").addEventListener("click", () => { if (!confirm("ล้างผลทุกเกม (รวมสรุปทุกวัน) เริ่มนับใหม่ด้วยผู้เล่นชุดเดิม?")) return; state.rounds = []; state.dayStart = 0; save(); render(); });
   $("dNewDay").addEventListener("click", () => {
     if (!currentRounds(state).length) return toast("วันนี้ยังไม่มีเกม");
@@ -436,6 +563,8 @@
     $("dSetup").hidden = playing; $("dGame").hidden = !playing;
     if (!playing) { shownSig = ""; return renderSetup(); }
     if (full || shownSig !== entrySig()) { renderEntry(); shownSig = entrySig(); } else { $("dDivQuick").value = state.divisor; updatePreview(); }
+    // The game being edited was changed or deleted on another device: drop the edit rather than overwrite the wrong game.
+    if (editing && editIndex() < 0) { renderEntry(); toast("เกมที่กำลังแก้ถูกเปลี่ยนจากอีกเครื่อง • ยกเลิกการแก้แล้ว"); }
     renderBoard(); renderPayments(); renderDays(); renderHistory(); updateCalc();
   }
   render();
