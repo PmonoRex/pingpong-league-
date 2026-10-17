@@ -58,3 +58,17 @@ test('archive.js escapes Season numbers and standings values from archives', () 
   for (const id of ['seasonList', 'archiveStandings']) assert.doesNotMatch(html(id), /<img/, id);
   assert.match(html('seasonList'), /data-season="&quot;&gt;&lt;img/);
 });
+
+test('profile sheets and avatars escape names, catchphrases and pictures from the shared row', () => {
+  const context = { console, requestAnimationFrame: () => 0, MutationObserver: class { observe() {} },
+    document: { readyState: 'complete', body: { querySelectorAll: () => [] }, querySelectorAll: () => [], querySelector: () => null, getElementById: () => null, addEventListener() {} } };
+  context.window = context;
+  vm.createContext(context);
+  for (const f of ['player-ui.js', 'promptpay.js', 'vendor/qrcode-generator/qrcode.js', 'profile-me.js']) vm.runInContext(fs.readFileSync(f, 'utf8'), context, { filename: f });
+  const P = context.LeagueProfile, UI = context.LeagueUI;
+  const evil = { id: BAD, displayName: BAD, tagline: BAD, promptpay: '0812345678', avatar: `data:image/png;base64,AA${BAD}` };
+  for (const html of [P.payHtml({ payee: evil, fromName: BAD, amount: 10 }), P.payHtml({ payee: { ...evil, promptpay: '', payQr: `data:image/png;base64,${BAD}` } }),
+    P.sheetHtml(evil, { displayName: BAD, tagline: BAD, avatar: '', payMethod: 'promptpay', promptpay: BAD, payQr: '' }), UI.avatar(BAD, BAD)])
+    assert.doesNotMatch(html, /<img src=x/, html.slice(0, 80));
+  assert.doesNotMatch(UI.avatar(BAD, BAD), /<img/, 'an invalid picture falls back to initials');
+});

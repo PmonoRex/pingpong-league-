@@ -22,6 +22,8 @@
 - `shared.js` — บัญชี/สิทธิ์ (admin, dealer), login + lockout, validate/normalize ข้อมูล, `cloudRequest` ไปยัง Supabase, logic ตัดสินผลทาย
 - `sync-guard.js` — ป้องกันการเขียนทับกันเมื่อ Admin หลายเครื่องแก้พร้อมกัน (ทับ `pushCloud` ของ `index.js`)
 - `banter.js` + `banter.css` — แซวจากผลจริง: ป้ายสตรีค (ไฟลุก / ฟอร์มตก / คืนชีพ), สถิติคู่ปรับ + ป้าย ศึกล้างตา, โปสเตอร์แชมป์จบ Season (pure functions, เทสต์ใน `tests/banter.test.cjs`)
+- `profile-me.js` + `profile-me.css` — แผ่น "โปรไฟล์ของฉัน" (เปิดจาก เครื่องมือ → โปรไฟล์ของฉัน หรือแตะชื่อตัวเอง): ชื่อเล่น, คำท้า (≤40 ตัว), รูปโปรไฟล์ (ย่อเป็น 96×96 WebP/JPEG ไม่เกิน 12KB), ช่องทางรับเงิน PromptPay หรือรูป QR ธนาคาร (ไม่เกิน 20KB) และแผ่น "โอน" ที่ขึ้น QR พร้อมยอดบนหน้าดัมมี่และสรุปยอดทายผล
+- `promptpay.js` — สร้าง payload PromptPay (EMVCo + CRC16) เทสต์ใน `tests/promptpay.test.cjs`; วาด QR ด้วย `vendor/qrcode-generator/` (MIT, ไม่โหลดจาก CDN)
 - `suite.js` — League Assistant, Export (CSV/PNG/PDF/แชร์), Toast, Data health badge
 - `sport-ui.js` + `*.css` — ธีม, hero, motion, ปรับ UI มือถือ
 - `manifest.webmanifest`, `icons/`, `sw.js` — ติดตั้งเป็นแอปบนหน้าโฮม (PWA): `sw.js` เก็บหน้าเว็บ/CSS/JS/ฟอนต์ไว้ในเครื่องให้เปิดได้แม้เน็ตหลุด (หน้า HTML ดึงจากเน็ตก่อน, ไฟล์ asset อัปเดตตาม `?v=`) และไม่แคชคำขอไป Supabase เด็ดขาด ถ้าแก้ logic ใน `sw.js` ให้เปลี่ยนค่า `CACHE`
@@ -66,7 +68,7 @@ alter table public.app_state
 
 ก่อนรัน หน้าดัมมี่ยังใช้ได้ตามเดิมแบบเก็บในเครื่อง (ป้ายสถานะขึ้น "ยังไม่เปิดซิงก์ • เก็บในเครื่อง") หลังรันแล้ว เปิดหน้าดัมมี่บนเครื่องที่มีแต้มเดิม แต้มในเครื่องจะถูกส่งขึ้น Cloud ให้อัตโนมัติ (ถ้าหลายเครื่องมีแต้มเก่าคนละชุดและผู้เล่นคนละชุด ชุดที่ขึ้น Cloud ก่อนจะถูกใช้ และของเครื่องที่มาทีหลังถูกเก็บสำรองไว้ใน `localStorage` คีย์ `pp_dummy_conflict_v1`)
 
-โครงสร้างข้อมูลในแถว `main`: คอลัมน์ `league` เก็บ `{ uidLeague: {...} }` (profiles, seasonPlayerIds, rounds, results, rankHistory, seasonArchives, auditLog, schemaVersion), คอลัมน์ `predictions` เก็บ `{ uidPredictions: {...} }` (dealerId, markets, bets), และ `updated_at` ใช้เป็น optimistic lock ตอนเขียน ส่วนคอลัมน์ `dummy` เก็บแต้มดัมมี่ (players, rounds, ตั้งค่าเงิน, `dayStart`) โดยใช้ `dummy.rev` เป็น lock ของตัวเองและไม่แตะ `updated_at` เพื่อไม่ให้การบันทึกดัมมี่ไปชนกับการบันทึกลีก/ทายผล
+โครงสร้างข้อมูลในแถว `main`: คอลัมน์ `league` เก็บ `{ uidLeague: {...} }` (profiles — แต่ละคนมี `tagline`, `avatar`, `promptpay` หรือ `payQr` ได้ถ้าตั้งไว้ ซึ่ง**ใครเปิดเว็บก็อ่านได้**, seasonPlayerIds, rounds, results, rankHistory, seasonArchives, auditLog, schemaVersion), คอลัมน์ `predictions` เก็บ `{ uidPredictions: {...} }` (dealerId, markets, bets), และ `updated_at` ใช้เป็น optimistic lock ตอนเขียน ส่วนคอลัมน์ `dummy` เก็บแต้มดัมมี่ (players, rounds, ตั้งค่าเงิน, `dayStart`) โดยใช้ `dummy.rev` เป็น lock ของตัวเองและไม่แตะ `updated_at` เพื่อไม่ให้การบันทึกดัมมี่ไปชนกับการบันทึกลีก/ทายผล
 
 ## รันเทสต์
 

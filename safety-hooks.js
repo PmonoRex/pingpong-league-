@@ -5,7 +5,9 @@
   function backups(){try{return JSON.parse(localStorage.getItem(BK)||"[]")}catch{return[]}}
   function snapshot(reason){
     if(typeof state==="undefined"||!state?.profiles)return;
-    const list=backups();list.unshift({id:`auto_${Date.now()}`,savedAt:new Date().toISOString(),reason,state:clone(state)});localStorage.setItem(BK,JSON.stringify(list.slice(0,30)));
+    const list=backups();list.unshift({id:`auto_${Date.now()}`,savedAt:new Date().toISOString(),reason,state:clone(state)});
+    // Profile pictures make snapshots bigger; when the phone's storage is full keep fewer, and never block the action itself.
+    for(const keep of [30,15,5,1]){try{localStorage.setItem(BK,JSON.stringify(list.slice(0,keep)));return}catch{}}
   }
   function audit(action,meta={}){
     try{LeagueShared.audit(state,action,currentUserId,meta);LeagueShared.saveLocalLeague(state)}catch{}

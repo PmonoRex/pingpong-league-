@@ -393,9 +393,11 @@
   function paymentLines(rounds) {
     return pairDebts(rounds, state.players.length).map(t => ({ ...t, fromName: state.players[t.from], toName: state.players[t.to] }));
   }
+  // "โอน" opens the payee's QR (profile-me.js) when the name matches a league nickname.
+  const payButton = l => window.LeagueProfile?.openPay ? `<button type="button" class="secondary pay-go" data-pay-to-name="${esc(l.toName)}" data-pay-from="${esc(l.fromName)}" data-pay-amount="${esc(l.amount)}" aria-label="โอนให้ ${esc(l.toName)} ${esc(baht(l.amount).replace("+", ""))}">โอน</button>` : "";
   function payRows(lines) {
     return lines.length
-      ? lines.map(l => `<div class="d-pay-row"><b>${esc(l.fromName)}</b><span class="d-pay-arrow">จ่าย ➜</span><b>${esc(l.toName)}</b><b class="d-pay-amt">${baht(l.amount).replace("+", "")}</b>${l.back ? `<small class="d-pay-note">ติด ${baht(l.owed).replace("+", "")} หักที่ ${esc(l.toName)} ติดคืน ${baht(l.back).replace("+", "")}</small>` : ""}</div>`).join("")
+      ? lines.map(l => `<div class="d-pay-row"><b>${esc(l.fromName)}</b><span class="d-pay-arrow">จ่าย ➜</span><b>${esc(l.toName)}</b><b class="d-pay-amt">${baht(l.amount).replace("+", "")}</b>${payButton(l)}${l.back ? `<small class="d-pay-note">ติด ${baht(l.owed).replace("+", "")} หักที่ ${esc(l.toName)} ติดคืน ${baht(l.back).replace("+", "")}</small>` : ""}</div>`).join("")
       : '<div class="muted">ยังไม่มีใครต้องจ่าย (เจ๊ากันหมด)</div>';
   }
   function renderPayments() {
