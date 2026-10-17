@@ -66,16 +66,23 @@ body.sport-redesign :is(.muted,.hint,small){color:var(--text-soft)}
 body.sport-redesign a{color:inherit}
 body.sport-redesign :focus-visible{outline:2px solid var(--red-hi)!important;outline-offset:2px}
 
-/* ---------- Masthead: a dark stage, one red light streak, a ball in flight ---------- */
+/* ---------- Masthead: the player under the arena lights ----------
+   img/hero-player*.webp is the owner's own photo-art (sent 2026-10-18). It sits on the right; a dark fade from the left
+   keeps the white title and the pills readable, and a fade from the bottom seats the account strip. */
 body.sport-redesign .hero{position:relative;overflow:hidden;isolation:isolate;
   background:
-    radial-gradient(circle at calc(100% - 34px) 30px,rgba(255,255,255,.95) 0 8px,rgba(255,255,255,.16) 9px,transparent 24px),
-    linear-gradient(118deg,transparent 0 52%,rgba(229,36,47,.0) 52%,rgba(229,36,47,.55) 60%,rgba(229,36,47,.0) 61%,transparent 100%),
-    linear-gradient(118deg,transparent 0 63%,rgba(229,36,47,.25) 66%,transparent 70%),
-    radial-gradient(520px 300px at 100% 0,rgba(229,36,47,.35),transparent 70%),
-    linear-gradient(160deg,#17191f,#0d0e12 70%);
+    linear-gradient(90deg,rgba(13,14,18,.92) 0%,rgba(13,14,18,.62) 34%,rgba(13,14,18,.18) 70%,rgba(13,14,18,0) 100%),
+    linear-gradient(0deg,rgba(13,14,18,.9),rgba(13,14,18,0) 48%),
+    url(img/hero-player-sm.webp) right 32% / cover no-repeat,
+    #0d0e12;
   border:1px solid var(--line-2);border-radius:var(--r);box-shadow:0 18px 40px rgba(0,0,0,.45);color:var(--text);min-height:0;padding:18px 18px 16px}
-body.sport-redesign .hero:before{content:"PING PONG";display:block;position:absolute;z-index:-1;right:-6px;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:center;font-family:var(--display);font-style:italic;font-weight:800;font-size:44px;letter-spacing:.06em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.08);white-space:nowrap;pointer-events:none;translate:42% 0}
+@media (min-width:700px){body.sport-redesign .hero{background:
+    linear-gradient(90deg,#0d0e12 0%,rgba(13,14,18,.9) 34%,rgba(13,14,18,.35) 62%,rgba(13,14,18,.05) 100%),
+    linear-gradient(0deg,rgba(13,14,18,.85),rgba(13,14,18,0) 50%),
+    url(img/hero-player.webp) right 30% / min(62%,760px) auto no-repeat,
+    radial-gradient(600px 320px at 100% 0,rgba(229,36,47,.3),transparent 70%),
+    #0d0e12}}
+body.sport-redesign .hero:before{display:none}
 body.sport-redesign .hero:after{display:none}
 body.sport-redesign .hero-player-photo{display:none}
 body.sport-redesign .hero h1{font-family:var(--display);font-style:italic;font-weight:800;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.4),0 0 28px rgba(229,36,47,.35);letter-spacing:0;line-height:1.08;max-width:100%!important}
@@ -362,3 +369,10 @@ body.sport-redesign details.roster-box>summary:after{content:"";flex:none;width:
 body.sport-redesign details.roster-box[open]>summary:after{transform:translateY(2px) rotate(-135deg)}
 body.sport-redesign details.roster-box[open]>summary{margin-bottom:10px}
 body.sport-redesign .account-user{flex:none;display:flex;align-items:center;gap:8px;white-space:nowrap}
+/* Round picker above the schedule: one round on screen at a time. Played-out rounds go green; the open one is lit red. */
+.round-tabs[hidden],body.sport-redesign .round[hidden]{display:none!important}
+body.sport-redesign .round-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+body.sport-redesign .round-tab{flex:none;min-width:44px;min-height:44px;padding:0 10px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line-2);color:var(--text);font-family:var(--display);font-style:italic;font-weight:800;font-size:17px;line-height:1}
+body.sport-redesign .round-tab.done{color:var(--win);border-color:rgba(52,210,124,.45)}
+body.sport-redesign .round-tab[aria-selected=true]{background:linear-gradient(180deg,#dc2530,#b0121a);border-color:#ff5c66;color:#fff;box-shadow:0 6px 16px rgba(229,36,47,.3)}
+body.sport-redesign .round-tab.all{font-family:var(--font);font-style:normal;font-weight:700;font-size:14px;padding:0 14px}
