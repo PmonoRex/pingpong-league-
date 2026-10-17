@@ -5,7 +5,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="ตีให้สุด">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="mobile-web-app-capable" content="yes"><link rel="preload" href="fonts/chonburi-400-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="fonts.css?v=20261017-1"><title>นับแต้มดัมมี่ • ตีให้สุด หยุดที่เบ้าตา</title><link rel="stylesheet" href="dummy.css?v=20261017-clean"><link rel="stylesheet" href="theme.css?v=20261017-clean"><link rel="stylesheet" href="motion.css?v=20261017-motion2"><link rel="stylesheet" href="poster.css?v=20261017-motion"></head><body><main id="dummyApp">
+<meta name="mobile-web-app-capable" content="yes"><link rel="preload" href="fonts/chonburi-400-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="fonts.css?v=20261017-1"><title>นับแต้มดัมมี่ • ตีให้สุด หยุดที่เบ้าตา</title><link rel="stylesheet" href="dummy.css?v=20261017-fastentry"><link rel="stylesheet" href="theme.css?v=20261017-clean"><link rel="stylesheet" href="motion.css?v=20261017-motion2"><link rel="stylesheet" href="poster.css?v=20261017-motion"></head><body><main id="dummyApp">
 <section class="hero"><h1>นับแต้มไพ่ดัมมี่</h1><div class="muted">แต้มซิงก์ข้ามเครื่อง และเก็บสำรองไว้ในเครื่องนี้ด้วย ไม่ปนกับข้อมูลลีกปิงปอง</div><div class="rules"><span class="pill sync" id="dSync" role="status">กำลังเชื่อมต่อ...</span></div></section>
 
 <section class="card" id="dSetup" hidden><h2>ตั้งค่าเกม</h2>
@@ -28,14 +28,14 @@
  <div class="actions"><button type="button" class="secondary" id="dUndo">ลบเกมล่าสุด</button><button type="button" class="secondary" id="dNewDay">เริ่มวันใหม่</button><button type="button" class="secondary" id="dRematch">ล้างผลทั้งหมด</button><button type="button" class="secondary" id="dEdit">ผู้เล่น / ตั้งค่า</button></div>
 </section>
 
-<section class="card" id="dEntryCard"><h2>จบเกม: ใส่แต้ม</h2>
- <div class="muted">ใส่แต้มที่คิดมาแล้วของแต่ละคน ถ้าติดลบกดปุ่ม + ให้เป็น − (สีแดง) แล้วกดบันทึก ระบบคิดเงินให้เอง</div>
+<section class="card" id="dEntryCard"><h2 id="dEntryTitle">จบเกม: ใส่แต้ม</h2>
+ <div class="muted">ใส่แต้มที่คิดมาแล้วของแต่ละคน กด “ถัดไป” เพื่อไปช่องต่อไป ถ้าติดลบกดปุ่ม + ให้เป็น − (สีแดง) หรือแตะช่องสองครั้ง / กดค้าง แล้วกดบันทึก ระบบคิดเงินให้เอง</div>
  <div id="dDivRow" class="d-div-row" hidden><label for="dDivQuick">หารแต้มด้วย</label><input type="number" inputmode="decimal" id="dDivQuick" min="1"><span class="muted">ปัดเป็นบาทเต็ม • มีผลกับเกมที่บันทึกต่อจากนี้</span></div>
  <div id="dEntry" class="d-entry"></div>
  <label class="d-knock d-knock-none" id="dKnockNoneLabel"><input type="radio" name="dKnockWho" value="" id="dKnockNone" checked> ไม่มีใครน็อค</label>
  <div id="dFlags" class="d-flags" hidden></div>
  <div id="dPreview" class="d-preview" hidden></div>
- <div class="actions"><button type="button" class="primary" id="dSaveRound">บันทึกผล & คิดเงิน</button></div>
+ <div class="actions"><button type="button" class="primary" id="dSaveRound">บันทึกผล & คิดเงิน</button><button type="button" class="secondary" id="dCancelEdit" hidden>ยกเลิกการแก้</button></div>
 </section>
 
 <section class="card" hidden><details class="d-calc"><summary><h2>เครื่องนับแต้มไพ่</h2></summary>
@@ -56,8 +56,9 @@
 </section>
 
 <section class="card"><h2>ประวัติแต่ละเกม</h2>
+ <div class="muted">แตะแถวของเกมเพื่อแก้แต้ม</div>
  <div class="wrap"><table><thead id="dHistHead"></thead><tbody id="dHistBody"></tbody></table></div>
 </section>
 </div>
 <div class="d-toast" id="dToast" role="status" aria-live="polite"></div>
-</main><script src="shared.js?v=20261017-nextup2" defer></script><script src="dummy.js?v=20261017-dummy" defer></script><script src="sport-ui.js?v=20261017-motion2" defer></script></body></html>
+</main><script src="shared.js?v=20261017-nextup2" defer></script><script src="dummy.js?v=20261017-fastentry" defer></script><script src="sport-ui.js?v=20261017-motion2" defer></script></body></html>
