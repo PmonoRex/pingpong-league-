@@ -73,7 +73,8 @@ async function pushCloud(){
 }
 function reconcileSession(){currentUserId=LeagueShared.sessionUserId(state);document.getElementById("auth").classList.toggle("hidden",Boolean(currentUserId))}
 async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal()}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pullCloud,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
-async function pullCloud(){if(!cloudReady||dirty||cloudSaving||document.hidden)return;try{const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal();reconcileSession();renderLogin();render()}}catch(e){}}
+// Each poll asks only for updated_at; the whole league (with everyone's pictures) is fetched only when it changed.
+async function pullCloud(){if(!cloudReady||dirty||cloudSaving||document.hidden)return;try{const stamp=(await LeagueShared.cloudRequest("updated_at"))[0];if(!stamp||stamp.updated_at===lastCloudUpdate)return;const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal();reconcileSession();renderLogin();render()}}catch(e){}}
 
 function renderLogin(){LeagueShared.renderLoginOptions(document.getElementById("loginUser"),state,currentUserId)}
 function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!LeagueShared.login(state,id,pin)){alert("PIN ไม่ถูกต้องหรือบัญชีถูกปิดใช้งาน");return}document.getElementById("loginPin").value="";reconcileSession();render()}

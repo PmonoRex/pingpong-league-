@@ -19,8 +19,8 @@ body.sport-redesign .me-close{flex:none;width:44px;min-height:44px;padding:0;dis
 /* fields */
 .me-sheet .field{display:grid;gap:5px;margin:12px 0 0}
 .me-sheet .field label{font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:8px}
-.me-sheet input:not([type=radio]){width:100%;box-sizing:border-box;background:#fff;color:var(--ink);border:var(--rule);border-radius:var(--r);padding:10px 12px;font:inherit;font-size:16px}
-.me-sheet input:not([type=radio]):focus{border-color:var(--magenta);box-shadow:0 0 0 3px rgba(224,20,122,.18);outline:none}
+.me-sheet input:not([type=radio]){width:100%;box-sizing:border-box;background:var(--field,#0e1014);color:var(--text,#f4f5f7);border:1px solid var(--line-2,rgba(255,255,255,.16));border-radius:var(--r);padding:10px 12px;font:inherit;font-size:16px}
+.me-sheet input:not([type=radio]):focus{border-color:var(--magenta);box-shadow:0 0 0 3px rgba(229,36,47,.22);outline:none}
 .me-pay{border:0;border-top:var(--rule);margin:16px 0 0;padding:10px 0 0;min-width:0}
 .me-pay legend{font-family:var(--display);font-weight:400;font-size:19px;padding:0 6px 0 0}
 .me-seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:var(--rule);border-radius:var(--r);overflow:hidden;margin:6px 0 10px}

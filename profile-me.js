@@ -6,7 +6,7 @@ const LeagueProfile = (() => {
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const UI = () => (typeof window !== "undefined" && window.LeagueUI) || null;
   const PP = () => (typeof window !== "undefined" && window.PromptPay) || (typeof PromptPay !== "undefined" ? PromptPay : null);
-  const LIMITS = Object.freeze({ name: 30, tagline: 40, avatarSide: 96, ...(UI()?.LIMITS || { avatar: 12 * 1024, payQr: 20 * 1024 }) });
+  const LIMITS = Object.freeze({ name: 30, tagline: 40, avatarSide: 96, bannerW: 240, ...(UI()?.LIMITS || { avatar: 12 * 1024, payQr: 20 * 1024, banner: 16 * 1024 }) });
   const imageOk = (url, max) => UI()?.imageOk ? UI().imageOk(url, max) : false;
 
   // ---- pure rules (tests/profile.test.cjs) ----
@@ -19,8 +19,9 @@ const LeagueProfile = (() => {
     if (!name) return { error: "กรอกชื่อเล่นก่อน" };
     if (name.length > LIMITS.name) return { error: `ชื่อเล่นยาวได้ไม่เกิน ${LIMITS.name} ตัวอักษร` };
     if (Object.values(league.profiles).some(p => p && p.id !== id && String(p.displayName || "").toLowerCase() === name.toLowerCase())) return { error: "มีชื่อนี้แล้ว" };
-    const clean = { displayName: name, tagline: cleanText(edit.tagline, LIMITS.tagline), avatar: "", promptpay: "", payQr: "" };
+    const clean = { displayName: name, tagline: cleanText(edit.tagline, LIMITS.tagline), avatar: "", banner: "", promptpay: "", payQr: "" };
     if (edit.avatar) { if (!imageOk(edit.avatar, LIMITS.avatar)) return { error: "รูปโปรไฟล์ใหญ่เกินไป ลองเลือกรูปใหม่" }; clean.avatar = edit.avatar; }
+    if (edit.banner) { if (!imageOk(edit.banner, LIMITS.banner)) return { error: "ภาพพื้นหลังใหญ่เกินไป ลองเลือกรูปใหม่" }; clean.banner = edit.banner; }
     if (edit.payMethod === "promptpay") {
       const problem = PP().problem(edit.promptpay);
       if (problem) return { error: problem };
@@ -34,7 +35,7 @@ const LeagueProfile = (() => {
   // Writes only what is needed: empty fields are removed rather than stored as "". Returns the changed field names.
   function applyEdit(person, clean) {
     const changed = [];
-    ["displayName", "tagline", "avatar", "promptpay", "payQr"].forEach(key => {
+    ["displayName", "tagline", "avatar", "banner", "promptpay", "payQr"].forEach(key => {
       const before = person[key] || "", after = clean[key] || "";
       if (before === after) return;
       changed.push(key);
@@ -42,8 +43,11 @@ const LeagueProfile = (() => {
     });
     return changed;
   }
-  // Source rectangle for a centred square crop.
-  function coverRect(w, h) { const s = Math.min(w, h); return { sx: Math.round((w - s) / 2), sy: Math.round((h - s) / 2), sw: s, sh: s }; }
+  // Source rectangle for a centred crop at the given width:height ratio (1 = square).
+  function coverRect(w, h, ratio = 1) {
+    const sw = Math.min(w, h * ratio), sh = sw / ratio;
+    return { sx: Math.round((w - sw) / 2), sy: Math.round((h - sh) / 2), sw: Math.round(sw), sh: Math.round(sh) };
+  }
   function fitWithin(w, h, max) { const k = Math.min(1, max / Math.max(w, h)); return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) }; }
   // Tries each [size, quality] step in order and keeps the first data URL that fits; "" when none does.
   function compress(encode, plan, max) {
@@ -51,6 +55,9 @@ const LeagueProfile = (() => {
     return "";
   }
   const AVATAR_PLAN = [.82, .72, .62, .5, .38, .26].map(q => [LIMITS.avatarSide, q]);
+  // Card background: a 3:5 portrait (one corner of a match card), 240px wide at most, under LIMITS.banner.
+  const BANNER_RATIO = 3 / 5;
+  const BANNER_PLAN = [240, 210, 180, 150].flatMap(s => [.62, .48, .36].map(q => [s, q]));
   const QR_PLAN = [480, 400, 340, 280, 240].flatMap(s => [.8, .62, .45].map(q => [s, q]));
   function payeeByName(league, name) {
     const key = String(name ?? "").trim().toLowerCase();
@@ -95,6 +102,7 @@ const LeagueProfile = (() => {
     const preview = draft.avatar ? `<img src="${esc(draft.avatar)}" alt="">` : esc(UI()?.initials ? UI().initials(draft.displayName || person.displayName) : "?");
     return `<div class="me-head"><h2 id="meTitle">โปรไฟล์ของฉัน</h2>${CLOSE}</div>
 <div class="me-pic"><span class="me-pic-preview" id="mePicPreview" style="--pa:${esc(UI()?.color ? UI().color(person.id) : "#3b322c")};--pa-fg:${esc(UI()?.inkOn ? UI().inkOn(person.id) : "#fff")}">${preview}</span><div class="me-pic-actions"><button type="button" class="secondary" data-me-pick="avatar">เลือกรูป</button><button type="button" class="secondary" id="meAvatarClear"${draft.avatar ? "" : " hidden"}>ลบรูป</button><small id="mePicInfo">ย่อเป็นรูปสี่เหลี่ยม 96×96 ก่อนบันทึก</small></div></div>
+<div class="me-banner"><span class="me-banner-preview" id="meBannerPreview">${draft.banner ? `<img src="${esc(draft.banner)}" alt="ภาพพื้นหลังที่เลือก">` : "<small>ยังไม่มีภาพ</small>"}</span><div class="me-pic-actions"><b>ภาพพื้นหลังการ์ด</b><small>ขึ้นหลังชื่อคุณในการ์ดคู่แข่ง (แนวตั้ง)</small><button type="button" class="secondary" data-me-pick="banner">${draft.banner ? "เปลี่ยนภาพ" : "เลือกภาพ"}</button><button type="button" class="secondary" id="meBannerClear"${draft.banner ? "" : " hidden"}>ลบภาพ</button></div></div>
 <div class="field"><label for="meName">ชื่อเล่น</label><input id="meName" maxlength="${LIMITS.name}" autocomplete="nickname" value="${esc(draft.displayName)}"></div>
 <div class="field"><label for="meTagline">คำท้า <small id="meTagCount">${draft.tagline.length}/${LIMITS.tagline}</small></label><input id="meTagline" maxlength="${LIMITS.tagline}" placeholder="เช่น ตบไม่เลือกหน้า" value="${esc(draft.tagline)}"></div>
 <fieldset class="me-pay"><legend>ช่องทางรับเงิน</legend><div class="me-seg">${RADIO("promptpay", "PromptPay", draft.payMethod === "promptpay")}${RADIO("qr", "รูป QR ธนาคาร", draft.payMethod === "qr")}${RADIO("", "ไม่ใส่", !draft.payMethod)}</div>
@@ -105,7 +113,7 @@ const LeagueProfile = (() => {
 <div class="me-actions"><button type="button" class="primary" id="meSave">บันทึกโปรไฟล์</button><button type="button" class="secondary" data-me-close>ยกเลิก</button></div>`;
   }
 
-  const api = { LIMITS, cleanText, checkEdit, applyEdit, coverRect, fitWithin, compress, AVATAR_PLAN, QR_PLAN, payeeByName, payMethod, baht, qrSvg, payHtml, sheetHtml };
+  const api = { LIMITS, cleanText, checkEdit, applyEdit, coverRect, fitWithin, compress, AVATAR_PLAN, BANNER_PLAN, BANNER_RATIO, QR_PLAN, payeeByName, payMethod, baht, qrSvg, payHtml, sheetHtml };
   if (typeof document === "undefined" || !document.body || typeof LeagueShared === "undefined") return Object.freeze(api);
 
   // ---- page wiring ----
@@ -140,7 +148,7 @@ const LeagueProfile = (() => {
     if (!id) return alert("เข้าสู่ระบบก่อน แล้วค่อยแก้โปรไฟล์");
     const draw = person => {
       const method = payMethod(person);
-      draft = { displayName: person.displayName || "", tagline: person.tagline || "", avatar: imageOk(person.avatar, LIMITS.avatar) ? person.avatar : "", payMethod: method?.type || "", promptpay: method?.type === "promptpay" ? PP().format(method.id) : "", payQr: method?.type === "qr" ? method.url : "" };
+      draft = { displayName: person.displayName || "", tagline: person.tagline || "", avatar: imageOk(person.avatar, LIMITS.avatar) ? person.avatar : "", banner: imageOk(person.banner, LIMITS.banner) ? person.banner : "", payMethod: method?.type || "", promptpay: method?.type === "promptpay" ? PP().format(method.id) : "", payQr: method?.type === "qr" ? method.url : "" };
       show(sheetHtml(person, draft), "meTitle");
     };
     draw(league.profiles[id]);
@@ -188,11 +196,13 @@ const LeagueProfile = (() => {
     try { const img = new Image(); img.src = url; await img.decode(); return img; } finally { URL.revokeObjectURL(url); }
   }
   // Draws the picture onto a white canvas at the requested size and encodes it (WebP where supported, else JPEG).
-  function encoder(source, square) {
-    const w0 = source.width, h0 = source.height, crop = square ? coverRect(w0, h0) : { sx: 0, sy: 0, sw: w0, sh: h0 };
+  // shape: "square" (avatar), "banner" (3:5 portrait, size = width) or "fit" (bank QR, kept whole).
+  function encoder(source, shape) {
+    const w0 = source.width, h0 = source.height;
+    const crop = shape === "square" ? coverRect(w0, h0) : shape === "banner" ? coverRect(w0, h0, BANNER_RATIO) : { sx: 0, sy: 0, sw: w0, sh: h0 };
     const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d");
     return (size, quality) => {
-      const { w, h } = square ? { w: size, h: size } : fitWithin(w0, h0, size);
+      const { w, h } = shape === "square" ? { w: size, h: size } : shape === "banner" ? { w: size, h: Math.round(size / BANNER_RATIO) } : fitWithin(w0, h0, size);
       canvas.width = w; canvas.height = h; ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); ctx.imageSmoothingQuality = "high";
       ctx.drawImage(source, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, w, h);
       const webp = canvas.toDataURL("image/webp", quality);
@@ -202,11 +212,14 @@ const LeagueProfile = (() => {
   async function pick(file) {
     const kind = picking; status("กำลังย่อรูป…");
     try {
-      const source = await decode(file), url = kind === "avatar" ? compress(encoder(source, true), AVATAR_PLAN, LIMITS.avatar) : compress(encoder(source, false), QR_PLAN, LIMITS.payQr);
+      const source = await decode(file);
+      const url = kind === "avatar" ? compress(encoder(source, "square"), AVATAR_PLAN, LIMITS.avatar)
+        : kind === "banner" ? compress(encoder(source, "banner"), BANNER_PLAN, LIMITS.banner)
+        : compress(encoder(source, "fit"), QR_PLAN, LIMITS.payQr);
       source.close?.();
       if (!url || !draft) return status("ย่อรูปให้เล็กพอไม่ได้ ลองรูปอื่น", "bad");
       readForm(); draft.touched = true;
-      if (kind === "avatar") draft.avatar = url; else { draft.payQr = url; draft.payMethod = "qr"; }
+      if (kind === "avatar") draft.avatar = url; else if (kind === "banner") draft.banner = url; else { draft.payQr = url; draft.payMethod = "qr"; }
       const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())];
       if (!person) return;
       show(sheetHtml(person, draft), "meTitle");
@@ -217,6 +230,7 @@ const LeagueProfile = (() => {
     if (e.target === sheet || e.target.closest("[data-me-close]")) return close();
     const p = e.target.closest("[data-me-pick]"); if (p) { picking = p.dataset.mePick; const f = $("meFile"); f.value = ""; return f.click(); }
     if (e.target.closest("#meAvatarClear")) { readForm(); draft.touched = true; draft.avatar = ""; const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())]; if (person) show(sheetHtml(person, draft), "meTitle"); return; }
+    if (e.target.closest("#meBannerClear")) { readForm(); draft.touched = true; draft.banner = ""; const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())]; if (person) show(sheetHtml(person, draft), "meTitle"); return; }
     if (e.target.closest("#meSave")) return save();
     const c = e.target.closest("[data-pay-copy]"); if (c) copy(c.dataset.payCopy);
   }
