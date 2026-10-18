@@ -2,7 +2,7 @@
    - Pages (navigations): network first, cached copy when offline or the network stalls.
    - Same-origin assets and Google Fonts: stale-while-revalidate, keyed by full URL so a new ?v= is a new entry.
    - Supabase, video (Range requests) and every non-GET request go straight to the network and are never cached. */
-const CACHE = 'pp-shell-20261018-37';
+const CACHE = 'pp-shell-20261018-38';
 const PAGES = ['index.html', 'predictions.html', 'dashboard.html', 'stats.html', 'archive.html', 'backup.html', 'admin.html', 'dummy.html'];
 const EXTRA = ['manifest.webmanifest', 'vendor/qrcode-generator/qrcode.js?v=1.4.4', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 const FONT_HOSTS = new Set(['fonts.googleapis.com', 'fonts.gstatic.com']);
@@ -106,14 +106,35 @@ self.addEventListener('fetch', event => {
   if (url.origin === self.location.origin || FONT_HOSTS.has(url.hostname)) event.respondWith(assetResponse(event));
 });
 
-// Tapping a notification (pwa.js) brings an open league tab forward, or opens the home page.
+// Only one of the site's own pages may be opened from a notification.
+const safePage = url => typeof url === 'string' && /^[a-z0-9-]+\.html(\?[\w=&.:%-]*)?(#[\w-]*)?$/i.test(url) ? url : 'index.html';
+
+// Web Push from supabase/functions/push-notify: { title, body, tag, url }. Always show something: Safari drops a
+// subscription that receives pushes without a notification.
+self.addEventListener('push', event => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch { d = { body: event.data ? event.data.text() : '' }; }
+  const title = String(d.title || 'ตีให้สุด หยุดที่เบ้าตา').slice(0, 80);
+  const options = {
+    body: String(d.body || '').slice(0, 200), icon: 'icons/icon-192.png', badge: 'icons/icon-192.png',
+    data: { url: safePage(d.url) }
+  };
+  if (d.tag) { options.tag = String(d.tag).slice(0, 64); options.renotify = true; }
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Tapping a notification brings an open league tab forward on the notification's page, or opens that page.
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const target = scopeUrl(event.notification.data?.url || 'index.html');
+  const target = scopeUrl(safePage(event.notification.data?.url));
   event.waitUntil((async () => {
     const tabs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const tab = tabs.find(c => c.url.startsWith(self.registration.scope));
-    if (tab) { await tab.focus(); return; }
+    if (tab) {
+      await tab.focus();
+      if (new URL(tab.url).pathname !== new URL(target).pathname) await tab.navigate(target).catch(() => {});
+      return;
+    }
     await self.clients.openWindow(target);
   })());
 });
