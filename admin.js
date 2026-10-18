@@ -53,7 +53,7 @@ function render() {
 
   document.querySelectorAll("[data-reset]").forEach(button => button.onclick = async () => {
     const id = button.dataset.reset; if (!confirm(`รีเซ็ต PIN ของ ${profile(id)?.displayName || id} เป็น 1234?`)) return;
-    await mutate(latest => { if (!latest.profiles[id]) return false; latest.profiles[id].pin = "1234"; LeagueShared.audit(latest,"pin_reset",currentUserId,{target:id}); });
+    await mutate(latest => { if (!latest.profiles[id]) return false; LeagueShared.resetPin(latest.profiles[id]); LeagueShared.audit(latest,"pin_reset",currentUserId,{target:id}); });
   });
   document.querySelectorAll("[data-toggle]").forEach(button => button.onclick = async () => {
     const id = button.dataset.toggle;
@@ -68,8 +68,8 @@ function render() {
 document.getElementById("create").onclick = async () => {
   const input = document.getElementById("newName"), name = input.value.trim(), role = document.getElementById("newRole").value;
   if (!name) return alert("กรอกชื่อก่อน"); if (!["player", "admin"].includes(role)) return;
-  const saved = await mutate(latest => { if (Object.values(latest.profiles).some(person => person.displayName.toLowerCase() === name.toLowerCase())) { alert("มีชื่อนี้แล้ว"); return false; } const id = LeagueShared.newAccountId(); latest.profiles[id] = { id, displayName: name, pin: "1234", role, active: true, createdAt: new Date().toISOString() }; LeagueShared.audit(latest,"account_create",currentUserId,{target:id,name,role}); });
-  if (saved) { input.value = ""; alert(`สร้าง ${name} แล้ว • PIN 1234`); }
+  const saved = await mutate(latest => { if (Object.values(latest.profiles).some(person => person.displayName.toLowerCase() === name.toLowerCase())) { alert("มีชื่อนี้แล้ว"); return false; } const id = LeagueShared.newAccountId(); latest.profiles[id] = { id, displayName: name, pin: LeagueShared.DEFAULT_PIN, mustChangePin: true, role, active: true, createdAt: new Date().toISOString() }; LeagueShared.audit(latest,"account_create",currentUserId,{target:id,name,role}); });
+  if (saved) { input.value = ""; alert(`สร้าง ${name} แล้ว • PIN เริ่มต้น 1234 (ต้องตั้งใหม่ตอนเข้าสู่ระบบครั้งแรก)`); }
 };
 window.addEventListener("storage", event => { if ([KEY, LeagueShared.SESSION_KEY].includes(event.key)) loadCloud(); });
 setStatus("กำลังโหลดข้อมูลบัญชี…"); loadCloud();

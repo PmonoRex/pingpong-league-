@@ -59,6 +59,7 @@
     dashboard:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="4" rx="1.5"/><rect x="13" y="10" width="7" height="10" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/>',
     archive:'<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/>',
     profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    pin:'<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2"/>',
     sound:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/>',
     admin:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
     backup:'<path d="M7 18a5 5 0 0 1-.6-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/><path d="M12 11v6M9.5 13.5 12 11l2.5 2.5"/>',
@@ -66,12 +67,15 @@
     menu:'<path d="M4 7h16M4 12h16M4 17h16"/>'
   };
   const svg=(d,w=20)=>`<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  // After a PIN change: let the page's own poll pick up the new row (index.js pullCloud, predictions.js pull).
+  function refreshPage(){['pullCloud','pull'].forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch{}})}
   function signedIn(){const l=league();try{const id=l&&LS()?.sessionUserId?.(l);return id?{id,name:l.profiles?.[id]?.displayName||'',admin:!!LS()?.isAdmin?.(l,id)}:null}catch{return null}}
   function menuItems(){
     const me=signedIn(),item=(ico,label,attrs)=>`<${attrs.href?'a':'button type="button"'} class="menu-item" ${Object.entries(attrs).map(([k,v])=>`${k}="${v}"`).join(' ')}${attrs.href&&attrs.href===page?' aria-current="page"':''}><i class="mi">${svg(MENU_ICONS[ico])}</i><span>${label}</span></${attrs.href?'a':'button'}>`;
     let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'});
     const account=[];
     if(me&&window.LeagueProfile?.openMine)account.push(item('profile','โปรไฟล์ของฉัน',{'data-act':'profile'}));
+    if(me&&typeof PinChange!=='undefined')account.push(item('pin','เปลี่ยน PIN',{'data-act':'pin'}));
     const sound=qs('#soundToggle');if(sound)account.push(item('sound',sound.textContent.trim()||'เสียงตีตรา',{'data-act':'sound','aria-pressed':sound.getAttribute('aria-pressed')||'true'}));
     if(account.length)html+='<p class="menu-sec">บัญชี</p>'+account.join('');
     if(me?.admin)html+='<p class="menu-sec">แอดมิน</p>'+item('admin','ห้องแอดมิน',{href:'admin.html'})+item('backup','สำรองข้อมูล',{href:'backup.html'});
@@ -99,6 +103,7 @@
       if(act==='sound'){const s=qs('#soundToggle');s?.click();qs('span',hit).textContent=s?.textContent.trim()||'';hit.setAttribute('aria-pressed',s?.getAttribute('aria-pressed')||'true');return}
       close(false);
       if(act==='profile')window.LeagueProfile?.openMine?.();
+      if(act==='pin'){const me=signedIn();if(me&&typeof PinChange!=='undefined')PinChange.run({userId:me.id,name:me.name,onSaved:refreshPage})}
       if(act==='logout'){const b=qs('#logout');if(b)b.click();else{LS()?.logout?.();location.reload()}}
     });
     panel.addEventListener('keydown',e=>{
