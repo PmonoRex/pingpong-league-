@@ -56,10 +56,12 @@
   const enabled = () => supported() && Notification.permission === "granted" && read(NOTIFY) === true;
   // When this device is registered for Web Push, the server (supabase/functions/push-notify) sends the system
   // notification, even with the app closed; here we then only show the in-page toast, so nothing arrives twice.
+  // Some browsers (private modes, blocked storage) never finish registering the service worker; don't wait forever.
+  const swReady = (ms = 4000) => Promise.race([navigator.serviceWorker.ready, new Promise((_, no) => setTimeout(() => no(new Error("sw timeout")), ms))]);
   async function show(title, body, tag, force = false) {
     if (!document.hidden) toast(`${title} • ${body}`, "good");
     if (!enabled() || (pushActive() && !force)) return;
-    try { const reg = await navigator.serviceWorker.ready; await reg.showNotification(title, { body, tag, icon: "icons/icon-192.png", badge: "icons/icon-192.png", data: { url: "index.html" } }); } catch {}
+    try { const reg = await swReady(); await reg.showNotification(title, { body, tag, icon: "icons/icon-192.png", badge: "icons/icon-192.png", data: { url: "index.html" } }); } catch {}
   }
   async function toggleNotify() {
     if (!supported()) return toast(ios() && !standalone() ? "บน iPhone ต้องติดตั้งเป็นแอปก่อน ถึงจะรับแจ้งเตือนได้" : "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน", "bad");
@@ -113,7 +115,7 @@
         // No server session: the server cannot tell who this is, so do not register (in-app notifications only) until
         // the player signs in again; a registration made earlier with a valid token for this player stays.
         if (!token) return pushCurrent(stored, me, token);
-        const reg = await navigator.serviceWorker.ready;
+        const reg = await swReady();
         let sub = await reg.pushManager.getSubscription();
         if (sub && !sameKey(sub)) { await sub.unsubscribe().catch(() => {}); sub = null; }
         if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(vapidKey()) });
@@ -138,7 +140,7 @@
   async function pushOff() {
     const stored = read(PUSH); store(PUSH, null);
     try { if (stored?.endpoint) await rpc("pp_push_unsubscribe", { p_endpoint: stored.endpoint }); } catch {}
-    try { const sub = await (await navigator.serviceWorker.ready).pushManager?.getSubscription(); await sub?.unsubscribe(); } catch {}
+    try { const sub = await (await swReady()).pushManager?.getSubscription(); await sub?.unsubscribe(); } catch {}
   }
 
   // What is worth telling the signed-in player right now, each item keyed so it is told once.
