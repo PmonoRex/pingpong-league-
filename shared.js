@@ -154,10 +154,10 @@ const LeagueShared = (() => {
   async function uploadMedia(path, blob) {
     const response = await fetch(`${SUPABASE_URL}/storage/v1/object/media/${path}`, {
       method: "POST",
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": blob.type || "image/webp", "x-upsert": "true", "cache-control": "31536000" },
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": blob.type || "image/webp", "x-upsert": "true", "cache-control": "max-age=31536000" },
       body: blob
     });
-    if (!response.ok) throw new Error(`Media upload failed: ${response.status}`);
+    if (!response.ok) { let why = ""; try { const body = await response.json(); why = body?.message || body?.error || ""; } catch {} throw new Error(`ที่เก็บรูปตอบ ${response.status}${why ? `: ${why}` : ""}`); }
     const url = MEDIA_BASE + path;
     if (!mediaUrlOk(url)) throw new Error("Media path not allowed");
     return url;

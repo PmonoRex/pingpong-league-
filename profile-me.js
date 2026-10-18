@@ -218,15 +218,17 @@ const LeagueProfile = (() => {
     const kind = picking; status("กำลังย่อรูป…");
     try {
       const source = await decode(file);
-      let url = "", hd = false;
+      let url = "", hd = false, hdError = "";
       if (kind === "banner") {
         // Sharp copy to the media bucket first; if the bucket is not set up (or offline), the small in-row copy instead.
         try {
           const id = LeagueShared.sessionUserId(LeagueShared.readLocalLeague());
           const blob = await (await fetch(encoder(source, "banner")(...BANNER_HD))).blob();
-          url = await LeagueShared.uploadMedia(`banners/${String(id).replace(/[^A-Za-z0-9_-]/g, "") || "player"}-${Date.now()}.${blob.type === "image/jpeg" ? "jpg" : "webp"}`, blob);
-          hd = true;
-        } catch { url = compress(encoder(source, "banner"), BANNER_PLAN, LIMITS.banner); }
+          const link = await LeagueShared.uploadMedia(`banners/${String(id).replace(/[^A-Za-z0-9_-]/g, "") || "player"}-${Date.now()}.${blob.type === "image/jpeg" ? "jpg" : "webp"}`, blob);
+          // Only keep the link once the picture really opens from it (a private bucket or a blocked read would leave a blank card).
+          await new Promise((ok, fail) => { const img = new Image(); img.onload = ok; img.onerror = () => fail(new Error("อัปโหลดได้ แต่เปิดภาพจากที่เก็บไม่ได้ (bucket อาจยังไม่ public)")); img.src = link; });
+          url = link; hd = true;
+        } catch (error) { hdError = error?.message || "อัปโหลดไม่สำเร็จ"; url = compress(encoder(source, "banner"), BANNER_PLAN, LIMITS.banner); }
       } else url = kind === "avatar" ? compress(encoder(source, "square"), AVATAR_PLAN, LIMITS.avatar) : compress(encoder(source, "fit"), QR_PLAN, LIMITS.payQr);
       source.close?.();
       if (!url || !draft) return status("ย่อรูปให้เล็กพอไม่ได้ ลองรูปอื่น", "bad");
@@ -235,7 +237,7 @@ const LeagueProfile = (() => {
       const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())];
       if (!person) return;
       show(sheetHtml(person, draft), "meTitle");
-      status(hd ? "อัปโหลดภาพคมชัดแล้ว • กดบันทึกเพื่อใช้รูปนี้" : `ย่อรูปแล้ว (${Math.ceil(url.length / 1024)} KB) • กดบันทึกเพื่อใช้รูปนี้`);
+      status(hd ? "อัปโหลดภาพคมชัดแล้ว • กดบันทึกเพื่อใช้รูปนี้" : `ย่อรูปแล้ว (${Math.ceil(url.length / 1024)} KB) • กดบันทึกเพื่อใช้รูปนี้${hdError ? ` • ภาพคมชัดใช้ไม่ได้: ${hdError}` : ""}`);
     } catch (error) { status(error.message || "เปิดรูปนี้ไม่ได้", "bad"); }
   }
   function onClick(e) {
