@@ -43,6 +43,7 @@
     if (s.titles) chips.push(`<span class="pc-chip pc-gold">แชมป์ ×${s.titles}</span>`);
     const mvp = Number(window.LeagueSocial?.mvpWins?.(id)) || 0; // social.js, where loaded
     if (mvp) chips.push(`<span class="pc-chip pc-gold">👑 MVP ×${mvp}</span>`);
+    (window.SeasonAwards?.forPlayer?.(l, id) || []).filter(a => a.key !== "champion").slice(0, 6).forEach(a => chips.push(`<span class="pc-chip pc-award">${esc(a.label)}</span>`)); // awards.js
     if (p.role === "admin") chips.push('<span class="pc-chip">แอดมิน</span>');
     const form = s.last.length ? s.last.map(r => `<span class="dot ${DOT[r][0]}">${DOT[r][1]}</span>`).join("") : '<small>ยังไม่มีผล</small>';
     const vs = s.vs ? `<div class="pc-vs"><span>เจอกับ${esc(s.vs.name ? ` ${s.vs.name}` : "คุณ")} ${s.vs.n} ครั้ง</span><b>${esc(name)} ชนะ ${s.vs.w} • เสมอ ${s.vs.d} • แพ้ ${s.vs.l}</b></div>` : "";
