@@ -30,10 +30,29 @@ body.sport-redesign :is(.bottom-nav,.sport-tabbar){view-transition-name:app-nav}
 ::view-transition-group(app-nav){animation:none}
 ::view-transition-old(app-nav){animation:vtFadeOut 160ms var(--motion-exit) both}
 ::view-transition-new(app-nav){animation:vtFadeIn 160ms var(--motion-ease) both}
+/* Direction: the inline head script tags each transition from the tab order (หน้าแรก → ทายผล → ดัมมี่ → สถิติ → menu pages).
+   Going right the old page slides out left and the new one comes in from the right; going back mirrors it. The masthead
+   and the tab bar keep their own groups above, so only the content moves. */
+html:active-view-transition-type(forward)::view-transition-old(root){animation:vtOutLeft 220ms var(--motion-exit) both}
+html:active-view-transition-type(forward)::view-transition-new(root){animation:vtInRight 340ms var(--motion-ease) both}
+html:active-view-transition-type(back)::view-transition-old(root){animation:vtOutRight 220ms var(--motion-exit) both}
+html:active-view-transition-type(back)::view-transition-new(root){animation:vtInLeft 340ms var(--motion-ease) both}
+@keyframes vtOutLeft{to{opacity:0;transform:translateX(-36px)}}
+@keyframes vtOutRight{to{opacity:0;transform:translateX(36px)}}
+@keyframes vtInRight{from{opacity:0;transform:translateX(48px)}}
+@keyframes vtInLeft{from{opacity:0;transform:translateX(-48px)}}
 @keyframes vtOut{to{opacity:0}}
 @keyframes vtIn{from{opacity:0;transform:translateY(8px)}}
 @keyframes vtFadeOut{to{opacity:0}}
 @keyframes vtFadeIn{from{opacity:0}}
+
+/* Browsers without cross-page view transitions (older iOS, Firefox): sport-ui.js fades the page out on a link tap
+   (html.page-out) and every page eases in on arrival. Content is never held hidden waiting for script. */
+@supports not (view-transition-name:none){
+  body.sport-redesign main{animation:pageIn 320ms var(--motion-ease) both}
+  html.page-out body.sport-redesign main{opacity:0;transform:translateY(-6px);transition:opacity 150ms var(--motion-exit),transform 150ms var(--motion-exit)}
+}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}}
 
 /* ---------- Feedback: press-down controls ---------- */
 button,a.btn,a.primary,a.secondary,.quick-tile,.bottom-nav a,.sport-tabbar a,input,select,textarea,.roster-item,.pill,.tag{
@@ -121,6 +140,8 @@ button[aria-busy="true"]:before{content:"";flex:none;width:14px;height:14px;marg
   body.sport-redesign .match.stamp-in,body.sport-redesign .match.stamp-in .status{animation:none}
   body.sport-redesign .match.stamp-in:after{animation:vtFadeIn 160ms linear both}
   .number-pulse{animation:none}
+  body.sport-redesign main{animation:none!important}
+  html.page-out body.sport-redesign main{transition:none!important;opacity:1!important;transform:none!important}
   .profile-sheet,.recovery-sheet,.auth-card,.toast,body.sport-redesign .account-bar .sport-tools-actions.open{animation:vtFadeIn 160ms linear both}
   .skeleton:after{animation:none}
   .toast-progress{display:none}

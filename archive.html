@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0a0b0e">
+<meta name="theme-color" content="#0a0b0e"><script>/* Page transitions: tag each cross-page view transition with a direction from the tab order (sport-ui.js / motion.css). Inline so it is listening before the first frame. */(function(){var T=["index.html","predictions.html","dummy.html","stats.html"];function at(u){var p=(new URL(u,location.href).pathname.split("/").pop()||"index.html").toLowerCase(),i=T.indexOf(p);return i<0?T.length:i}function tag(vt,from,to){if(!vt||!vt.types)return;var a=at(from),b=at(to);vt.types.add(b>a?"forward":b<a?"back":"fade")}addEventListener("pageswap",function(e){if(e.activation&&e.activation.entry)tag(e.viewTransition,location.href,e.activation.entry.url)});addEventListener("pagereveal",function(e){var n=window.navigation,f=n&&n.activation&&n.activation.from;if(f)tag(e.viewTransition,f.url,location.href)})})()</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
@@ -15,7 +15,7 @@
 <title>คลังซีซั่น • ตีให้สุด หยุดที่เบ้าตา</title>
 <link rel="stylesheet" href="archive.css?v=20261017-polish2">
 <link rel="stylesheet" href="theme.css?v=20261018-thai">
-<link rel="stylesheet" href="motion.css?v=20261018-arena"><link rel="stylesheet" href="arena.css?v=20261018-nav2"><link rel="stylesheet" href="effects.css?v=20261018-fx"><link rel="stylesheet" href="banter.css?v=20261018-arena">
+<link rel="stylesheet" href="motion.css?v=20261018-pt"><link rel="stylesheet" href="arena.css?v=20261018-nav2"><link rel="stylesheet" href="effects.css?v=20261018-fx"><link rel="stylesheet" href="banter.css?v=20261018-arena">
 <script src="player-ui.js?v=20261018-pics" defer></script>
 </head>
 <body>
@@ -33,6 +33,6 @@
 <script src="banter.js?v=20261017-banter" defer></script><script src="archive.js?v=20261018-thai" defer></script>
 <script src="archive-export.js?v=20261018-thai" defer></script>
 <script src="suite.js?v=20261018-thai" defer></script>
-<script src="effects.js?v=20261018-fx2" defer></script><script src="sport-ui.js?v=20261018-nav2" defer></script>
+<script src="effects.js?v=20261018-fx2" defer></script><script src="sport-ui.js?v=20261018-pt" defer></script>
 </body>
 </html>
