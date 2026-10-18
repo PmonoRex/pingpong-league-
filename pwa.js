@@ -149,6 +149,7 @@
     });
     // ท้าดวล (challenge.js): an open challenge waiting for my answer, from the club copy in localStorage.
     try { if (me) (S.readLocalClub?.()?.challenges || []).forEach(c => { if (c?.status === "open" && (c.format === "doubles" ? (c.teamB || []).includes(me) : c.to === me)) out.push({ key: `ch:${c.id}`, title: "มีคนท้าดวล!", body: `${nm(c.from)} ท้าคุณ${c.note ? ` • ${String(c.note).slice(0, 60)}` : ""}`, tag: `pp-ch-${c.id}` }); }); } catch {}
+    try { out.push(...(window.LeagueSocial?.events?.(l, me) || [])); } catch {} // comments/reactions on my matches (social.js)
     return out;
   }
   function baseline() { store(SEEN, events().map(e => e.key)); }
