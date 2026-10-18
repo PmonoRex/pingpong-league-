@@ -9,6 +9,8 @@
   const rand = (a, b) => a + Math.random() * (b - a);
 
   // ---------- Embers + meteors ----------
+  // Fewer embers on phones with few cores or little memory, where every extra layer costs frames.
+  const EMBERS = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3 ? 14 : 28;
   function addSky() {
     document.querySelectorAll("body.sport-redesign .hero").forEach(hero => {
       if (hero.querySelector(".fx-sky")) return;
@@ -16,7 +18,7 @@
       sky.className = "fx-sky"; sky.setAttribute("aria-hidden", "true");
       let html = "";
       html += '<span class="fx-beam"></span><span class="fx-beam fx-beam-red"></span><span class="fx-sweep"></span><span class="fx-edge"></span>';
-      for (let i = 0; i < 28; i++) html += `<span class="fx-ember${i % 5 === 0 ? " hot" : ""}" style="left:${rand(4, 98).toFixed(1)}%;--s:${rand(2.5, 5.5).toFixed(1)}px;--d:${rand(5, 10).toFixed(1)}s;--delay:${rand(-10, 0).toFixed(1)}s;--drift:${rand(-40, 40).toFixed(0)}px"></span>`;
+      for (let i = 0; i < EMBERS; i++) html += `<span class="fx-ember${i % 5 === 0 ? " hot" : ""}" style="left:${rand(4, 98).toFixed(1)}%;--s:${rand(2.5, 5.5).toFixed(1)}px;--d:${rand(5, 10).toFixed(1)}s;--delay:${rand(-10, 0).toFixed(1)}s;--drift:${rand(-40, 40).toFixed(0)}px"></span>`;
       for (let i = 0; i < 3; i++) html += `<span class="fx-meteor" style="top:${rand(-10, 30).toFixed(0)}%;left:${rand(55, 100).toFixed(0)}%;--d:${rand(5, 9).toFixed(1)}s;--delay:${rand(-6, 4).toFixed(1)}s"></span>`;
       sky.innerHTML = html;
       hero.prepend(sky);
@@ -148,11 +150,18 @@
     marquee.innerHTML = `<div class="fx-track" style="--dur:${Math.max(24, items.length * 5)}s"><div class="fx-group">${group}</div><div class="fx-group" aria-hidden="true">${group}</div></div>`;
   }
 
+  // ---------- Pause what is off screen ----------
+  // Endless effects (masthead light show, shining names, border beams, marquee) stop while scrolled away.
+  const LOOPING = "body.sport-redesign .hero,.fx-marquee,.pod-1,.poster-champ,.next-up-item:first-child .next-up-bill,.d-board-row.lead";
+  const onScreen = "IntersectionObserver" in window ? new IntersectionObserver(entries => entries.forEach(en => en.target.classList.toggle("fx-paused", !en.isIntersecting)), { rootMargin: "80px 0px" }) : null;
+  const watchedLoops = new WeakSet();
+  function pauseOffscreen() { if (onScreen) document.querySelectorAll(LOOPING).forEach(el => { if (!watchedLoops.has(el)) { watchedLoops.add(el); onScreen.observe(el); } }); }
+
   // ---------- Wiring ----------
   let queued = false;
   function refresh() {
     queued = false;
-    addSky(); watchNumbers(); championBurst(); renderMarquee();
+    addSky(); watchNumbers(); championBurst(); renderMarquee(); pauseOffscreen();
   }
   const later = () => { if (!queued) { queued = true; setTimeout(refresh, 250); } };
   function start() {
