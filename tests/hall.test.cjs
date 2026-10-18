@@ -189,7 +189,7 @@ test('every page loads hall.js after elo.js and before pwa.js; pwa.js and the me
   assert.ok(pages.includes('hall.html'));
   for (const page of pages) {
     const html = fs.readFileSync(path.join(root, page), 'utf8');
-    const elo = html.indexOf('src="elo.js'), hall = html.indexOf('src="hall.js?v=20261020-hall"'), pwa = html.indexOf('src="pwa.js');
+    const elo = html.indexOf('src="elo.js'), hall = html.indexOf('src="hall.js?v='), pwa = html.indexOf('src="pwa.js');
     assert.ok(elo > 0 && hall > elo && pwa > hall, page);
   }
   assert.match(fs.readFileSync(path.join(root, 'pwa.js'), 'utf8'), /window\.HallRecords\?\.events\?\./);

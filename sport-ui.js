@@ -9,7 +9,7 @@
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
       ['motion.css?v=20261018-video3','motion.css'],
-      ['arena.css?v=20261018-smooth','arena.css']
+      ['arena.css?v=20261020-perf2','arena.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -23,7 +23,7 @@
 
   // shared.js declares LeagueShared with const, so it is a global binding but not a window property.
   const LS=()=>typeof LeagueShared!=='undefined'?LeagueShared:window.LeagueShared;
-  function league(){try{return LS()?.readLocalLeague?.()||null}catch{return null}}
+  function league(){try{const S=LS();return (S?.peekLocalLeague||S?.readLocalLeague)?.()||null}catch{return null}}
 
   try{sessionStorage.removeItem('pp_hero_data_20261013')}catch{}
 

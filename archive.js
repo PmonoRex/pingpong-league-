@@ -27,7 +27,9 @@ function archiveMatches(archive){
 const UI=window.LeagueUI;
 // Older rankHistory rows only carry the name; map back to the profile id so the avatar colour matches everywhere else.
 const rowId=row=>row?.userId||Object.keys(league.profiles||{}).find(k=>league.profiles[k]?.displayName===row?.name)||row?.name;
-const shortDate=v=>{try{return v?new Date(v).toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"2-digit"}):""}catch{return""}};
+// One date formatter for the whole list (building one per date is slow on a phone).
+const SHORT_DATE_OPTS={day:"numeric",month:"short",year:"2-digit"};let shortFmt=null;
+const shortDate=v=>{try{if(!v)return"";const d=new Date(v);return isNaN(d)?d.toLocaleDateString("th-TH",SHORT_DATE_OPTS):(shortFmt||=new Intl.DateTimeFormat("th-TH",SHORT_DATE_OPTS)).format(d)}catch{return""}};
 // Season start is not stored; the previous Season finishing is the best known start.
 function seasonRange(archive,all){const prev=all.filter(a=>Number(a.season)<Number(archive.season)).sort((a,b)=>Number(b.season)-Number(a.season))[0],start=shortDate(prev?.finishedAt),end=shortDate(archive.finishedAt);return start&&end?`${start} – ${end}`:end?`จบ ${end}`:"ไม่ทราบวันที่"}
 function matchTotal(archive){const n=archiveMatches(archive).length;if(n)return n;const p=(archive.standings||[]).length;return p>1?p*(p-1)/2:0}

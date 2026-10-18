@@ -157,11 +157,33 @@
   const watchedLoops = new WeakSet();
   function pauseOffscreen() { if (onScreen) document.querySelectorAll(LOOPING).forEach(el => { if (!watchedLoops.has(el)) { watchedLoops.add(el); onScreen.observe(el); } }); }
 
+  // ---------- Border beam + shining names (styles in effects.css) ----------
+  // The beam turns inside a ring element, so the compositor animates it without the main thread.
+  const RINGED = "body.sport-redesign .next-up-item:first-child .next-up-bill,body.sport-redesign .d-board-row.lead,.pod-1 .pod-step";
+  function addRings() {
+    document.querySelectorAll(RINGED).forEach(host => {
+      if (host.querySelector(":scope>.fx-ring")) return;
+      const ring = document.createElement("i"); ring.className = "fx-ring"; ring.setAttribute("aria-hidden", "true"); ring.innerHTML = "<i></i>";
+      host.appendChild(ring); host.classList.add("fx-ringed");
+    });
+  }
+  // The light runs across the name for 1.9s every 5.5s. A background-position animation repaints on the main thread on
+  // every frame, so it is played only while it moves (and only for names on screen), not as an endless CSS loop.
+  const SHINE = "body.sport-redesign .hero h1,.poster-champ b,.pod-1 b,body.sport-redesign .d-board-row.lead .d-board-name b";
+  const SWEEP = [{ backgroundPosition: "120% 0" }, { backgroundPosition: "-120% 0" }];
+  function shine() {
+    if (still.matches || document.hidden) return;
+    document.querySelectorAll(SHINE).forEach(el => {
+      if (el.animate && !el.closest(".fx-paused") && el.getClientRects().length) el.animate(SWEEP, { duration: 1925, easing: "linear" });
+    });
+  }
+  setTimeout(() => { shine(); setInterval(shine, 5500); }, 1100);
+
   // ---------- Wiring ----------
   let queued = false;
   function refresh() {
     queued = false;
-    addSky(); watchNumbers(); championBurst(); renderMarquee(); pauseOffscreen();
+    addSky(); addRings(); watchNumbers(); championBurst(); renderMarquee(); pauseOffscreen();
   }
   const later = () => { if (!queued) { queued = true; setTimeout(refresh, 250); } };
   function start() {

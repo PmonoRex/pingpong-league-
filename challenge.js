@@ -106,7 +106,7 @@ if (typeof module !== "undefined") module.exports = ChallengeCore;
   if (typeof document === "undefined") return;
   const C = ChallengeCore, LS = () => typeof LeagueShared !== "undefined" ? LeagueShared : null;
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const league = () => { try { if (typeof state !== "undefined" && state?.profiles) return state; } catch {} try { return LS()?.readLocalLeague() || null; } catch { return null; } };
+  const league = () => { try { if (typeof state !== "undefined" && state?.profiles) return state; } catch {} try { const S = LS(); return (S?.peekLocalLeague || S?.readLocalLeague)?.() || null; } catch { return null; } };
   const meId = l => { try { return l ? LS().sessionUserId(l) : ""; } catch { return ""; } };
   const isAdmin = (l, id) => { try { return !!LS()?.isAdmin(l, id); } catch { return false; } };
   const nm = (l, id) => l?.profiles?.[id]?.displayName || id || "?";
@@ -149,7 +149,7 @@ if (typeof module !== "undefined") module.exports = ChallengeCore;
   }
 
   // ---------- Badge (เมนู tab) ----------
-  const badge = () => { const l = league(), me = meId(l); return me ? C.badge(club() || LS()?.readLocalClub?.(), me) : 0; };
+  const badge = () => { const l = league(), me = meId(l); return me ? C.badge(club() || (LS()?.peekLocalClub || LS()?.readLocalClub)?.(), me) : 0; };
   function paintBadge() {
     const btn = document.querySelector(".sport-tabbar .tab-menu"); if (!btn) return;
     const n = row === null ? 0 : badge();

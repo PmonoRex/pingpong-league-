@@ -6,7 +6,7 @@
   if (typeof document === "undefined") return;
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const UI = () => window.LeagueUI;
-  const league = () => { try { return typeof LeagueShared !== "undefined" ? LeagueShared.readLocalLeague() : null; } catch { return null; } };
+  const league = () => { try { return typeof LeagueShared !== "undefined" ? (LeagueShared.peekLocalLeague || LeagueShared.readLocalLeague)() : null; } catch { return null; } };
   const me = l => { try { return l ? LeagueShared.sessionUserId(l) : ""; } catch { return ""; } };
   const valid = x => Number.isInteger(x?.a) && x.a >= 0 && Number.isInteger(x?.b) && x.b >= 0;
   const pred = () => { try { return JSON.parse(localStorage.getItem(LeagueShared.PRED_KEY) || "null"); } catch { return null; } };
@@ -118,7 +118,9 @@
     e.preventDefault(); open(id);
   });
   // Mark the tappable names so they look and read as buttons.
-  function mark() { document.querySelectorAll(TARGETS).forEach(el => { if (el.dataset.pcTap) return; el.dataset.pcTap = "1"; el.classList.add("pc-tap"); el.setAttribute("title", "ดูโปรไฟล์"); }); }
+  // Runs after every change of the page, so only names not marked yet are asked for.
+  const UNMARKED = TARGETS.split(",").map(s => `${s}:not([data-pc-tap])`).join(",");
+  function mark() { document.querySelectorAll(UNMARKED).forEach(el => { if (el.dataset.pcTap) return; el.dataset.pcTap = "1"; el.classList.add("pc-tap"); el.setAttribute("title", "ดูโปรไฟล์"); }); }
   let queued = false;
   new MutationObserver(() => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; mark(); }); }).observe(document.documentElement, { childList: true, subtree: true });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mark); else mark();

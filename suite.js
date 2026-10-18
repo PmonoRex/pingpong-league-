@@ -28,7 +28,9 @@
   const NUM_SEL=".stat b,.profile-metric b,.rank-rp,.points,.workflow-item b",NUM_RE=/^([+-]?)(\d[\d,]*)(\s*[^\d\s][^\d]*)?$/,written=new WeakMap();
   function parseNum(text){const m=String(text).trim().match(NUM_RE);if(!m)return null;return{n:Number(m[2].replace(/,/g,""))*(m[1]==="-"?-1:1),plus:m[1]==="+",commas:m[2].includes(","),suffix:m[3]||""}}
   const fmtNum=(v,p)=>`${v<0?"-":p.plus&&v>0?"+":""}${p.commas?Math.abs(v).toLocaleString("en-US"):Math.abs(v)}${p.suffix}`;
-  function pulse(el){el.classList.remove("number-pulse");void el.offsetWidth;el.classList.add("number-pulse")}
+  // A fresh element just takes the class. Only a repeat pulse has to restart the animation, and it does so across two
+  // frames instead of forcing a layout of the whole page (offsetWidth) for every number a render touched.
+  function pulse(el){if(!el.classList.contains("number-pulse")){el.classList.add("number-pulse");return}el.classList.remove("number-pulse");requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("number-pulse")))}
   function countUp(el,fromText){
     // Any new write by the page cancels an animation still running toward an older value,
     // including a write of the same text the animation happens to show (its text node is then replaced).

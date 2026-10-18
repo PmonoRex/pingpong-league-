@@ -327,7 +327,25 @@ const LeagueShared = (() => {
     try { const value = JSON.parse(localStorage.getItem(LEAGUE_KEY) || "null"); return value?.profiles ? normalizeLeague(value) : null; }
     catch { return null; }
   }
-  function saveLocalLeague(league) { localStorage.setItem(LEAGUE_KEY, JSON.stringify(normalizeLeague(league))); }
+  function saveLocalLeague(league) { localStorage.setItem(LEAGUE_KEY, JSON.stringify(normalizeLeague(league))); peekMemo.delete(LEAGUE_KEY); }
+  // Read-only copies for the layers that only look (avatars, Elo, notifications, badges): parsed once per stored value
+  // and shared, instead of JSON.parse of the whole league (pictures included) on every call, and without even copying
+  // the stored string out of localStorage on every call (a page of avatars asks hundreds of times). Writes through
+  // this file and other tabs' writes (storage event) drop the copy at once; anything else is noticed within a second,
+  // when the stored string is compared again. Callers must never change what these return; use readLocalLeague() /
+  // readLocalClub() for a private copy to edit.
+  const peekMemo = new Map(), PEEK_RECHECK_MS = 1000;
+  function peekStored(key, parse) {
+    const hit = peekMemo.get(key), now = Date.now();
+    if (hit && now - hit.at < PEEK_RECHECK_MS) return hit.value;
+    let raw = null; try { raw = localStorage.getItem(key); } catch {}
+    if (hit && hit.raw === raw) { hit.at = now; return hit.value; }
+    let value; try { value = parse(raw); } catch { value = null; }
+    peekMemo.set(key, { raw, value, at: now });
+    return value;
+  }
+  if (typeof addEventListener === "function") addEventListener("storage", e => { if (e.key === null) peekMemo.clear(); else peekMemo.delete(e.key); });
+  const peekLocalLeague = () => peekStored(LEAGUE_KEY, raw => { const value = JSON.parse(raw || "null"); return value?.profiles ? normalizeLeague(value) : null; });
 
   let scrollFrame = null;
   function smoothScrollTo(target) {
@@ -393,12 +411,42 @@ const LeagueShared = (() => {
   const emptyClub = () => ({ v: 1, matches: [], challenges: [], tournaments: [], social: { reactions: {}, comments: [] }, mvp: {}, checkin: {} });
   const normalizeClub = c => { const e = emptyClub(), x = c && typeof c === "object" ? c : {}; return { ...e, ...x, social: { ...e.social, ...(x.social || {}) } }; };
   function readLocalClub() { try { return normalizeClub(JSON.parse(localStorage.getItem(CLUB_KEY) || "null")); } catch { return emptyClub(); } }
+  const peekLocalClub = () => peekStored(CLUB_KEY, raw => { try { return normalizeClub(JSON.parse(raw || "null")); } catch { return emptyClub(); } });
+  // Several layers poll the club row (challenge badge, social, tournaments, Hall of Fame). One read serves every caller
+  // that asks while it is in flight, and once a copy is known, a poll first asks only for the row's updated_at: the
+  // whole row (every match, comment and bracket) comes down, is parsed and is stored again only when it changed.
+  // Each caller still gets its own copy of the club to keep.
+  let clubKnown = null, clubFetch = null, clubGen = 0;
+  async function clubStamp() {
+    const response = await fetch(`${CLUB_ENDPOINT}&select=updated_at`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    if (!response.ok) throw new Error(`Club request failed: ${response.status}`);
+    const rows = await response.json();
+    return rows?.[0] ? rows[0].updated_at || "" : null;
+  }
+  function clubFetchRaw() {
+    if (clubFetch && clubFetch.gen === clubGen) return clubFetch.promise;
+    const gen = clubGen;
+    const promise = (async () => {
+      if (clubKnown?.updatedAt) {
+        const stamp = await clubStamp();
+        if (stamp === clubKnown.updatedAt && gen === clubGen) return clubKnown;
+      }
+      const row = (await clubRequest())[0];
+      if (!row) { if (gen === clubGen) clubKnown = null; return null; }
+      const raw = JSON.stringify(normalizeClub(row.league?.club));
+      try { localStorage.setItem(CLUB_KEY, raw); } catch {} peekMemo.delete(CLUB_KEY);
+      const got = { raw, updatedAt: row.updated_at };
+      if (gen === clubGen) clubKnown = got;
+      return got;
+    })();
+    const entry = { gen, promise };
+    clubFetch = entry;
+    promise.then(() => { if (clubFetch === entry) clubFetch = null; }, () => { if (clubFetch === entry) clubFetch = null; });
+    return promise;
+  }
   async function clubRead() {
-    const row = (await clubRequest())[0];
-    if (!row) return null;
-    const club = normalizeClub(row.league?.club);
-    try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {}
-    return { club, updatedAt: row.updated_at };
+    const got = await clubFetchRaw();
+    return got ? { club: normalizeClub(JSON.parse(got.raw)), updatedAt: got.updatedAt } : null;
   }
   // Apply change(club) to the newest copy and save it; change may return false to cancel. Returns the saved club.
   async function clubMutate(change) {
@@ -410,7 +458,7 @@ const LeagueShared = (() => {
       if (club.social.comments.length > 300) club.social.comments = club.social.comments.slice(-300);
       const filter = row.updated_at ? `updated_at=eq.${encodeURIComponent(row.updated_at)}` : "";
       const saved = await clubRequest("PATCH", { league: { ...(row.league || {}), club }, updated_at: new Date().toISOString() }, filter);
-      if (saved?.length) { try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {} return club; }
+      if (saved?.length) { try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {} peekMemo.delete(CLUB_KEY); clubGen++; clubKnown = null; return club; }
       await lockBackoff(attempt);
     }
     throw new Error("มีคนบันทึกพร้อมกันหลายครั้ง กรุณาลองใหม่");
@@ -497,5 +545,5 @@ const LeagueShared = (() => {
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, SUPABASE_URL, SUPABASE_KEY, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
     sessionUserId, login, loginGuardStatus, logout, DEFAULT_PIN, pinPolicyError, hashPin, verifyPin, needsPinChange, setPin, resetPin,
-    keepCredentials, changePin, serverAuth, serverLogin, hasServerSession: () => Boolean(sessionToken()), TOKEN_KEY, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff, liveRequest, CLUB_KEY, emptyClub, normalizeClub, readLocalClub, clubRead, clubMutate, MEDIA_BASE, mediaUrlOk, uploadMedia });
+    keepCredentials, changePin, serverAuth, serverLogin, hasServerSession: () => Boolean(sessionToken()), TOKEN_KEY, renderLoginOptions, readLocalLeague, peekLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff, liveRequest, CLUB_KEY, emptyClub, normalizeClub, readLocalClub, peekLocalClub, clubRead, clubMutate, MEDIA_BASE, mediaUrlOk, uploadMedia });
 })();

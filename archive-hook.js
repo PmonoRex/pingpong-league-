@@ -71,6 +71,9 @@
   }
   function findBackfill(league = state) {
     const archived = new Set((league.seasonArchives || []).map(a => Number(a.season)));
+    // Usually every finished Season is archived already: then there is nothing to look for, and the local snapshots
+    // (whole league copies) need not be parsed on every render.
+    if ((league.rankHistory || []).every(h => archived.has(Number(h.season)) || !(h.standings || []).length)) return [];
     const snapshots = snapshotSources().sort((a,b) => String(b.savedAt).localeCompare(String(a.savedAt)));
     const out = [];
     (league.rankHistory || []).forEach(history => {

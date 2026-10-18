@@ -135,3 +135,8 @@ body.sport-redesign .slip-go{min-height:52px;font-size:16px;line-height:1.25;pad
  #bettingMarkets>.empty,#bettingMarkets>.locked{grid-column:1/-1}
  #settledBoard .bill+.bill{margin-top:0}
 }
+/* Long lists on a phone: the dealer has a market card for every match of the season, and the history a row for every
+   prediction. Cards scrolled far away are skipped for layout and paint until they come near (content-visibility), and
+   keep the size they last had so the scroll position does not jump. */
+#dealerMarkets>.market{content-visibility:auto;contain-intrinsic-size:auto 560px}
+#historySection>.wrap{content-visibility:auto;contain-intrinsic-size:auto 1200px}

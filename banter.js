@@ -100,10 +100,21 @@ const LeagueBanter = (() => {
 
   // Rivalry facts for a pairing in the current Season: the record of every meeting so far, and while this Season's
   // meeting is still to play, the loser of their previous meeting gets a revenge match (ศึกล้างตา).
+  // The home page asks for the rivalry of every card in one go: the list of every league match (all archived Seasons)
+  // is built once and reused while the league, its rounds, its scores and its archives are unchanged.
+  let matchesMemo = null;
+  function cachedLeagueMatches(league) {
+    const archives = Array.isArray(league?.seasonArchives) ? league.seasonArchives : [];
+    const key = [league, league?.currentSeason, league?.rounds, league?.results, JSON.stringify(league?.results ?? null), league?.seasonArchives, ...archives];
+    if (matchesMemo && matchesMemo.key.length === key.length && matchesMemo.key.every((v, i) => v === key[i])) return matchesMemo.out;
+    const out = leagueMatches(league);
+    matchesMemo = { key, out };
+    return out;
+  }
   function matchRivalry(league, pair) {
     const current = Number(league?.currentSeason) || 1;
     const [a, b] = pair || [];
-    const record = headToHead(leagueMatches(league), a, b);
+    const record = headToHead(cachedLeagueMatches(league), a, b);
     if (!record.played) return null;
     const playedThisSeason = record.list.some(m => m.season === current);
     return { ...record, revengeBy: playedThisSeason ? null : record.last?.loser || null };

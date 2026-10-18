@@ -100,8 +100,9 @@ const LeagueSocialCore = (() => {
     if (s < 3600) return `${Math.floor(s / 60)} นาทีที่แล้ว`;
     if (s < 86400) return `${Math.floor(s / 3600)} ชม.ที่แล้ว`;
     if (s < 7 * 86400) return `${Math.floor(s / 86400)} วันที่แล้ว`;
-    return new Intl.DateTimeFormat("th-TH", { timeZone: "Asia/Bangkok", day: "numeric", month: "short" }).format(new Date(iso));
+    return (agoFmt ||= new Intl.DateTimeFormat("th-TH", { timeZone: "Asia/Bangkok", day: "numeric", month: "short" })).format(new Date(iso));
   }
+  let agoFmt = null; // building a date formatter is slow on a phone; one is enough
 
   return Object.freeze({ EMOJI, MAX_COMMENT, dateKey, weekKey, prevWeekKey, tally, winners, mvpWins, nextReaction, setReaction,
     reactionSummary, checkComment, addComment, canDelete, removeComment, commentsFor, setVote, setCheckin, present, timeAgo });
@@ -113,7 +114,7 @@ if (typeof module !== "undefined") module.exports = LeagueSocialCore;
   const C = LeagueSocialCore, LS = () => typeof LeagueShared !== "undefined" ? LeagueShared : null;
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   // index.js keeps the live league in `state`; other pages read the local copy.
-  const league = () => { try { if (typeof state !== "undefined" && state?.profiles) return state; } catch {} try { return LS()?.readLocalLeague() || null; } catch { return null; } };
+  const league = () => { try { if (typeof state !== "undefined" && state?.profiles) return state; } catch {} try { const S = LS(); return (S?.peekLocalLeague || S?.readLocalLeague)?.() || null; } catch { return null; } };
   const meId = l => { try { return l ? LS()?.sessionUserId(l) || "" : ""; } catch { return ""; } };
   const adminOf = (l, id) => { try { return !!LS()?.isAdmin(l, id); } catch { return false; } };
   const nm = (l, id) => l?.profiles?.[id]?.displayName || "ผู้เล่น";
@@ -211,7 +212,8 @@ if (typeof module !== "undefined") module.exports = LeagueSocialCore;
   }
 
   // ---------- วันนี้ที่สนาม: check-in + MVP ----------
-  const dayLabel = () => new Intl.DateTimeFormat("th-TH", { timeZone: "Asia/Bangkok", weekday: "short", day: "numeric", month: "short" }).format(new Date());
+  let dayFmt = null; // one formatter, built on first use (building one is slow on a phone)
+  const dayLabel = () => (dayFmt ||= new Intl.DateTimeFormat("th-TH", { timeZone: "Asia/Bangkok", weekday: "short", day: "numeric", month: "short" })).format(new Date());
   const voters = l => (LS()?.activeProfiles?.(l) || []).map(p => p.id);
   function todayHtml(l, club, me) {
     const today = C.present(club.checkin, C.dateKey()).filter(id => l.profiles?.[id]), mine = today.includes(me);

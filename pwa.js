@@ -85,7 +85,7 @@
     const a = new Uint8Array(have), b = keyBytes(vapidKey());
     return a.length === b.length && a.every((v, i) => v === b[i]);
   };
-  const signedIn = () => { const S = LS(); try { return S?.sessionUserId(S.readLocalLeague()) || ""; } catch { return ""; } };
+  const signedIn = () => { const S = LS(); try { return S?.sessionUserId((S.peekLocalLeague || S.readLocalLeague)()) || ""; } catch { return ""; } };
   async function rpc(name, args) {
     const S = LS();
     const res = await fetch(`${S.SUPABASE_URL}/rest/v1/rpc/${name}`, { method: "POST", body: JSON.stringify(args),
@@ -128,7 +128,8 @@
 
   // What is worth telling the signed-in player right now, each item keyed so it is told once.
   function events() {
-    const S = LS(), l = S?.readLocalLeague?.(); if (!l?.profiles) return [];
+    const S = LS(), l = (S?.peekLocalLeague || S?.readLocalLeague)?.(); if (!l?.profiles) return [];
+    const club = () => (S.peekLocalClub || S.readLocalClub)?.();
     let me = ""; try { me = S.sessionUserId(l) || ""; } catch {}
     const nm = id => l.profiles?.[id]?.displayName || id, season = Number(l.currentSeason) || 1, out = [];
     const valid = x => Number.isInteger(x?.a) && x.a >= 0 && Number.isInteger(x?.b) && x.b >= 0;
@@ -148,16 +149,23 @@
       if (p && !valid(l.results?.[`r${ri}m${mi}`])) out.push({ key: `mkt:${key}`, title: "เปิดทายผลแล้ว", body: `${nm(p[0])} vs ${nm(p[1])} • เข้าไปทายได้เลย`, tag: `pp-mkt-${key}` });
     });
     // ท้าดวล (challenge.js): an open challenge waiting for my answer, from the club copy in localStorage.
-    try { if (me) (S.readLocalClub?.()?.challenges || []).forEach(c => { if (c?.status === "open" && (c.format === "doubles" ? (c.teamB || []).includes(me) : c.to === me)) out.push({ key: `ch:${c.id}`, title: "มีคนท้าดวล!", body: `${nm(c.from)} ท้าคุณ${c.note ? ` • ${String(c.note).slice(0, 60)}` : ""}`, tag: `pp-ch-${c.id}` }); }); } catch {}
+    try { if (me) (club()?.challenges || []).forEach(c => { if (c?.status === "open" && (c.format === "doubles" ? (c.teamB || []).includes(me) : c.to === me)) out.push({ key: `ch:${c.id}`, title: "มีคนท้าดวล!", body: `${nm(c.from)} ท้าคุณ${c.note ? ` • ${String(c.note).slice(0, 60)}` : ""}`, tag: `pp-ch-${c.id}` }); }); } catch {}
     try { out.push(...(window.LeagueSocial?.events?.(l, me) || [])); } catch {} // comments/reactions on my matches (social.js)
-    try { out.push(...(window.HallRecords?.events?.(l, S.readLocalClub?.(), me) || [])); } catch {} // all-time records just broken (hall.js)
+    try { out.push(...(window.HallRecords?.events?.(l, club(), me) || [])); } catch {} // all-time records just broken (hall.js)
     return out;
   }
   function baseline() { store(SEEN, events().map(e => e.key)); }
+  let lastSig = null;
   function check() {
     if (!enabled()) return;
     // Re-register when the signed-in player changed (or signed out), and once a minute in case the browser rotated it.
     if (pushCapable() && ((read(PUSH)?.userId || "") !== signedIn() || Date.now() - lastSync > 60000)) syncPush();
+    // Nothing to tell unless a stored copy changed since the last look: comparing the stored strings is cheap, working
+    // the events out of the whole league (and Hall of Fame records) every 5 seconds is not.
+    const S = LS(), sig = [S?.LEAGUE_KEY, S?.PRED_KEY, S?.CLUB_KEY, S?.SESSION_KEY, SEEN].map(k => { try { return k ? localStorage.getItem(k) : null; } catch { return null; } });
+    sig.push(window.LeagueSocial?.available?.() ?? null);
+    if (lastSig && sig.every((v, i) => v === lastSig[i])) return;
+    lastSig = sig;
     const seenList = read(SEEN); if (!Array.isArray(seenList)) return baseline();
     const seen = new Set(seenList), now = events(), fresh = now.filter(e => !seen.has(e.key));
     if (!fresh.length) return;

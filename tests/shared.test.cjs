@@ -172,6 +172,41 @@ test('clubMutate re-applies the change on the newest copy after a lost race', as
   assert.deepEqual(row.league.club.social, { reactions: {}, comments: [] });
 });
 
+test('clubRead downloads the club row again only when its updated_at changed, and shares a read in flight', async () => {
+  const { shared, context, localStorage } = loadShared();
+  let row = { league: { club: { v: 1, matches: [{ id: 'a' }] } }, updated_at: 't1' };
+  const asked = [];
+  context.fetch = async url => {
+    const full = !String(url).includes('select=updated_at');
+    asked.push(full ? 'full' : 'stamp');
+    return { ok: true, json: async () => [full ? row : { updated_at: row.updated_at }] };
+  };
+  const [x, y] = await Promise.all([shared.clubRead(), shared.clubRead()]);
+  assert.deepEqual(asked, ['full']);
+  assert.notEqual(x.club, y.club); // each caller keeps its own copy
+  x.club.matches.push({ id: 'mutated' });
+  const again = await shared.clubRead();
+  assert.deepEqual(asked, ['full', 'stamp']);
+  assert.equal(again.club.matches.map(m => m.id).join(), 'a');
+  assert.equal(again.updatedAt, 't1');
+  row = { league: { club: { v: 1, matches: [{ id: 'a' }, { id: 'b' }] } }, updated_at: 't2' };
+  const fresh = await shared.clubRead();
+  assert.deepEqual(asked, ['full', 'stamp', 'stamp', 'full']);
+  assert.equal(fresh.club.matches.map(m => m.id).join(), 'a,b');
+  assert.equal(JSON.parse(localStorage.getItem(shared.CLUB_KEY)).matches.map(m => m.id).join(), 'a,b');
+});
+
+test('peekLocalLeague parses once and sees writes made through saveLocalLeague', () => {
+  const { shared } = loadShared();
+  shared.saveLocalLeague({ profiles, currentSeason: 1 });
+  const a = shared.peekLocalLeague(), b = shared.peekLocalLeague();
+  assert.equal(a, b);
+  assert.equal(a.currentSeason, 1);
+  shared.saveLocalLeague({ profiles, currentSeason: 2 });
+  assert.equal(shared.peekLocalLeague().currentSeason, 2);
+  assert.notEqual(shared.readLocalLeague(), shared.readLocalLeague()); // private copies stay private
+});
+
 test('clubRead returns null before the club row exists', async () => {
   const { shared, context } = loadShared();
   context.fetch = async () => ({ ok: true, json: async () => [] });
