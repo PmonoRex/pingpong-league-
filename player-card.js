@@ -55,7 +55,7 @@
  ${s.best ? `<div class="pc-line"><span>อันดับดีสุด</span><b>#${s.best} • ${s.seasons} ซีซั่น</b></div>` : ""}
  ${vs}
  ${badgeHtml(l, id)}
- <div class="pc-actions">${pay ? `<button type="button" class="primary" data-pc-pay="${esc(id)}">โอนให้ ${esc(name)}</button>` : ""}${viewer === id && window.LeagueProfile?.openMine ? '<button type="button" class="primary" data-pc-edit>แก้โปรไฟล์ของฉัน</button>' : ""}<a class="btn secondary" href="stats.html">ดูสถิติเต็ม</a></div>
+ <div class="pc-actions">${pay ? `<button type="button" class="primary" data-pc-pay="${esc(id)}">โอนให้ ${esc(name)}</button>` : ""}${viewer === id && window.LeagueProfile?.openMine ? '<button type="button" class="primary" data-pc-edit>แก้โปรไฟล์ของฉัน</button>' : ""}${viewer && viewer !== id ? `<a class="btn secondary" href="stats.html?a=${encodeURIComponent(viewer)}&b=${encodeURIComponent(id)}#h2h">เทียบกับฉัน</a>` : ""}<a class="btn secondary" href="stats.html?a=${encodeURIComponent(id)}">ดูสถิติเต็ม</a></div>
 </div>`;
   }
 
