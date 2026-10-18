@@ -9,7 +9,7 @@
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
       ['motion.css?v=20261018-video3','motion.css'],
-      ['arena.css?v=20261018-nav2','arena.css']
+      ['arena.css?v=20261018-herofx','arena.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -42,13 +42,6 @@
     if(img.complete&&img.naturalWidth){img.style.transition='none';ready();requestAnimationFrame(()=>img.style.transition='')}
   }
 
-  function addBrand(){
-    const hero=qs('.hero');if(!hero||qs('.sport-brand',hero))return;
-    const brand=document.createElement('div');brand.className='sport-brand';
-    brand.innerHTML='<div class="sport-mark" aria-label="ตีให้สุด หยุดที่เบ้าตา">ศึก</div>';
-    const photo=qs('.hero-player-photo',hero);
-    if(photo)photo.insertAdjacentElement('afterend',brand);else hero.insertBefore(brand,hero.firstChild);
-  }
 
   // One navigation for every page. The bottom bar is the same five tabs everywhere (หน้าแรก, ทายผล, ดัมมี่, สถิติ, เมนู);
   // everything else (other pages, account, admin) lives in the เมนู drawer that slides in from the right. Page-owned
@@ -161,7 +154,7 @@
   // Keyboard users can jump past the masthead straight to the page content.
   function addSkipLink(){const main=qs('main');if(!main||qs('.skip-link'))return;if(!main.id)main.id='main-content';main.setAttribute('tabindex','-1');const a=document.createElement('a');a.className='skip-link';a.href='#'+main.id;a.textContent='ข้ามไปที่เนื้อหา';document.body.prepend(a)}
   addSkipLink();
-  addHeroPhoto();addBrand();buildTabs();drawTabIcons();markActiveNav();
+  addHeroPhoto();buildTabs();drawTabIcons();markActiveNav();
   // On touch screens the fixed tab bar floats above the on-screen keyboard and covers the fields, so hide it while typing.
   function hideTabsWhileTyping(){
     if(!matchMedia('(pointer:coarse)').matches)return;
