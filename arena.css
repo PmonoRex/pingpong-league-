@@ -104,7 +104,7 @@ body.sport-redesign .hero .notice *{color:var(--text)!important}
 body.hero-full .hero{padding:20px 18px 18px}
 body.hero-full .hero h1{font-size:clamp(44px,13vw,88px);line-height:1.04;margin:4px 0 8px}
 body.hero-compact .hero{padding:14px 16px 12px}
-body.hero-compact .hero h1{font-size:clamp(26px,7.4vw,38px)!important;padding-right:44px}
+body.hero-compact .hero h1{font-size:clamp(26px,7.4vw,38px)!important}
 body.hero-compact .sport-mark{width:34px;height:34px;font-size:12px!important}
 body.sport-redesign .hero .account-bar :is(button,a){background:rgba(255,255,255,.04);color:#fff;border:1px solid var(--line-2)}
 body.sport-redesign .hero .account-bar .danger{color:#ffb0b5;border-color:rgba(255,92,104,.55)}

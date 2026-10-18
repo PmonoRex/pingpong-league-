@@ -64,3 +64,40 @@ body.sport-redesign :is(.primary,.round-tab[aria-selected=true]):not(:disabled):
   .fx-track{animation:none;flex-wrap:wrap;width:auto}
   .fx-group[aria-hidden=true]{display:none}
 }
+
+/* ---------- Masthead light show (spans added by effects.js addSky) ---------- */
+/* Two stadium spotlights hang from the top edge and sway across the player. */
+.fx-beam{position:absolute;top:-20%;left:52%;width:70%;height:160%;margin-left:-35%;transform-origin:50% 0;pointer-events:none;mix-blend-mode:screen;
+  background:conic-gradient(from 180deg at 50% 0,transparent 0 163deg,rgba(255,255,255,.26) 172deg,rgba(255,255,255,.6) 180deg,rgba(255,255,255,.26) 188deg,transparent 197deg);
+  -webkit-mask-image:linear-gradient(180deg,#000 10%,transparent 88%);mask-image:linear-gradient(180deg,#000 10%,transparent 88%);
+  animation:fxBeam1 7s ease-in-out infinite alternate}
+.fx-beam-red{left:22%;background:conic-gradient(from 180deg at 50% 0,transparent 0 162deg,rgba(255,71,82,.4) 171deg,rgba(255,90,99,.85) 180deg,rgba(255,71,82,.4) 189deg,transparent 198deg);animation:fxBeam2 9s ease-in-out infinite alternate}
+@keyframes fxBeam1{from{transform:rotate(26deg)}to{transform:rotate(-14deg)}}
+@keyframes fxBeam2{from{transform:rotate(-24deg)}to{transform:rotate(18deg)}}
+/* A bright streak sweeps across the whole masthead every few seconds. */
+.fx-sweep{position:absolute;top:-20%;bottom:-20%;left:0;width:28%;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08) 35%,rgba(255,220,222,.38) 50%,rgba(255,255,255,.08) 65%,transparent);
+  transform:translateX(-160%) skewX(-22deg);animation:fxSweep 5.5s cubic-bezier(.45,0,.2,1) 1.2s infinite}
+@keyframes fxSweep{0%{transform:translateX(-160%) skewX(-22deg)}38%,100%{transform:translateX(480%) skewX(-22deg)}}
+/* A red light runs back and forth along the bottom edge. */
+.fx-edge{position:absolute;left:0;right:0;bottom:0;height:3px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#ff4752 40%,#fff 50%,#ff4752 60%,transparent);background-size:45% 100%;background-repeat:no-repeat;
+  box-shadow:0 0 14px 2px rgba(255,71,82,.55);animation:fxEdge 3.4s ease-in-out infinite alternate}
+@keyframes fxEdge{from{background-position:-50% 0}to{background-position:150% 0}}
+/* Embers: bigger and brighter; every fifth one burns white-hot. */
+.fx-ember.hot{background:#fff;box-shadow:0 0 8px 2px rgba(255,180,185,.9)}
+/* The masthead's red rim breathes. */
+body.sport-redesign .hero{animation:fxRim 3.6s ease-in-out infinite}
+@keyframes fxRim{0%,100%{box-shadow:0 18px 40px rgba(0,0,0,.45),0 0 0 1px rgba(255,71,82,.18),0 0 18px rgba(229,36,47,.12)}50%{box-shadow:0 18px 40px rgba(0,0,0,.45),0 0 0 1px rgba(255,71,82,.55),0 0 34px rgba(229,36,47,.38)}}
+/* The league name powers on like arena lights when the page opens, then keeps its moving shine. */
+body.sport-redesign .hero h1{animation:fxPowerOn 1.1s steps(1) both,fxTextShine 5.5s linear 1.1s infinite}
+@keyframes fxPowerOn{0%{opacity:0}12%{opacity:.9}18%{opacity:.15}30%{opacity:1}36%{opacity:.35}46%,100%{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .fx-beam,.fx-sweep,.fx-edge{animation:none!important}
+  .fx-sweep{display:none}
+  body.sport-redesign .hero{animation:none}
+  body.sport-redesign .hero h1{animation:none}
+}
+/* theme.css lifts every masthead child (.hero > :not(.hero-player-photo){position:relative;z-index:2}), which squashed
+   this layer to zero height; pin it back over the whole masthead, under the text. */
+body.sport-redesign .hero>.fx-sky{position:absolute;inset:0;z-index:0;height:auto;width:auto;margin:0}

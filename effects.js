@@ -1,5 +1,5 @@
 // Arena effects, after Magic UI (magicui.design, MIT), rebuilt without React for this site. Styles live in effects.css.
-// - Embers and meteors drift through every masthead.
+// - The masthead: swaying stadium spotlights, a light sweep, a running red edge, embers and meteors.
 // - Number ticker: big figures count up the first time they scroll into view.
 // - Confetti: a burst where a ชนะ stamp strikes, and over the champion on the archive poster.
 // - Marquee: finished results and the RP table scroll past under the home masthead.
@@ -15,7 +15,8 @@
       const sky = document.createElement("div");
       sky.className = "fx-sky"; sky.setAttribute("aria-hidden", "true");
       let html = "";
-      for (let i = 0; i < 16; i++) html += `<span class="fx-ember" style="left:${rand(30, 98).toFixed(1)}%;--s:${rand(2, 4).toFixed(1)}px;--d:${rand(5, 10).toFixed(1)}s;--delay:${rand(-10, 0).toFixed(1)}s;--drift:${rand(-40, 40).toFixed(0)}px"></span>`;
+      html += '<span class="fx-beam"></span><span class="fx-beam fx-beam-red"></span><span class="fx-sweep"></span><span class="fx-edge"></span>';
+      for (let i = 0; i < 28; i++) html += `<span class="fx-ember${i % 5 === 0 ? " hot" : ""}" style="left:${rand(4, 98).toFixed(1)}%;--s:${rand(2.5, 5.5).toFixed(1)}px;--d:${rand(5, 10).toFixed(1)}s;--delay:${rand(-10, 0).toFixed(1)}s;--drift:${rand(-40, 40).toFixed(0)}px"></span>`;
       for (let i = 0; i < 3; i++) html += `<span class="fx-meteor" style="top:${rand(-10, 30).toFixed(0)}%;left:${rand(55, 100).toFixed(0)}%;--d:${rand(5, 9).toFixed(1)}s;--delay:${rand(-6, 4).toFixed(1)}s"></span>`;
       sky.innerHTML = html;
       hero.prepend(sky);
