@@ -273,7 +273,15 @@ const LeagueProfile = (() => {
   }
 
   // "โอน" buttons anywhere on the page: data-pay-to-id or data-pay-to-name, plus data-pay-amount and data-pay-from.
+  // The QR encoder (55 KB) is fetched the first time a transfer sheet opens instead of on every page load.
+  let qrLoading = null;
+  const loadQr = () => typeof window.qrcode === "function" ? Promise.resolve() : (qrLoading ||= new Promise(done => {
+    const s = document.createElement("script"); s.src = "vendor/qrcode-generator/qrcode.js?v=1.4.4";
+    s.onload = s.onerror = () => { if (typeof window.qrcode !== "function") qrLoading = null; done(); };
+    document.head.appendChild(s);
+  }));
   async function openPay({ toId = "", toName = "", fromName = "", amount = 0 }) {
+    await loadQr();
     const find = league => (toId ? LeagueShared.activeProfile(league, toId) : payeeByName(league, toName));
     let payee = find(LeagueShared.readLocalLeague());
     if (payee) show(payHtml({ payee, fromName, amount }), "payTitle");
