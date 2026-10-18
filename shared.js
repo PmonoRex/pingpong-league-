@@ -209,6 +209,16 @@ const LeagueShared = (() => {
     if (!response.ok) throw new Error(`Cloud request failed: ${response.status}`);
     return response.json();
   }
+  // The small "live" row (live scoring, live.js): same table, its own id, so watchers poll a few KB instead of the league.
+  // Missing before the owner runs 20261018130000_harden_shared_state.sql: a GET then returns [] and live.js stays local.
+  const LIVE_ENDPOINT = `${SUPABASE_URL}/rest/v1/app_state?id=eq.live`;
+  async function liveRequest(method = "GET", body = null, extraQuery = "") {
+    const options = { method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } };
+    if (body !== null) { options.headers["Content-Type"] = "application/json"; options.headers.Prefer = "return=representation"; options.body = JSON.stringify(body); }
+    const response = await fetch(`${LIVE_ENDPOINT}${extraQuery ? `&${extraQuery}` : ""}&select=league,updated_at`, options);
+    if (!response.ok) throw new Error(`Live request failed: ${response.status}`);
+    return response.json();
+  }
   // Self-service PIN change: re-read the cloud row, check the current PIN against it, and write back only this profile's
   // new credentials (optimistic lock on updated_at like every other writer; a lost race re-reads and retries).
   async function changePin(id, currentPin, newPin) {
@@ -263,5 +273,5 @@ const LeagueShared = (() => {
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
     sessionUserId, login, loginGuardStatus, logout, DEFAULT_PIN, pinPolicyError, hashPin, verifyPin, needsPinChange, setPin, resetPin,
-    keepCredentials, changePin, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff, MEDIA_BASE, mediaUrlOk, uploadMedia });
+    keepCredentials, changePin, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff, liveRequest, MEDIA_BASE, mediaUrlOk, uploadMedia });
 })();
