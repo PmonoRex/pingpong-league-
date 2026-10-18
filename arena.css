@@ -501,7 +501,9 @@ body.sport-redesign #schedule .pair>.vs{position:relative;width:50px;height:50px
 body.sport-redesign #schedule .pair>.vs:before{content:"";position:absolute;inset:-3px;border-radius:50%;z-index:-1;
   background:conic-gradient(from var(--beam-angle,0deg),#ff4752,transparent 30%,#fff 50%,transparent 70%,#ff4752);
   -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));
-  animation:fxBeam 2.4s linear infinite}
+  will-change:transform;animation:fxSpin 2.4s linear infinite}
+/* The ring is round, so turning it is the same picture as moving the gradient's start angle, and the compositor can do it. */
+@keyframes fxSpin{to{transform:rotate(360deg)}}
 /* a finished bout: the winner's ring burns brighter, the loser's photo goes grey */
 body.sport-redesign #schedule .match[data-win=a] .pair>b:last-child .pa,body.sport-redesign #schedule .match[data-win=b] .pair>b:first-child .pa{filter:grayscale(1)}
 body.sport-redesign #schedule .match[data-win=a] .pair>b:first-child .pa{box-shadow:0 0 0 2px #0c0d11,0 0 0 4px #ff4752,0 0 34px rgba(255,71,82,.9)}

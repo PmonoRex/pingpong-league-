@@ -52,7 +52,8 @@ function askPinChange(knownPin=""){if(typeof PinChange!=="undefined")PinChange.e
 function logout(){LeagueShared.logout();reconcileSession();renderLogin();render()}
 function allMatches(){const out=[];(league.rounds||[]).forEach((r,ri)=>r.m.forEach((pair,mi)=>out.push({id:mid(ri,mi),season:league.currentSeason,ri,mi,pair,score:(league.results||{})[mid(ri,mi)]})));return out}
 function hasResult(m){return m.score&&valid(m.score.a)&&valid(m.score.b)}
-function credits(v){return Number(v||0).toLocaleString("th-TH")}
+let creditFmt=null; // one number formatter for every row (building one per call is slow on a phone)
+function credits(v){return (creditFmt||=new Intl.NumberFormat("th-TH")).format(Number(v||0))}
 
 const RP_TABLE=[100,80,65,50,40,30,20,10,5];
 function playerRankProfile(userId){

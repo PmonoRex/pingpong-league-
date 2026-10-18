@@ -237,7 +237,8 @@ if (typeof window !== "undefined") window.HallRecords = HallRecords;
   const nm = id => league?.profiles?.[id]?.displayName || id;
   const avatar = (id, size) => window.LeagueUI?.avatar ? window.LeagueUI.avatar(id, nm(id), size) : "";
   const KIND = { challenge: "ท้าดวล", tournament: "ทัวร์" };
-  const date = at => { const d = new Date(at); return at && !isNaN(d) ? d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" }) : ""; };
+  let dateFmt = null; // one formatter for every plaque (building one per date is slow on a phone)
+  const date = at => { const d = new Date(at); return at && !isNaN(d) ? (dateFmt ||= new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "2-digit" })).format(d) : ""; };
   const where = ref => !ref ? "" : ref.src === "league" ? `ซีซั่น ${ref.season}${ref.round !== null && ref.round !== undefined ? ` รอบ ${ref.round + 1}` : ""}` : [KIND[ref.kind] || "คลับ", date(ref.at)].filter(Boolean).join(" • ");
   const vs = (opp, score) => `${score ? `${score[0]}–${score[1]} ` : ""}vs ${opp.map(nm).join(" / ")}`;
 
