@@ -12,6 +12,16 @@ const league = (cur, archives = [], extra = {}) => ({ profiles, currentSeason: a
   seasonArchives: archives.map((list, i) => ({ season: i + 1, ...season(list) })), rankHistory: [], ...extra });
 const rec = (l, club, id) => H.compute(l, club).find(r => r.id === id);
 
+test('records follow an edited club result in the middle of the list (memo is keyed on every score)', () => {
+  const l = league([]);
+  const club = { matches: [
+    { id: 't1', kind: 'tournament', a: 'a', b: 'b', s: { a: 11, b: 9 }, at: '2026-10-01T00:00:00Z' },
+    { id: 't2', kind: 'tournament', a: 'c', b: 'd', s: { a: 11, b: 8 }, at: '2026-10-02T00:00:00Z' }] };
+  assert.equal(H.records(l, club).find(r => r.id === 'margin').value, 3);
+  const edited = structuredClone(club); edited.matches[0].s = { a: 11, b: 0 };
+  assert.equal(H.records(l, edited).find(r => r.id === 'margin').value, 11);
+});
+
 test('every record is computed, in the documented order', () => {
   assert.deepEqual(H.compute(league([]), null).map(r => r.id), ['streak', 'streakAll', 'unbeaten', 'margin', 'points', 'upset', 'seasonRate', 'peakElo', 'topElo', 'titles', 'tourney', 'rp', 'played']);
   assert.ok(H.compute(league([]), null).every(r => r.value === 0 && r.holders.length === 0));

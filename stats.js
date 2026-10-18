@@ -31,4 +31,6 @@ async function init(){const local=LeagueShared.readLocalLeague();league=local||{
  if(has(q.get("a")))$("playerA").value=q.get("a");else if(has(me))$("playerA").value=me;
  if(has(q.get("b")))$("playerB").value=q.get("b");else if($("playerB").value===$("playerA").value){const o=people.find(p=>p.id!==$("playerA").value);if(o)$("playerB").value=o.id}
  $("h2hSwap")?.addEventListener("click",()=>{const x=$("playerA").value;$("playerA").value=$("playerB").value;$("playerB").value=x;render()});
- $("playerA").onchange=render;$("playerB").onchange=render;render()}init();
+ $("playerA").onchange=render;$("playerB").onchange=render;render();
+ // ตัวต่อตัว counts the club friendlies from the local club copy; challenge.js reads the club row after this first render.
+ addEventListener("pp-club",render)}init();

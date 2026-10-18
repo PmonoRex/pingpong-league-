@@ -56,10 +56,12 @@
   const enabled = () => supported() && Notification.permission === "granted" && read(NOTIFY) === true;
   // When this device is registered for Web Push, the server (supabase/functions/push-notify) sends the system
   // notification, even with the app closed; here we then only show the in-page toast, so nothing arrives twice.
+  // Some browsers (private modes, blocked storage) never finish registering the service worker; don't wait forever.
+  const swReady = (ms = 4000) => Promise.race([navigator.serviceWorker.ready, new Promise((_, no) => setTimeout(() => no(new Error("sw timeout")), ms))]);
   async function show(title, body, tag, force = false) {
     if (!document.hidden) toast(`${title} • ${body}`, "good");
     if (!enabled() || (pushActive() && !force)) return;
-    try { const reg = await navigator.serviceWorker.ready; await reg.showNotification(title, { body, tag, icon: "icons/icon-192.png", badge: "icons/icon-192.png", data: { url: "index.html" } }); } catch {}
+    try { const reg = await swReady(); await reg.showNotification(title, { body, tag, icon: "icons/icon-192.png", badge: "icons/icon-192.png", data: { url: "index.html" } }); } catch {}
   }
   async function toggleNotify() {
     if (!supported()) return toast(ios() && !standalone() ? "บน iPhone ต้องติดตั้งเป็นแอปก่อน ถึงจะรับแจ้งเตือนได้" : "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน", "bad");
@@ -75,7 +77,9 @@
   // ---------- Web Push ----------
   // Needs a VAPID public key in push-config.js and a browser with PushManager (Android Chrome; iPhone only as an
   // installed app, iOS 16.4+). Without either, the in-app notifications above are all there is.
-  const PUSH = "pp_push_sub";   // { endpoint, userId } as last registered with pp_push_subscribe
+  // { endpoint, userId, tok } as last registered with pp_push_subscribe; tok is the end of the session token it used
+  // (the server takes the player from the token, 20261020120000_push_session.sql), so a new sign-in registers again.
+  const PUSH = "pp_push_sub";
   const vapidKey = () => typeof window.PUSH_VAPID_PUBLIC_KEY === "string" ? window.PUSH_VAPID_PUBLIC_KEY.trim() : "";
   const pushCapable = () => supported() && "PushManager" in window && !!vapidKey() && !!LS()?.SUPABASE_URL;
   const pushActive = () => enabled() && pushCapable() && !!read(PUSH)?.endpoint;
@@ -85,45 +89,62 @@
     const a = new Uint8Array(have), b = keyBytes(vapidKey());
     return a.length === b.length && a.every((v, i) => v === b[i]);
   };
+<<<<<<< HEAD
   const signedIn = () => { const S = LS(); try { return S?.sessionUserId((S.peekLocalLeague || S.readLocalLeague)()) || ""; } catch { return ""; } };
+=======
+  const signedIn = () => { const S = LS(); try { return S?.sessionUserId(S.readLocalLeague()) || ""; } catch { return ""; } };
+  // The server session token from pp_login (shared.js), or "" when this browser has none for the signed-in account
+  // (server auth not installed, signed in offline, or the session expired).
+  const sessionToken = () => { try { return LS()?.sessionToken?.() || ""; } catch { return ""; } };
+  const tokTag = t => t ? t.slice(-12) : "";
+  // Registered with this token already (or, without a token, still registered for this player from an earlier one).
+  const pushCurrent = (stored, me, token) => !!stored?.endpoint && stored.userId === me && (!token || stored.tok === tokTag(token));
+>>>>>>> origin/main
   async function rpc(name, args) {
     const S = LS();
     const res = await fetch(`${S.SUPABASE_URL}/rest/v1/rpc/${name}`, { method: "POST", body: JSON.stringify(args),
       headers: { apikey: S.SUPABASE_KEY, Authorization: `Bearer ${S.SUPABASE_KEY}`, "Content-Type": "application/json" } });
-    if (!res.ok) throw new Error(`${name} ${res.status}`);
+    if (!res.ok) throw Object.assign(new Error(`${name} ${res.status}`), { status: res.status });
   }
   // Keeps the server's record of this device in step with the signed-in player. Resolves true when push is set up.
-  let syncing = null, retryAt = 0, lastSync = 0;
+  let syncing = null, retryAt = 0, lastSync = 0, lastToken = "";
   function syncPush(force = false) {
     if (syncing) return syncing;
     if (!enabled() || !pushCapable() || (!force && Date.now() < retryAt)) return Promise.resolve(false);
     lastSync = Date.now();
     syncing = (async () => {
-      const stored = read(PUSH), me = signedIn();
+      const stored = read(PUSH), me = signedIn(), token = sessionToken();
       try {
-        if (!me) { if (stored?.endpoint) { await rpc("pp_push_unsubscribe", { p_endpoint: stored.endpoint }); store(PUSH, null); } return false; }
-        const reg = await navigator.serviceWorker.ready;
+        if (!me || (!token && stored?.endpoint && stored.userId !== me)) { if (stored?.endpoint) { await rpc("pp_push_unsubscribe", { p_endpoint: stored.endpoint }); store(PUSH, null); } return false; }
+        // No server session: the server cannot tell who this is, so do not register (in-app notifications only) until
+        // the player signs in again; a registration made earlier with a valid token for this player stays.
+        if (!token) return pushCurrent(stored, me, token);
+        const reg = await swReady();
         let sub = await reg.pushManager.getSubscription();
         if (sub && !sameKey(sub)) { await sub.unsubscribe().catch(() => {}); sub = null; }
         if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(vapidKey()) });
-        if (stored?.endpoint === sub.endpoint && stored.userId === me) return true;
+        if (stored?.endpoint === sub.endpoint && pushCurrent(stored, me, token)) return true;
         if (stored?.endpoint && stored.endpoint !== sub.endpoint) await rpc("pp_push_unsubscribe", { p_endpoint: stored.endpoint }).catch(() => {});
         const keys = sub.toJSON().keys || {};
-        await rpc("pp_push_subscribe", { p_endpoint: sub.endpoint, p_p256dh: keys.p256dh, p_auth: keys.auth, p_user_id: me });
-        store(PUSH, { endpoint: sub.endpoint, userId: me }); retryAt = 0;
+        // Only ever the token version; the old one that took a player id is never called.
+        await rpc("pp_push_subscribe", { p_token: token, p_endpoint: sub.endpoint, p_p256dh: keys.p256dh, p_auth: keys.auth });
+        store(PUSH, { endpoint: sub.endpoint, userId: me, tok: tokTag(token) }); retryAt = 0;
         return true;
-      } catch {
-        // Server not set up yet (SQL not run), offline, or the browser refused: stay on in-app notifications, retry later.
-        store(PUSH, null); retryAt = Date.now() + 60000;
+      } catch (error) {
+        // Server not set up yet (SQL not run: 404), session expired (403), offline, or the browser refused: stay on
+        // in-app notifications, retry later (sooner after a new sign-in, see check()).
+        store(PUSH, null); retryAt = Date.now() + (error?.status === 404 ? 600000 : 60000);
         return false;
-      } finally { syncing = null; }
+      }
     })();
+    // Cleared after the promise settles (a finally inside would run before the assignment when nothing is awaited).
+    const mine = syncing; mine.finally(() => { if (syncing === mine) syncing = null; });
     return syncing;
   }
   async function pushOff() {
     const stored = read(PUSH); store(PUSH, null);
     try { if (stored?.endpoint) await rpc("pp_push_unsubscribe", { p_endpoint: stored.endpoint }); } catch {}
-    try { const sub = await (await navigator.serviceWorker.ready).pushManager?.getSubscription(); await sub?.unsubscribe(); } catch {}
+    try { const sub = await (await swReady()).pushManager?.getSubscription(); await sub?.unsubscribe(); } catch {}
   }
 
   // What is worth telling the signed-in player right now, each item keyed so it is told once.
@@ -158,6 +179,7 @@
   let lastSig = null;
   function check() {
     if (!enabled()) return;
+<<<<<<< HEAD
     // Re-register when the signed-in player changed (or signed out), and once a minute in case the browser rotated it.
     if (pushCapable() && ((read(PUSH)?.userId || "") !== signedIn() || Date.now() - lastSync > 60000)) syncPush();
     // Nothing to tell unless a stored copy changed since the last look: comparing the stored strings is cheap, working
@@ -166,15 +188,29 @@
     sig.push(window.LeagueSocial?.available?.() ?? null);
     if (lastSig && sig.every((v, i) => v === lastSig[i])) return;
     lastSig = sig;
+=======
+    // Re-register when the signed-in player or the session token changed (or signed out), and once a minute in case
+    // the browser rotated it. A new token (fresh sign-in) skips the retry wait.
+    if (pushCapable()) {
+      const stored = read(PUSH), me = signedIn(), token = sessionToken(), newToken = !!token && token !== lastToken;
+      lastToken = token;
+      if (newToken && !pushCurrent(stored, me, token)) syncPush(true);
+      else if ((stored?.userId || "") !== me || (token && stored?.tok !== tokTag(token)) || Date.now() - lastSync > 60000) syncPush();
+    }
+>>>>>>> origin/main
     const seenList = read(SEEN); if (!Array.isArray(seenList)) return baseline();
     const seen = new Set(seenList), now = events(), fresh = now.filter(e => !seen.has(e.key));
     if (!fresh.length) return;
-    store(SEEN, [...new Set([...seenList, ...now.map(e => e.key)])].slice(-400));
+    // Every key still current stays in the list (cutting them off by age would tell the same events again every 5 s
+    // once a busy season has more than 400); older keys (e.g. reactions, which only pages with social.js list) fill
+    // what room is left of 1000.
+    const current = new Set(now.map(e => e.key)), room = 1000 - current.size;
+    store(SEEN, [...(room > 0 ? seenList.filter(k => !current.has(k)).slice(-room) : []), ...current]);
     fresh.slice(0, 3).forEach(e => show(e.title, e.body, e.tag));
   }
   // The pages refresh the league copy in localStorage as the cloud row changes; look at it every few seconds.
   setInterval(check, 5000);
-  addEventListener("storage", e => { if (e.key && (e.key === LS()?.LEAGUE_KEY || e.key === LS()?.PRED_KEY || e.key === LS()?.CLUB_KEY || e.key === LS()?.SESSION_KEY)) check(); });
+  addEventListener("storage", e => { if (e.key && (e.key === LS()?.LEAGUE_KEY || e.key === LS()?.PRED_KEY || e.key === LS()?.CLUB_KEY || e.key === LS()?.SESSION_KEY || e.key === LS()?.TOKEN_KEY)) check(); });
 
   if (document.readyState === "complete") setTimeout(offerInstall, 2500); else addEventListener("load", () => setTimeout(offerInstall, 2500), { once: true });
   window.LeaguePWA = Object.freeze({ canInstall, install, standalone, supported, enabled, toggleNotify, events, pushActive, syncPush });

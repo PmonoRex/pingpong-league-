@@ -39,7 +39,10 @@ function makeRoundRobin(ids){
  return out;
 }
 function setSync(text,status=""){const e=document.getElementById("syncStatus");e.textContent=text;e.className=`pill sync ${status}`}
-const cloudRequest=(method="GET",body=null,extraQuery="")=>LeagueShared.cloudRequest("league,updated_at",method,body,extraQuery);
+// The predictions ride along (same row, same updated_at): the player card, the notifications and the helper card read
+// the local predictions copy, which only predictions.html refreshed before.
+const cloudRequest=(method="GET",body=null,extraQuery="")=>LeagueShared.cloudRequest("league,predictions,updated_at",method,body,extraQuery);
+function keepPredictions(row){const p=row?.predictions?.uidPredictions;if(p&&typeof p==="object")try{localStorage.setItem(LeagueShared.PRED_KEY,JSON.stringify(p))}catch{}}
 function cloudPayload(){return {uidLeague:state}}
 function saveState(){if(!isAdmin())return;saveLocal();if(!cloudReady)return;dirty=true;changeVersion++;setSync("กำลังบันทึก…");clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,400)}
 async function pushCloud(){
@@ -72,9 +75,9 @@ async function pushCloud(){
  }catch(e){setSync("ออฟไลน์ • เก็บในเครื่อง","offline")}finally{cloudSaving=false;if(saved&&dirty)saveTimer=setTimeout(pushCloud,400)}
 }
 function reconcileSession(){currentUserId=LeagueShared.sessionUserId(state);document.getElementById("auth").classList.toggle("hidden",Boolean(currentUserId))}
-async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal()}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");askPinChange();setInterval(pullCloud,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
+async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;keepPredictions(row);const remote=row?.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal()}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");askPinChange();setInterval(pullCloud,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
 // Each poll asks only for updated_at; the whole league (with everyone's pictures) is fetched only when it changed.
-async function pullCloud(){if(!cloudReady||dirty||cloudSaving||document.hidden)return;try{const stamp=(await LeagueShared.cloudRequest("updated_at"))[0];if(!stamp||stamp.updated_at===lastCloudUpdate)return;const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal();reconcileSession();renderLogin();render()}}catch(e){}}
+async function pullCloud(){if(!cloudReady||dirty||cloudSaving||document.hidden)return;try{const stamp=(await LeagueShared.cloudRequest("updated_at"))[0];if(!stamp||stamp.updated_at===lastCloudUpdate)return;const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";keepPredictions(row);const remote=row.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal();reconcileSession();renderLogin();render()}}catch(e){}}
 
 function renderLogin(){LeagueShared.renderLoginOptions(document.getElementById("loginUser"),state,currentUserId)}
 async function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!(await LeagueShared.login(state,id,pin))){alert(loginFailMessage(id));return}document.getElementById("loginPin").value="";reconcileSession();render();askPinChange(pin)}

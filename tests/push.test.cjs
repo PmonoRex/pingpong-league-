@@ -194,3 +194,72 @@ test('push-config.js holds a public VAPID key (65-byte uncompressed P-256, base6
   assert.match(sw, /addEventListener\('push'/);
   assert.match(sw, /safePage\(event\.notification\.data\?\.url\)/);
 });
+
+// ---------- pwa.js: registers this device only with a server session token ----------
+function loadPwa({ token = '', userId = 'alice', subscribeStatus = 200 } = {}) {
+  const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
+  const values = new Map([['pp_notify', 'true']]);
+  const localStorage = { getItem: k => values.has(k) ? values.get(k) : null, setItem: (k, v) => values.set(k, String(v)), removeItem: k => values.delete(k) };
+  const calls = [];
+  const sub = { endpoint: 'https://fcm.googleapis.com/fcm/send/dev1', options: {}, toJSON: () => ({ keys: { p256dh: 'B'.repeat(87), auth: 'A'.repeat(22) } }), unsubscribe: async () => true };
+  const state = { token, userId };
+  const LeagueShared = {
+    SUPABASE_URL: 'https://x.supabase.co', SUPABASE_KEY: 'pk', LEAGUE_KEY: 'L', PRED_KEY: 'P', CLUB_KEY: 'C', SESSION_KEY: 'pp_user_id', TOKEN_KEY: 'pp_session_v2',
+    readLocalLeague: () => ({ profiles: {} }), sessionUserId: () => state.userId, sessionToken: () => state.token
+  };
+  const fetch = async (url, init) => {
+    const name = url.split('/rpc/')[1]; calls.push({ name, args: JSON.parse(init.body) });
+    const status = name === 'pp_push_subscribe' ? subscribeStatus : 200;
+    return { ok: status < 300, status };
+  };
+  const window = {
+    LeagueShared, localStorage, fetch, PUSH_VAPID_PUBLIC_KEY: Buffer.alloc(65, 4).toString('base64url'), Notification: { permission: 'granted' }, PushManager: function () {},
+    navigator: { userAgent: 'x', serviceWorker: { ready: Promise.resolve({ pushManager: { getSubscription: async () => null, subscribe: async () => sub } }) } },
+    document: { readyState: 'loading', hidden: true, querySelector: () => null, body: null },
+    matchMedia: () => ({ matches: false }), addEventListener: () => {}, setInterval: () => 0, setTimeout: () => 0,
+    requestAnimationFrame: () => 0, atob: s => Buffer.from(s, 'base64').toString('binary')
+  };
+  window.window = window;
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'pwa.js'), 'utf8'), window);
+  return { pwa: window.LeaguePWA, calls, state, stored: () => JSON.parse(values.get('pp_push_sub') || 'null') };
+}
+
+test('pwa.js: subscribes with the session token, never with a user id', async () => {
+  const { pwa, calls, stored } = loadPwa({ token: 'a'.repeat(64) });
+  assert.strictEqual(await pwa.syncPush(true), true);
+  assert.deepStrictEqual(calls.map(c => c.name), ['pp_push_subscribe']);
+  assert.deepStrictEqual(Object.keys(calls[0].args).sort(), ['p_auth', 'p_endpoint', 'p_p256dh', 'p_token']);
+  assert.strictEqual(calls[0].args.p_token, 'a'.repeat(64));
+  assert.deepStrictEqual(stored(), { endpoint: 'https://fcm.googleapis.com/fcm/send/dev1', userId: 'alice', tok: 'a'.repeat(12) });
+  assert.strictEqual(await pwa.syncPush(true), true); assert.strictEqual(calls.length, 1, 'same token: no new call');
+});
+
+test('pwa.js: no token means no registration; a later sign-in registers', async () => {
+  const { pwa, calls, state, stored } = loadPwa({ token: '' });
+  assert.strictEqual(await pwa.syncPush(true), false);
+  assert.deepStrictEqual(calls, []); assert.strictEqual(pwa.pushActive(), false);
+  state.token = 'b'.repeat(64);
+  assert.strictEqual(await pwa.syncPush(true), true);
+  assert.strictEqual(calls[0].args.p_token, 'b'.repeat(64));
+  // the token changes (new sign-in): registered again with the new one
+  state.token = 'c'.repeat(64);
+  assert.strictEqual(await pwa.syncPush(true), true);
+  assert.strictEqual(calls.length, 2); assert.strictEqual(calls[1].args.p_token, 'c'.repeat(64));
+  // session expired locally: the registration made with a valid token for this player stays, nothing is sent
+  state.token = '';
+  assert.strictEqual(await pwa.syncPush(true), true); assert.strictEqual(calls.length, 2);
+  // another player signs in without a token: the old registration is removed, no new one
+  state.userId = 'bob';
+  assert.strictEqual(await pwa.syncPush(true), false);
+  assert.deepStrictEqual(calls.map(c => c.name), ['pp_push_subscribe', 'pp_push_subscribe', 'pp_push_unsubscribe']);
+  assert.strictEqual(stored(), null);
+});
+
+test('pwa.js: server without the token function (404) stays on in-app notifications, no fallback call', async () => {
+  const { pwa, calls, stored } = loadPwa({ token: 'd'.repeat(64), subscribeStatus: 404 });
+  assert.strictEqual(await pwa.syncPush(true), false);
+  assert.deepStrictEqual(calls.map(c => c.name), ['pp_push_subscribe']);
+  assert.ok(!('p_user_id' in calls[0].args));
+  assert.strictEqual(stored(), null); assert.strictEqual(pwa.pushActive(), false);
+  assert.doesNotMatch(require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'pwa.js'), 'utf8'), /p_user_id/);
+});

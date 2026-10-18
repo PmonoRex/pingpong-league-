@@ -172,6 +172,7 @@ test('clubMutate re-applies the change on the newest copy after a lost race', as
   assert.deepEqual(row.league.club.social, { reactions: {}, comments: [] });
 });
 
+<<<<<<< HEAD
 test('clubRead downloads the club row again only when its updated_at changed, and shares a read in flight', async () => {
   const { shared, context, localStorage } = loadShared();
   let row = { league: { club: { v: 1, matches: [{ id: 'a' }] } }, updated_at: 't1' };
@@ -205,6 +206,33 @@ test('peekLocalLeague parses once and sees writes made through saveLocalLeague',
   shared.saveLocalLeague({ profiles, currentSeason: 2 });
   assert.equal(shared.peekLocalLeague().currentSeason, 2);
   assert.notEqual(shared.readLocalLeague(), shared.readLocalLeague()); // private copies stay private
+=======
+test('clubRead: overlapping reads share one request; a read sent before a save cannot bring the old row back', async () => {
+  const { shared, context, localStorage } = loadShared();
+  context.structuredClone = v => JSON.parse(JSON.stringify(v));
+  let row = { league: { club: { v: 1, challenges: [{ id: 'c1', status: 'open' }] } }, updated_at: '2026-10-18T01:00:00Z' }, gets = 0, release = null;
+  context.fetch = async (url, options) => {
+    if (String(url).includes('/rpc/')) return { ok: false, status: 404, json: async () => ({ code: 'PGRST202' }) };
+    if (options.method === 'GET') {
+      gets++;
+      const snapshot = JSON.parse(JSON.stringify(row));
+      if (gets === 1) return new Promise(done => { release = () => done({ ok: true, json: async () => [snapshot] }); });
+      return { ok: true, json: async () => [snapshot] };
+    }
+    const body = JSON.parse(options.body); row = { ...body, updated_at: '2026-10-18T01:00:05Z' }; return { ok: true, json: async () => [row] };
+  };
+  const slow = shared.clubRead(), joined = shared.clubRead();
+  await new Promise(r => setImmediate(r));
+  assert.equal(gets, 1, 'the second read joins the first');
+  await shared.clubMutate(c => { c.challenges[0].status = 'accepted'; });
+  release();
+  const [a, b] = await Promise.all([slow, joined]);
+  assert.equal(a.club.challenges[0].status, 'accepted');
+  assert.equal(b.club.challenges[0].status, 'accepted');
+  assert.notEqual(a.club, b.club, 'each caller gets its own copy');
+  assert.equal(JSON.parse(localStorage.getItem('pp_club_v1')).challenges[0].status, 'accepted');
+  assert.equal((await shared.clubRead()).club.challenges[0].status, 'accepted', 'a read sent after the save uses the row');
+>>>>>>> origin/main
 });
 
 test('clubRead returns null before the club row exists', async () => {
