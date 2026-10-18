@@ -67,7 +67,8 @@
     admin:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
     backup:'<path d="M7 18a5 5 0 0 1-.6-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/><path d="M12 11v6M9.5 13.5 12 11l2.5 2.5"/>',
     logout:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
-    menu:'<path d="M4 7h16M4 12h16M4 17h16"/>'
+    menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+    swords:'<path d="M4 4l9.5 9.5M4 4v3.5M4 4h3.5M20 4l-9.5 9.5M20 4v3.5M20 4h-3.5"/><path d="M7.5 14.5 5 17l2 2 2.5-2.5M16.5 14.5 19 17l-2 2-2.5-2.5"/>'
   };
   const svg=(d,w=20)=>`<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   // After a PIN change: let the page's own poll pick up the new row (index.js pullCloud, predictions.js pull).
@@ -76,6 +77,8 @@
   function menuItems(){
     const me=signedIn(),item=(ico,label,attrs)=>`<${attrs.href?'a':'button type="button"'} class="menu-item" ${Object.entries(attrs).map(([k,v])=>`${k}="${v}"`).join(' ')}${attrs.href&&attrs.href===page?' aria-current="page"':''}><i class="mi">${svg(MENU_ICONS[ico])}</i><span>${label}</span></${attrs.href?'a':'button'}>`;
     let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'});
+    // ท้าดวล (challenge.js): the count is open challenges waiting for this player's answer.
+    const CH=window.LeagueChallenge;if(CH){const n=CH.badge();html+=item('swords',`ท้าดวล${n?` <em class="menu-badge">${n}</em>`:''}`,{'data-act':'challenge'})}
     const account=[];
     if(me&&window.LeagueProfile?.openMine)account.push(item('profile','โปรไฟล์ของฉัน',{'data-act':'profile'}));
     if(me&&typeof PinChange!=='undefined')account.push(item('pin','เปลี่ยน PIN',{'data-act':'pin'}));
@@ -111,6 +114,7 @@
       if(act==='sound'){const s=qs('#soundToggle');s?.click();qs('span',hit).textContent=s?.textContent.trim()||'';hit.setAttribute('aria-pressed',s?.getAttribute('aria-pressed')||'true');return}
       close(false);
       if(act==='profile')window.LeagueProfile?.openMine?.();
+      if(act==='challenge')window.LeagueChallenge?.open?.();
       if(act==='pin'){const me=signedIn();if(me&&typeof PinChange!=='undefined')PinChange.run({userId:me.id,name:me.name,onSaved:refreshPage})}
       if(act==='wrapped')window.LeagueWrapped?.open?.();
       if(act==='install')window.LeaguePWA?.install?.();
