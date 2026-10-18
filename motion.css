@@ -22,20 +22,22 @@ html{scroll-behavior:smooth}
 html.pt-out::before,html.pt-out::after,html.pt-in::before,html.pt-in::after{content:"";position:fixed;top:0;bottom:0;left:-20vw;right:-20vw;z-index:2147483000;pointer-events:none;will-change:transform}
 /* the blade: a red slash with a hot white edge */
 html.pt-out::before,html.pt-in::before{background:linear-gradient(90deg,transparent 0 18%,#fff 18% 18.6%,#ff4752 18.6%,#d81e29 45%,#8e0f17 70%,transparent 70%);clip-path:polygon(22% 0,100% 0,78% 100%,0 100%)}
-/* the panel: arena dark with a red glow and the paddle mark */
-html.pt-out::after,html.pt-in::after{background:url(img/icons/paddle-256.webp) center/112px 112px no-repeat,radial-gradient(420px 320px at 50% 50%,rgba(229,36,47,.35),transparent 70%),#0a0b0e;clip-path:polygon(14% 0,100% 0,86% 100%,0 100%)}
+/* the panel: arena dark with a red glow and the loader */
+html.pt-out::after,html.pt-in::after{background:var(--pt-loader,url(img/loader-pingpong.svg)) center/var(--pt-size,min(320px,82vw)) auto no-repeat,radial-gradient(420px 320px at 50% 50%,rgba(229,36,47,.35),transparent 70%),#0a0b0e;clip-path:polygon(14% 0,100% 0,86% 100%,0 100%)}
+/* Loader on the cover: two players rallying; a spinning ring of cards when the Dummy page is involved. */
+html.pt-cards{--pt-loader:url(img/loader-cards.svg);--pt-size:min(230px,60vw)}
 /* leaving: blade then panel sweep in to cover */
 html.pt-out::before{animation:ptBladeInR 300ms cubic-bezier(.7,0,.3,1) both}
 html.pt-out::after{animation:ptCoverInR 340ms cubic-bezier(.7,0,.3,1) 60ms both}
 /* arriving: panel sweeps away, the blade trails it out */
-html.pt-in::after{animation:ptCoverOutL 520ms cubic-bezier(.7,0,.2,1) 80ms both}
-html.pt-in::before{animation:ptBladeOutL 560ms cubic-bezier(.7,0,.2,1) 160ms both}
+html.pt-in::after{animation:ptCoverOutL 520ms cubic-bezier(.7,0,.2,1) 380ms both}
+html.pt-in::before{animation:ptBladeOutL 560ms cubic-bezier(.7,0,.2,1) 460ms both}
 @keyframes ptBladeInR{from{transform:translateX(130%)}to{transform:translateX(-10%)}}
 @keyframes ptCoverInR{from{transform:translateX(130%)}to{transform:translateX(0)}}
 @keyframes ptCoverOutL{from{transform:translateX(0)}to{transform:translateX(-130%)}}
 @keyframes ptBladeOutL{from{transform:translateX(-10%)}to{transform:translateX(-140%)}}
 /* the page underneath settles in as the cover leaves */
-html.pt-in body.sport-redesign main{animation:pageIn 560ms var(--motion-ease) 180ms both}
+html.pt-in body.sport-redesign main{animation:pageIn 560ms var(--motion-ease) 480ms both}
 @keyframes pageIn{from{opacity:0;transform:translateY(14px) scale(.985)}}
 
 /* ---------- Feedback: press-down controls ---------- */

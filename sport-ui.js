@@ -8,7 +8,7 @@
   function ensureStyles(){
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
-      ['motion.css?v=20261018-wipe2','motion.css'],
+      ['motion.css?v=20261018-loader','motion.css'],
       ['arena.css?v=20261018-nav2','arena.css']
     ];
     required.forEach(([href,file])=>{
@@ -185,16 +185,19 @@
       if(url.origin!==location.origin||!/\.html$|\/$/.test(url.pathname)||(url.pathname===location.pathname&&url.search===location.search))return;
       e.preventDefault();
       const h=document.documentElement;
-      try{sessionStorage.setItem('pp_pt',JSON.stringify({at:Date.now()}))}catch{}
-      h.classList.remove('pt-in');h.classList.add('pt-out');
+      const cards=/dummy\.html$/i.test(url.pathname)||page==='dummy.html';
+      try{sessionStorage.setItem('pp_pt',JSON.stringify({at:Date.now(),cards}))}catch{}
+      h.classList.remove('pt-in');h.classList.toggle('pt-cards',cards);h.classList.add('pt-out');
       setTimeout(()=>{location.href=url.href},400);
       // If the next page never comes (offline, a stalled request) the cover lifts again instead of trapping the screen.
-      setTimeout(()=>h.classList.remove('pt-out'),5000);
+      setTimeout(()=>h.classList.remove('pt-out','pt-cards'),5000);
     });
     // Coming back through the back/forward cache must not leave the page covered.
-    addEventListener('pageshow',e=>{if(e.persisted)document.documentElement.classList.remove('pt-out')});
+    addEventListener('pageshow',e=>{if(e.persisted)document.documentElement.classList.remove('pt-out','pt-cards')});
   }
   wipeLinks();
+  // Warm the two loader pictures so the cover never shows up empty on the first tap.
+  addEventListener('load',()=>setTimeout(()=>['img/loader-pingpong.svg','img/loader-cards.svg'].forEach(src=>{const i=new Image();i.src=src}),600),{once:true});
   function boot(){setupMenu();markEmptyStats();elevateImportantCards();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
   // Installable app: sw.js keeps the shell (pages, css, js, fonts) on the phone; league data still comes live from Supabase.
