@@ -194,7 +194,9 @@ const HallRecords = (() => {
     try {
       return JSON.stringify([l?.currentSeason, l?.updatedAt || l?.updated_at || "", l?.results, (l?.rounds || []).length,
         (l?.seasonArchives || []).map(a => [a?.season, Object.keys(a?.results || {}).length]), (l?.rankHistory || []).length,
-        Object.keys(l?.profiles || {}).length, (club?.matches || []).length, (club?.matches || []).slice(-1)[0]?.at || "",
+        Object.keys(l?.profiles || {}).length,
+        // every club match's score: a tournament result edited later keeps the list length and the last entry's time
+        (Array.isArray(club?.matches) ? club.matches : []).map(m => [m?.id, m?.s?.a, m?.s?.b, m?.at]),
         (club?.tournaments || []).map(t => [t?.id, t?.status, ids(t?.champion).join("+")])]);
     } catch { return null; }
   }

@@ -49,3 +49,19 @@ test('format guess from league scores', () => {
   assert.deepStrictEqual(L.guessFormat({ r0m0: { a: 2, b: 0 } }), { bestOf: 3, record: 'games' });
   assert.deepStrictEqual(L.guessFormat({}), { bestOf: 1, record: 'points' });
 });
+
+test('clean() keeps a real live entry and refuses markup or broken shapes from the shared row', () => {
+  let m = play(base({ bestOf: 3 }), 'a'.repeat(11) + 'bb');
+  m = { ...m, club: true, names: ['A & B', 'C'] };
+  const c = L.clean(JSON.parse(JSON.stringify(m)));
+  assert.deepStrictEqual(c.games, [[11, 0]]); assert.deepStrictEqual(c.cur, [0, 2]);
+  assert.strictEqual(c.club, true); assert.deepStrictEqual(c.names, ['A & B', 'C']);
+  assert.strictEqual(L.undo(c).cur[1], 1, 'undo history survives');
+  assert.strictEqual(L.clean({ ...m, cur: ['<img src=x onerror=alert(1)>', 0] }), null);
+  assert.strictEqual(L.clean({ ...m, games: [[11, '0']] }), null);
+  assert.strictEqual(L.clean({ ...m, bestOf: '<b>' }), null);
+  assert.strictEqual(L.clean({ ...m, done: true }).done, false, 'done only when the games say so');
+  assert.strictEqual(L.clean({ ...m, names: ['x'] }).names, undefined);
+  assert.deepStrictEqual(Object.keys(L.cleanAll({ ok: m, bad: { cur: 'x' }, nil: null })), ['ok']);
+  assert.deepStrictEqual(L.cleanAll('nope'), {});
+});

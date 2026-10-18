@@ -50,7 +50,8 @@ const ChallengeCore = (() => {
       ...(doubles ? { teamA: input.teamA.slice(0, 2), teamB: input.teamB.slice(0, 2) } : {}), note: cleanNote(input.note), status: "open", at };
     club.challenges.push(ch);
     // Keep the list small: drop the oldest finished ones past KEEP (the results stay in club.matches).
-    while (club.challenges.length > KEEP) { const i = club.challenges.findIndex(c => c.status !== "open" && c.status !== "accepted"); if (i < 0) break; club.challenges.splice(i, 1); }
+    // Only finished challenges the sender took part in: the server (pp_save_club) refuses a player removing others' items.
+    while (club.challenges.length > KEEP) { const i = club.challenges.findIndex(c => c.status !== "open" && c.status !== "accepted" && isIn(c, ch.from)); if (i < 0) break; club.challenges.splice(i, 1); }
     return ch;
   }
   const can = (ch, me, action, admin = false) => {
@@ -93,7 +94,8 @@ const ChallengeCore = (() => {
   const ready = (club, me) => list(club).filter(c => c.status === "accepted" && isIn(c, me)).sort(byTime);
   const others = (club, me) => list(club).filter(c => (c.status === "open" || c.status === "accepted") && !isIn(c, me)).sort(byTime);
   // Finished challenge matches, latest first.
-  const history = (club, limit = 20) => (Array.isArray(club?.matches) ? club.matches : []).filter(m => m?.kind === "challenge" && m.s)
+  // Whole-number scores only: the club row is written by every member and the score goes into the page as markup.
+  const history = (club, limit = 20) => (Array.isArray(club?.matches) ? club.matches : []).filter(m => m?.kind === "challenge" && valid(m.s))
     .slice().sort(byTime).slice(0, limit);
   const badge = (club, me) => openForMe(club, me).length;
 
@@ -294,7 +296,7 @@ ${rest.length ? `<section class="ch-sec"><h3>คำท้าในก๊วน<s
   }
   function ensureLive() {
     if (window.LeagueLive?.scoreClub) return Promise.resolve(window.LeagueLive);
-    return new Promise((ok, no) => { const s = document.createElement("script"); s.src = "live.js?v=20261019-tourney"; s.onload = () => window.LeagueLive?.scoreClub ? ok(window.LeagueLive) : no(new Error("live")); s.onerror = () => no(new Error("โหลดกระดานนับแต้มไม่ได้")); document.head.appendChild(s); });
+    return new Promise((ok, no) => { const s = document.createElement("script"); s.src = "live.js?v=20261020-review"; s.onload = () => window.LeagueLive?.scoreClub ? ok(window.LeagueLive) : no(new Error("live")); s.onerror = () => no(new Error("โหลดกระดานนับแต้มไม่ได้")); document.head.appendChild(s); });
   }
   async function saveScore(id, score, liveKey = "") {
     const l = league(), me = meId(l), admin = isAdmin(l, me);

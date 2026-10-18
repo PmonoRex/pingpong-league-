@@ -182,7 +182,11 @@
     const seenList = read(SEEN); if (!Array.isArray(seenList)) return baseline();
     const seen = new Set(seenList), now = events(), fresh = now.filter(e => !seen.has(e.key));
     if (!fresh.length) return;
-    store(SEEN, [...new Set([...seenList, ...now.map(e => e.key)])].slice(-400));
+    // Every key still current stays in the list (cutting them off by age would tell the same events again every 5 s
+    // once a busy season has more than 400); older keys (e.g. reactions, which only pages with social.js list) fill
+    // what room is left of 1000.
+    const current = new Set(now.map(e => e.key)), room = 1000 - current.size;
+    store(SEEN, [...(room > 0 ? seenList.filter(k => !current.has(k)).slice(-room) : []), ...current]);
     fresh.slice(0, 3).forEach(e => show(e.title, e.body, e.tag));
   }
   // The pages refresh the league copy in localStorage as the cloud row changes; look at it every few seconds.

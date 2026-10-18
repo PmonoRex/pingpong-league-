@@ -316,6 +316,8 @@ if (typeof window !== "undefined") window.TourneyEngine = TourneyEngine;
   const today = () => { try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date()); } catch { return new Date().toISOString().slice(0, 10); } };
   const liveKey = (t, m) => `t:${t.id}:${m.id}`;
   const liveOf = key => { try { return window.LeagueLive?.liveClub?.(key) || null; } catch { return null; } };
+  // A stored score as page text: the club row is written by every member, so only whole numbers are shown.
+  const pts = v => Number.isInteger(v) ? v : "";
   const svg = (d, w = 20) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const TROPHY = '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v1.5A3 3 0 0 0 8 10.5M16 6h3v1.5a3 3 0 0 1-3 3"/><path d="M12 13v4M8.5 20h7"/>';
   const who = () => { me = LS.sessionUserId(league); admin = LS.isAdmin(league, me); };
@@ -348,7 +350,7 @@ if (typeof window !== "undefined") window.TourneyEngine = TourneyEngine;
     const row = side => {
       const idx = m[side], seed = ko && idx >= 0 ? ko.seeds.indexOf(idx) + 1 : 0, won = !m.bye && m.w === side, lost = !m.bye && m.w && m.w !== side;
       const text = idx === null ? "รอผู้ชนะ" : label(t, idx);
-      return `<span class="tb-row${won ? " win" : ""}${lost ? " lose" : ""}${idx === null ? " tbd" : ""}${idx === -1 ? " bye" : ""}"><i class="tb-seed">${seed || ""}</i><b>${esc(text)}</b><em>${m.s ? m.s[side] : ""}</em></span>`;
+      return `<span class="tb-row${won ? " win" : ""}${lost ? " lose" : ""}${idx === null ? " tbd" : ""}${idx === -1 ? " bye" : ""}"><i class="tb-seed">${seed || ""}</i><b>${esc(text)}</b><em>${m.s ? pts(m.s[side]) : ""}</em></span>`;
     };
     const aria = `${m.label || ""} ${label(t, m.a) || "รอผู้ชนะ"} พบ ${label(t, m.b) || "รอผู้ชนะ"}${m.s ? ` ผล ${m.s.a}-${m.s.b}` : ""}`;
     return `<button type="button" class="tb-m${m.w && !m.bye ? " done" : ""}${m.bye ? " is-bye" : ""}${live && !live.done ? " is-live" : ""}" data-match="${esc(m.id)}" ${T.playable(m) ? "" : "disabled"} aria-label="${esc(aria)}">${row("a")}${row("b")}${live ? `<span class="tb-live"><i aria-hidden="true"></i>${live.done ? "จบแล้ว" : "LIVE"} ${live.done ? "" : live.cur.join("–")}</span>` : ""}</button>`;
@@ -440,8 +442,8 @@ if (typeof window !== "undefined") window.TourneyEngine = TourneyEngine;
   function openMatch(t, id) {
     const m = T.findMatch(t, id); if (!m || !T.playable(m)) return;
     const can = canScore(t, m), key = liveKey(t, m), live = liveOf(key), A = label(t, m.a), B = label(t, m.b);
-    const field = (side, nm) => `<div class="ts-row"><label for="ts${side}">${esc(nm)}</label><div class="ts-ctrl"><button type="button" class="secondary" data-step="${side}:-1" aria-label="ลดแต้ม ${esc(nm)}">−</button><input id="ts${side}" type="number" inputmode="numeric" min="0" max="99" value="${m.s ? m.s[side] : ""}"><button type="button" class="secondary" data-step="${side}:1" aria-label="เพิ่มแต้ม ${esc(nm)}">+</button></div></div>`;
-    const liveDone = live?.done && window.LiveScore ? window.LiveScore.result(live) : null;
+    const field = (side, nm) => `<div class="ts-row"><label for="ts${side}">${esc(nm)}</label><div class="ts-ctrl"><button type="button" class="secondary" data-step="${side}:-1" aria-label="ลดแต้ม ${esc(nm)}">−</button><input id="ts${side}" type="number" inputmode="numeric" min="0" max="99" value="${m.s ? pts(m.s[side]) : ""}"><button type="button" class="secondary" data-step="${side}:1" aria-label="เพิ่มแต้ม ${esc(nm)}">+</button></div></div>`;
+    const liveDone = live?.done && typeof LiveScore !== "undefined" ? LiveScore.result(live) : null; // a top-level const: not on window
     openSheet(`<button type="button" class="t-x" data-close aria-label="ปิด">×</button>
       <p class="t-kicker">${esc(m.label || "")}</p><h2 id="tsTitle" class="ts-title"><span>${esc(A)}</span><em>VS</em><span>${esc(B)}</span></h2>
       ${live && !live.done ? `<button type="button" class="secondary ts-wide" data-ts="watch"><i class="lv-dot" aria-hidden="true"></i>ดูสด ${live.cur.join("–")}</button>` : ""}
@@ -449,7 +451,7 @@ if (typeof window !== "undefined") window.TourneyEngine = TourneyEngine;
         ${liveDone ? `<button type="button" class="secondary ts-wide" data-ts="fromlive">ใช้ผลจากนับสด ${liveDone.a}–${liveDone.b}</button>` : ""}
         <button type="submit" class="primary ts-wide">บันทึกผล</button>
         <div class="ts-more">${window.LeagueLive?.scoreClub ? `<button type="button" class="secondary" data-ts="live"><i class="lv-dot" aria-hidden="true"></i>${live && !live.done ? "นับต่อ" : "นับสด"}</button>` : ""}${m.s && admin ? `<button type="button" class="danger" data-ts="clear">ล้างผล</button>` : ""}</div></form>`
-        : `<p class="ts-result">${m.s ? `ผล <b>${m.s.a}–${m.s.b}</b>` : "ยังไม่มีผล"}</p><p class="muted ts-note">${!writable() ? "ตอนนี้ดูได้อย่างเดียว" : me ? "แอดมินหรือผู้เล่นในคู่นี้เท่านั้นที่กรอกผลได้" : "เข้าสู่ระบบที่หน้าแรกก่อนกรอกผล"}</p>`}`, "tsTitle");
+        : `<p class="ts-result">${m.s ? `ผล <b>${pts(m.s.a)}–${pts(m.s.b)}</b>` : "ยังไม่มีผล"}</p><p class="muted ts-note">${!writable() ? "ตอนนี้ดูได้อย่างเดียว" : me ? "แอดมินหรือผู้เล่นในคู่นี้เท่านั้นที่กรอกผลได้" : "เข้าสู่ระบบที่หน้าแรกก่อนกรอกผล"}</p>`}`, "tsTitle");
     const form = sheet.querySelector(".ts-form"), err = sheet.querySelector(".t-err");
     sheet.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { const [side, d] = b.dataset.step.split(":"), inp = $(`ts${side}`); inp.value = Math.max(0, (Number(inp.value) || 0) + Number(d)); });
     const submit = async s => {
@@ -501,7 +503,7 @@ if (typeof window !== "undefined") window.TourneyEngine = TourneyEngine;
       ids: [...f.querySelectorAll("[name=player]:checked")].map(x => x.value) };
   }
   function draft(o) {
-    const rate = T.ratingSource(league, club, window), rand = mulberry(draftSeed);
+    const rate = T.ratingSource(league, club, { LeagueElo: typeof LeagueElo !== "undefined" ? LeagueElo : null }), rand = mulberry(draftSeed);
     if (o.kind === "playoff") return { entrants: T.playoffSeeds(league, o.top), left: [], source: "table" };
     if (o.format === "doubles") { const p = T.pairTeams(o.ids, rate.of, o.pairing, rand); return { entrants: T.seedEntrants(p.teams, rate.of, o.seeding, rand), left: p.left, source: rate.source }; }
     return { entrants: T.seedEntrants(o.ids, rate.of, o.seeding, rand), left: [], source: rate.source };
