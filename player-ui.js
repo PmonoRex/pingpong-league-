@@ -30,10 +30,10 @@
   }
   const nameOf = id => league()?.profiles?.[id]?.displayName || id;
   // Pictures live in the shared row as data URLs (profile-me.js compresses them); anything else is never used as a src.
-  const LIMITS = Object.freeze({ avatar: 12 * 1024, payQr: 20 * 1024, banner: 16 * 1024 });
+  const LIMITS = Object.freeze({ avatar: 12 * 1024, payQr: 20 * 1024, banner: 40 * 1024 });
   function imageOk(url, max) { return typeof url === "string" && url.length <= max && /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/]+={0,2}$/.test(url); }
   const pictureOf = id => { const url = league()?.profiles?.[id]?.avatar; return imageOk(url, LIMITS.avatar) ? url : ""; };
-  // A player's own background picture (portrait 3:5), shown behind their corner of every match card.
+  // A player's own background picture (square, up to 480px), shown behind their corner of every match card.
   const bannerOf = id => { const url = league()?.profiles?.[id]?.banner; return imageOk(url, LIMITS.banner) ? url : ""; };
   const IMG_STYLE = "width:100%;height:100%;border-radius:50%;object-fit:cover;display:block";
   function avatar(id, name = nameOf(id), size = "") {
