@@ -87,6 +87,7 @@
       const [, ri, mi] = /r(\d+)m(\d+)/.exec(key) || [], p = l.rounds?.[ri]?.m?.[mi];
       if (p && !valid(l.results?.[`r${ri}m${mi}`])) out.push({ key: `mkt:${key}`, title: "เปิดทายผลแล้ว", body: `${nm(p[0])} vs ${nm(p[1])} • เข้าไปทายได้เลย`, tag: `pp-mkt-${key}` });
     });
+    try { out.push(...(window.LeagueSocial?.events?.(l, me) || [])); } catch {} // comments/reactions on my matches (social.js)
     return out;
   }
   function baseline() { store(SEEN, events().map(e => e.key)); }
