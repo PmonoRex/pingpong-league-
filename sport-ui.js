@@ -9,7 +9,7 @@
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
       ['motion.css?v=20261018-video3','motion.css'],
-      ['arena.css?v=20261018-h2h','arena.css']
+      ['arena.css?v=20261018-share','arena.css']
     ];
     required.forEach(([href,file])=>{
       if([...document.querySelectorAll('link[rel="stylesheet"]')].some(link=>(link.getAttribute('href')||'').includes(file)))return;
@@ -59,6 +59,7 @@
     dashboard:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="4" rx="1.5"/><rect x="13" y="10" width="7" height="10" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/>',
     archive:'<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/>',
     profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    wrapped:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><path d="M9 7h6M9 11l2 2 4-4"/><path d="M9 17h6"/>',
     sound:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/>',
     admin:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
     backup:'<path d="M7 18a5 5 0 0 1-.6-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/><path d="M12 11v6M9.5 13.5 12 11l2.5 2.5"/>',
@@ -72,6 +73,7 @@
     let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'});
     const account=[];
     if(me&&window.LeagueProfile?.openMine)account.push(item('profile','โปรไฟล์ของฉัน',{'data-act':'profile'}));
+    if(me&&window.LeagueWrapped)account.push(item('wrapped','สรุปซีซั่นของฉัน',{'data-act':'wrapped'}));
     const sound=qs('#soundToggle');if(sound)account.push(item('sound',sound.textContent.trim()||'เสียงตีตรา',{'data-act':'sound','aria-pressed':sound.getAttribute('aria-pressed')||'true'}));
     if(account.length)html+='<p class="menu-sec">บัญชี</p>'+account.join('');
     if(me?.admin)html+='<p class="menu-sec">แอดมิน</p>'+item('admin','ห้องแอดมิน',{href:'admin.html'})+item('backup','สำรองข้อมูล',{href:'backup.html'});
@@ -99,6 +101,7 @@
       if(act==='sound'){const s=qs('#soundToggle');s?.click();qs('span',hit).textContent=s?.textContent.trim()||'';hit.setAttribute('aria-pressed',s?.getAttribute('aria-pressed')||'true');return}
       close(false);
       if(act==='profile')window.LeagueProfile?.openMine?.();
+      if(act==='wrapped')window.LeagueWrapped?.open?.();
       if(act==='logout'){const b=qs('#logout');if(b)b.click();else{LS()?.logout?.();location.reload()}}
     });
     panel.addEventListener('keydown',e=>{
