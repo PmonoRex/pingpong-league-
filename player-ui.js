@@ -35,7 +35,22 @@
   const pictureOf = id => { const url = league()?.profiles?.[id]?.avatar; return imageOk(url, LIMITS.avatar) ? url : ""; };
   // A player's own background picture (square, up to 480px), shown behind their corner of every match card.
   const mediaOk = url => { try { return typeof LeagueShared !== "undefined" && !!LeagueShared.mediaUrlOk?.(url); } catch { return false; } };
-  const bannerOf = id => { const url = league()?.profiles?.[id]?.banner; return imageOk(url, LIMITS.banner) || mediaOk(url) ? url : ""; };
+  // Linked pictures are probed once; one that fails to load is treated as absent, so the card shows the avatar again.
+  const probed = new Map();
+  function probe(url) {
+    if (probed.has(url)) return probed.get(url);
+    probed.set(url, "loading");
+    const img = new Image();
+    img.onload = () => { probed.set(url, "ok"); schedule(); };
+    img.onerror = () => { probed.set(url, "bad"); try { console.warn("Card background failed to load:", url); } catch {} schedule(); };
+    img.src = url;
+    return "loading";
+  }
+  const bannerOf = id => {
+    const url = league()?.profiles?.[id]?.banner;
+    if (imageOk(url, LIMITS.banner)) return url;
+    return mediaOk(url) && probe(url) === "ok" ? url : "";
+  };
   const IMG_STYLE = "width:100%;height:100%;border-radius:50%;object-fit:cover;display:block";
   function avatar(id, name = nameOf(id), size = "") {
     const pic = pictureOf(id);
