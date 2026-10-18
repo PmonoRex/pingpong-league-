@@ -67,5 +67,39 @@ const PinChange = (() => {
     return run({ ...options, userId, name: person.displayName, forced: true });
   }
 
-  return Object.freeze({ run, enforce });
+  // Phase 2: the server session is missing or expired (shared.js asks before a save). Same card as the PIN dialog;
+  // resolves true once pp_login accepted the PIN, false when the user cancels.
+  function relogin({ userId, name }) {
+    return new Promise(resolve => {
+      const overlay = document.createElement("div");
+      overlay.className = "pin-overlay";
+      overlay.innerHTML = `<form class="auth-card pin-card" role="dialog" aria-modal="true" aria-labelledby="reloginTitle">
+        <h2 id="reloginTitle">ยืนยัน PIN อีกครั้ง</h2>
+        <p class="pin-note">ระบบตรวจสิทธิ์ที่เซิร์ฟเวอร์แล้ว ใส่ PIN เพื่อเข้าสู่ระบบอีกครั้งก่อนบันทึก (ครั้งเดียวต่อเครื่อง อยู่ได้ 30 วัน)</p>
+        <p class="pin-name"></p>
+        <div class="field"><label for="reloginPin">PIN</label><input id="reloginPin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" required></div>
+        <div class="pin-error" role="alert"></div>
+        <div class="pin-actions"><button type="button" class="secondary" data-pin-cancel>ยกเลิก</button><button type="submit" class="blue">เข้าสู่ระบบ</button></div>
+      </form>`;
+      overlay.querySelector(".pin-name").textContent = name ? `บัญชี: ${name}` : "";
+      const form = overlay.querySelector("form"), error = overlay.querySelector(".pin-error"), input = overlay.querySelector("#reloginPin"), submit = overlay.querySelector('button[type="submit"]');
+      const close = result => { overlay.remove(); resolve(result); };
+      overlay.querySelector("[data-pin-cancel]").onclick = () => close(false);
+      form.onsubmit = async event => {
+        event.preventDefault();
+        submit.disabled = true; error.textContent = "";
+        try {
+          const result = await LeagueShared.serverLogin(userId, input.value);
+          if (result.ok) return close(true);
+          error.textContent = result.locked ? `ใส่ PIN ผิดหลายครั้ง • ลองใหม่ใน ${Math.ceil(result.retryAfterMs / 60000)} นาที` : "PIN ไม่ถูกต้อง";
+          input.value = ""; input.focus();
+        } catch { error.textContent = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง"; }
+        finally { submit.disabled = false; }
+      };
+      document.body.appendChild(overlay);
+      input.focus();
+    });
+  }
+
+  return Object.freeze({ run, enforce, relogin });
 })();

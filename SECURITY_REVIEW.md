@@ -1,24 +1,26 @@
 # Security Review — Ping Pong League
 
-วันที่ / Date: 2026-10-17 · Branch: `security-review` · ขอบเขต / Scope: `shared.js`, `sync-guard.js`, `restore-guard.js`, `safety-hooks.js`, `index.js`, `predictions.js`, `admin.js`, `backup.js`, `supabase/migrations/*.sql`
+วันที่ / Date: 2026-10-17 (phase 2: 2026-10-19, branch `feat-security2`) · Branch: `security-review` · ขอบเขต / Scope: `shared.js`, `sync-guard.js`, `restore-guard.js`, `safety-hooks.js`, `index.js`, `predictions.js`, `admin.js`, `backup.js`, `supabase/migrations/*.sql`
 
 > **สรุปสั้น (TH):** ใครก็ตามที่เปิดเว็บ (หรือแค่อ่าน `shared.js`) ใช้ publishable key เดียวกับเว็บ **อ่าน PIN ของทุกคน, แก้คะแนน/สิทธิ์/ยอดทาย, หรือล้างข้อมูลลีกทั้งแถวได้ทันที** โดยไม่ต้องล็อกอิน เพราะ RLS อนุญาตให้ `anon` `UPDATE` แถว `main` ได้ทั้งแถว และการตรวจ PIN/สิทธิ์ทั้งหมดอยู่ในเบราว์เซอร์ PR นี้ (1) บังคับเปลี่ยน PIN จาก 1234 และเก็บ PIN เป็น hash แทนข้อความ (2) เพิ่ม migration ที่ **ใช้กับเว็บปัจจุบันได้ทันทีโดยไม่พัง**: กันการล้าง/ยัดข้อมูลก้อนใหญ่, จำกัดความถี่การเขียน และเก็บประวัติทุกเวอร์ชันไว้ฝั่ง server ให้กู้คืนได้ (3) ร่าง SQL เฟส 2 ที่ย้ายการตรวจ PIN และสิทธิ์ไปไว้ฝั่ง server ซึ่งต้องทำคู่กับการแก้ฝั่งเว็บ
 >
 > **Summary (EN):** Anyone who opens the site (or just reads `shared.js`) can use the same publishable key to **read every PIN, change scores/roles/bets, or wipe the whole league row**, with no login, because RLS lets `anon` `UPDATE` the `main` row and every PIN and role check happens in the browser. This PR (1) forces a PIN change away from 1234 and stores PINs as salted hashes instead of plaintext, (2) adds a migration that is **safe to apply under the live site**: it blocks wipes and oversized writes, rate-limits writes, and keeps a server-side history of every previous version so vandalism can be undone, and (3) drafts phase-2 SQL that moves PIN and role checks to the server, to be shipped together with a client change.
 
+> **อัปเดตเฟส 2 / Phase 2 update (2026-10-19):** `supabase/migrations/20261019140000_server_auth.sql` + client in `shared.js` implement the phase 2 below (it replaces the draft `supabase/proposed/phase2_server_side_auth.sql`, now removed). It ships behind a switch: nothing changes for the live site until the owner runs `update private.settings set enforce = true;`. See **"Phase 2 (shipped)"** at the end and the Thai owner guide `docs/security-phase2.md`.
+
 ## ตารางสรุป / Findings at a glance
 
 | # | ระดับ / Severity | หัวข้อ / Finding | สถานะใน PR นี้ / Status in this PR |
 |---|---|---|---|
-| S1 | **Critical** | `anon` เขียนทับ/ล้างแถว `main` ได้ทั้งแถว · anon can overwrite or wipe the whole row | ลดความเสียหาย: phase 1 SQL (กันล้าง, ประวัติ, rate limit) · Mitigated by phase 1 SQL; fixed by phase 2 |
-| S2 | **Critical** | PIN ทุกคนเป็น plaintext ในแถวที่ใครก็อ่านได้ และทุกบัญชีใช้ 1234 · All PINs are plaintext in a world-readable row, and all default to 1234 | แก้ฝั่ง client: hash + บังคับเปลี่ยน · Client fix (hash + forced change); full fix in phase 2 |
-| S3 | **High** | Session คือ `pp_user_id` ใน localStorage ปลอมเป็น Admin ได้โดยไม่ต้องรู้ PIN · Session is just `pp_user_id`; anyone can impersonate the admin without a PIN | ต้องใช้ phase 2 · Needs phase 2 |
-| S4 | **High** | สิทธิ์ Admin/เจ้ามือ ตรวจในเบราว์เซอร์อย่างเดียว · Admin/dealer permissions are enforced only in the browser | ต้องใช้ phase 2 · Needs phase 2 |
-| S5 | **Medium** | Lockout อยู่ใน localStorage ข้ามได้ · Login lockout lives in localStorage and is trivially bypassed | ปรับ UX (บอกเวลาที่เหลือ) · UX fixed; real lockout in phase 2 |
+| S1 | **Critical** | `anon` เขียนทับ/ล้างแถว `main` ได้ทั้งแถว · anon can overwrite or wipe the whole row | ลดความเสียหาย: phase 1 SQL · **Fixed by phase 2 once `enforce = true`** (direct UPDATE revoked, RPC-only writes) |
+| S2 | **Critical** | PIN ทุกคนเป็น plaintext ในแถวที่ใครก็อ่านได้ และทุกบัญชีใช้ 1234 · All PINs are plaintext in a world-readable row, and all default to 1234 | **Fixed by phase 2 once `enforce = true`** (bcrypt in `private.credentials`, stripped from the row) |
+| S3 | **High** | Session คือ `pp_user_id` ใน localStorage ปลอมเป็น Admin ได้โดยไม่ต้องรู้ PIN · Session is just `pp_user_id`; anyone can impersonate the admin without a PIN | **Fixed by phase 2** (server session token, 30 days) |
+| S4 | **High** | สิทธิ์ Admin/เจ้ามือ ตรวจในเบราว์เซอร์อย่างเดียว · Admin/dealer permissions are enforced only in the browser | **Fixed by phase 2 once `enforce = true`** (rules in Postgres, see table below) |
+| S5 | **Medium** | Lockout อยู่ใน localStorage ข้ามได้ · Login lockout lives in localStorage and is trivially bypassed | **Fixed by phase 2** (5 fails → 15 min per account, 30/10 min per IP, server-side) |
 | S6 | **Medium** | ไม่มีประวัติ/audit ฝั่ง server · No server-side history or audit; the audit log sits inside the writable row | แก้: phase 1 SQL · Fixed by phase 1 SQL |
 | S7 | **Medium** | ไม่จำกัดขนาด/รูปแบบข้อมูล + ทุกหน้าดึงทั้งแถวทุก 3 วิ · No size/shape limit, and every open page re-downloads the whole row every 3 s | แก้: phase 1 SQL · Fixed by phase 1 SQL |
 | S8 | **Medium** | ทุกฟิลด์ในแถวควบคุมได้โดยผู้โจมตี → XSS ถ้าหลุด escape จุดเดียว, ไม่มี CSP · Every field is attacker-controlled, so one missed escape is stored XSS for every visitor; no CSP | แนะนำ · Recommendation |
-| S9 | **Low** | สำเนาในเครื่อง (localStorage, Backup) มี PIN ของทุกคน · Local copies and backups on every device hold everyone's PIN | แก้บางส่วน (เก็บเป็น hash) · Partly fixed (hashes, not PINs) |
+| S9 | **Low** | สำเนาในเครื่อง (localStorage, Backup) มี PIN ของทุกคน · Local copies and backups on every device hold everyone's PIN | **Fixed by phase 2 once `enforce = true`** (no credentials in the row; older local backups still hold old hashes until rotated) |
 | S10 | **Low** | Restore ทั้ง Season ย้อน PIN/สิทธิ์กลับ · A full restore rolls PINs and roles back | แก้ PIN แล้ว · Fixed for PINs |
 
 ---
@@ -43,7 +45,7 @@
   - แถวที่สอง `id = 'live'` สำหรับฟีเจอร์ live scoring ที่วางแผนไว้ (สร้างใน migration นี้ก่อนตัดสิทธิ์ INSERT, policy select/update ครอบคลุม `main` และ `live`) · A second row `id = 'live'` for the planned live-scoring feature, created by this migration before INSERT is revoked; the select/update policies now cover `'main'` and `'live'` (the original policies covered `'main'` only, so anon could neither read nor write `'live'`). On `'live'` the guard only enforces a 64 KB cap and a 600/min rate limit (no wipe/shape checks) and **no history is recorded**, so point-by-point writes cannot push real league versions out of history.
   - ผ่านการทดสอบกับ Postgres 16 ในเครื่องด้วย role แบบ Supabase (anon / authenticated / authenticator): ดู "ทดสอบ / Verified" ด้านล่าง · Tested on local Postgres 16 with Supabase-style roles; see "Verified" below.
   - **ข้อจำกัด / Limit:** ยังแก้ทีละนิดได้ (เช่น เปลี่ยน role ตัวเองเป็น admin, แก้คะแนนคู่เดียว) แต่ทุกครั้งถูกบันทึกและกู้คืนได้ · Small well-formed edits (make yourself admin, change one score) still pass; they are now recorded and reversible.
-- **Phase 2 (ร่าง / draft)** `supabase/proposed/phase2_server_side_auth.sql`: เลิกให้ `anon` `UPDATE` ตรง ๆ ทั้งหมด การเขียนผ่าน RPC `SECURITY DEFINER` ที่ตรวจ session token + role ฝั่ง server · Revoke direct `UPDATE`; all writes go through `SECURITY DEFINER` RPCs that check a server-issued session token and the caller's role.
+- **Phase 2 (shipped: `supabase/migrations/20261019140000_server_auth.sql`, draft removed)**: เลิกให้ `anon` `UPDATE` ตรง ๆ ทั้งหมด การเขียนผ่าน RPC `SECURITY DEFINER` ที่ตรวจ session token + role ฝั่ง server · Revoke direct `UPDATE`; all writes go through `SECURITY DEFINER` RPCs that check a server-issued session token and the caller's role.
 
 ## S2 — PIN เป็น plaintext ที่ใครก็อ่านได้ และทุกคนใช้ 1234 · Plaintext PINs anyone can read, all set to 1234 — **Critical**
 
@@ -200,7 +202,9 @@ select private.restore_app_state(<history_id ของเวอร์ชัน�
 
 ทุกคนที่ยังใช้ 1234 จะถูกให้ตั้ง PIN ใหม่ตอนล็อกอินหรือเปิดหน้าครั้งถัดไป ควรให้ Admin (มอส) ตั้งก่อน แล้วแจ้งกลุ่ม · Everyone still on 1234 is asked to set a new PIN at their next login or page load. The admin should go first, then tell the group. ใครลืม PIN ให้ Admin กด "รีเซ็ต PIN" · Forgotten PINs: admin reset.
 
-### C. Phase 2 (งานถัดไป ต้องแก้ฝั่งเว็บด้วย / next, needs a client PR)
+### C. Phase 2 — ดู "Phase 2 (shipped)" ด้านล่าง / see "Phase 2 (shipped)" below
+
+*(The plan below is kept for history; the shipped version differs: Dummy, live and club writes are RPCs too, and the cut-over is a single switch.)*
 
 ทำใน PR แยก / In a separate PR:
 1. Client: login ผ่าน `POST /rest/v1/rpc/pp_login` เก็บ token (ไม่ใช่ PIN) ใน localStorage; เปลี่ยน PIN ผ่าน `pp_change_pin`; รีเซ็ตผ่าน `pp_reset_pin`; บันทึกลีกผ่าน `pp_save_league(token, league, expected_updated_at)` และทายผ่าน `pp_save_predictions(...)` (คืน `null` เมื่อชนกับอีกเครื่อง เหมือน PATCH ว่างในปัจจุบัน); logout เรียก `pp_logout` · Log in via `pp_login` and keep the token (not the PIN); route PIN change/reset and both saves through the RPCs (`null` means another device saved first, like today's empty PATCH result); logout calls `pp_logout`.
@@ -214,3 +218,54 @@ select private.restore_app_state(<history_id ของเวอร์ชัน�
 - Publishable key ใน `shared.js` ตั้งใจให้เป็นสาธารณะ การ rotate key ไม่ช่วย ความปลอดภัยต้องมาจาก RLS / grants / RPC · The publishable key is public by design; rotating it does not help.
 - ระหว่างนี้ ควรถือว่า PIN เดิมทุกตัวรั่วแล้ว (อ่านได้จาก API มาตลอด) ใครเคยใช้ PIN จริง (เช่น PIN ATM) ควรเปลี่ยนที่อื่นด้วย · Treat every existing PIN as already leaked; anyone who reused a real PIN elsewhere should change it there.
 - เว็บนี้บันทึกแค่ "ยอด" ไม่ได้รับ/จ่ายเงินจริง แต่ยอดทายถูกแก้ได้จนกว่าจะทำ phase 2 · Bet amounts can be edited by anyone until phase 2.
+
+---
+
+## Phase 2 (shipped) — server-side auth and authorization
+
+ไฟล์ / Files: `supabase/migrations/20261019140000_server_auth.sql`, `shared.js`, `pin-change.js` (re-login dialog), `dummy.js` (one status message), `tests/server-auth-client.test.cjs`, `tests/server-auth-sql.test.cjs`, owner guide `docs/security-phase2.md` (TH).
+
+### Design
+
+- **Credentials** move to `private.credentials` (bcrypt; the browser's PBKDF2 hashes are verified server-side and upgraded on first login). The migration imports every account's PIN / hash from the row; while `enforce` is off an `AFTER UPDATE` trigger keeps importing PIN changes the old site writes (only when that profile's pin fields changed, `row_fp`), so the old and new site can run side by side.
+- **Sessions**: `pp_login(user_id, pin)` → `{token, must_change, expires_at}` (32 random bytes; only the SHA-256 is stored; 30 days). Failures are returned, not raised, so counters commit: 5 wrong PINs → 15 min lock per account, 30 attempts / 10 min per IP. Also `pp_logout`, `pp_whoami(token)` (never raises), `pp_change_pin(token, current, new)` (counts wrong PINs toward the lock, signs out the account's other devices), `pp_reset_pin(token, target)` (admin), `pp_auth_version()` (the client's probe).
+- **Writes**: `pp_save_league(token, league, expected)`, `pp_save_predictions(token, predictions, expected)`, `pp_save_live(token, live, expected)`, `pp_save_club(token, club, expected)` lock the row, return `null` when `updated_at <> expected` (same as today's empty PATCH result) or the new `updated_at`; `pp_save_dummy(token, dummy, expected_rev)` keeps Dummy's own `dummy.rev` lock and never touches `updated_at`. Phase 1's guard (size, shape, rate limit) and history still run on every RPC write.
+- **The switch** `private.settings.enforce` (default `false`). `update private.settings set enforce = true` (trigger) imports the last PIN changes, strips `pin / pinHash / mustChangePin / pinChangedAt` from the row, and revokes `UPDATE` on `public.app_state` from `anon, authenticated` (SELECT stays). A `BEFORE UPDATE` guard additionally refuses any API write that is not inside a `pp_save_*` call and any league write carrying credential fields while enforced, so re-running the phase 1 file (which re-grants UPDATE) does not reopen direct writes. `enforce = false` re-grants phase 1's column UPDATE (rollback).
+- **Admin PIN reset through the league save**: `LeagueShared.resetPin` now also sets `profiles[id].pinResetAt`; `pp_save_league` resets that account's credentials when an admin save changes it (so `admin.js` is unchanged). `pinResetAt` is carried by `keepCredentials`, so restoring a backup never re-triggers a reset. Accounts created by an admin save get default credentials (1234, must change).
+
+### Authorization rules (enforced in `private.*_change_denied`)
+
+| Data | Admin | Dealer | Player (signed in, active) |
+|---|---|---|---|
+| league (`uidLeague`) | anything (phase 1 shape guard) | — | own `displayName` (≤ 30, unique), `tagline`, `avatar`, `avatarHd`, `banner`, `promptpay`, `payQr` (own profile ≤ 200 KB); may prepend ≤ 5 `auditLog` entries with own `actorId`; nothing else |
+| predictions | anything | everything except `dealerId`; existing bets only `status / net / settledAt`; no removals; cannot bet | append only: `userId` = self, `pending`, `net` 0, whole stake 1..1,000,000, market `open` with matching favorite/handicap, not own match, once per match |
+| dummy | ✓ | ✓ | any signed-in account (shared sheet) |
+| live | anything | — | add/change/remove a match only as one of its `pair` or its scorer `by`; remove anyone's entry older than 6 h (live.js prunes those); only `{matches}` |
+| club | anything (1 MB cap) | — | `matches` / `challenges` / `tournaments`: new items must have self as owner (`by` / `from` / `by`); change/remove only items where self is owner or participant (`a`, `b`, `to`, `teamA`, `teamB`, `entrants`); `from` of a challenge and `by` of a tournament cannot change (`club.matches[].by` means "last recorded by" and may); a `club.matches` entry with a `tournamentId` may also be changed/removed by that tournament's creator or entrants (tournament.js rewrites and prunes them); `social.reactions`, `mvp`, `checkin`: own user key only (whole check-in days older than 29 days may be pruned by anyone, as social.js does); `social.comments`: own only (others' may drop off the 300 cap); other keys: signed-in + 1 MB cap |
+
+**Live: why players of the match, not "any signed-in player"**: live.js only lets the admin or the two players start scoring, and it is cheap to check per key (`pair` / `by` are in each entry), so the stricter rule costs nothing. Watchers never write.
+
+### Client (`shared.js`, `?v=20261019-sec2`)
+
+- `serverAuth()` probes `pp_auth_version` once, caches `{available, enforce}` 10 minutes (memory + `localStorage.pp_server_auth_v1`; network errors retried after 30 s). Without the functions every path is exactly the old code.
+- `login()` calls `pp_login` and stores `{token, userId, mustChange, expiresAt}` in `localStorage.pp_session_v2` beside `pp_user_id`; a server lockout fills the local guard so the existing "ลองใหม่ใน N วินาที" message works. If the server cannot be reached it falls back to the in-browser hash check (a local session that cannot save). `logout()` calls `pp_logout`.
+- Every write already goes through `cloudRequest` / `liveRequest` / `clubRequest` (`clubMutate`) / `saveDummyCloud`; a PATCH there is turned into the matching `pp_save_*` call with the token and the `updated_at=eq.` (or `dummy->>rev`) lock parsed from the filter, and answers like the PATCH did (`[row]` saved, `[]` lost race), so every page's retry loop, and the club / live code other branches are adding, work unchanged. PIN secrets are stripped from league payloads. A body no RPC covers falls back to the PATCH. A 404 (functions dropped) falls back to the PATCH and re-caches "unavailable".
+- No token or `session expired` → `PinChange.relogin` asks for the PIN (same card style as the PIN dialog) and retries once; cancelling throws `authRequired` (pages show their usual "บันทึกไม่ได้ / ออฟไลน์" state). Refusals throw `denied` with "ไม่มีสิทธิ์ทำรายการนี้ (…)".
+- `changePin` uses `pp_change_pin` (signing in with the current PIN first when needed); `needsPinChange` uses the server's `must_change` from the session once server auth is on or the row has no PIN fields, so stripping the row never forces everyone to change PIN.
+
+### Verified
+
+- `npm test` (all pass): `tests/server-auth-client.test.cjs` (9 tests, mocked fetch: RPC absent vs present, token handling, conflict `[]`, dummy rev lock, live, club retry, expired session → re-login → retry, cancel, denied, 404 fallback, server `changePin`, `needsPinChange`, `pinResetAt`); `tests/server-auth-sql.test.cjs` runs every migration except the storage bucket one (incl. push) plus this one (twice) on a scratch Postgres 16 with `anon / authenticated / service_role / authenticator` and exercises every RPC including denials: wrong PIN, inactive account, lockout and unlock, per-IP throttle, PBKDF2 (150k) → bcrypt upgrade, whoami, logout, expired token, player editing another profile / role / results / audit log / `pinResetAt`, duplicate name, admin reset + new account, PIN change policy and other-device sign-out, bet in another name / bad stake / closed market / own match / twice, dealer betting or editing stakes, non-admin dealer change, dummy rev lock, live other players' match, club ownership rules (incl. a tournament entrant recording a result / pruning downstream entries, a non-entrant refused, check-in day pruning), 1 MB cap, push RPCs still working with enforce on, old-site PIN change imported while off, enforce on (row stripped, direct UPDATE refused on main and live, RPCs and sessions keep working, credentials never land in the row, re-running phase 1 still refused by the guard), enforce off restores direct PATCH. Skipped automatically where Postgres server binaries are missing or a scratch cluster cannot start.
+- Playwright (Chromium, mocked `rest/v1/rpc/**` and `rest/v1/app_state**`): RPC mode — login → token, score save via `pp_save_league` with no PIN hash sent, profile edit via RPC, Dummy via `pp_save_dummy`, expired session → PIN prompt (wrong PIN message, then saved); legacy mode (functions 404) — hash login, PATCH saves exactly as before; 9 pages (incl. tournament.html) with no console or page errors (the only log is Chrome's "404" line for the probe when the functions are not installed, once per 10 minutes).
+- **Not run against the real Supabase project.** A bug the SQL test caught during development: a PIN check returning SQL `NULL` (no legacy hash) passed `if not ...`; `private.verify_pin` now never returns `NULL`.
+
+### Residual risks
+
+- Until `enforce = true`, phase 1 limits apply (anyone with the key can still write small changes, including a `pinHash` that is then imported). Flip it as soon as the people who write have signed in again.
+- The admin account can do anything; its PIN is the crown jewel (4–6 digits, online guessing limited by the lockout).
+- Club: unknown top-level keys only get "signed-in + 1 MB"; tournament entrants may edit their tournament's bracket. New club features should add a rule to `private.club_change_denied`.
+- Predictions: the server does not check whether a match already has a result when a bet is placed (the dealer closes markets, as today).
+- Dummy is one shared sheet: any signed-in account may change it (history in `private.app_state_history` allows restore).
+- The publishable key can still read the whole row (by design): profile pictures, payment details, bets.
+- Web Push (`20261019130000_push.sql`) is unaffected by the switch (it does not write `app_state`), but `pp_push_subscribe(…, p_user_id)` trusts the user id it is given, so a device can subscribe to someone else's notifications. A follow-up could take the session token instead.
+- Verified on main after Elo/challenges, social, tournaments and push were merged: every write still goes through `cloudRequest` / `liveRequest` / `clubMutate` / `saveDummyCloud`.

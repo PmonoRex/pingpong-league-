@@ -11,7 +11,9 @@ function loadShared() {
     removeItem: key => values.delete(key)
   };
   const requests = [];
+  // No phase 2 functions on this fake server: pp_auth_version answers 404 like PostgREST, and is not recorded.
   const context = { localStorage, fetch: async (url, options) => {
+    if (String(url).includes('/rpc/')) return { ok: false, status: 404, json: async () => ({ code: 'PGRST202' }) };
     requests.push({ url, options });
     return { ok: true, json: async () => [{ updated_at: '2026-09-24T00:00:00Z' }] };
   } };
@@ -157,6 +159,7 @@ test('clubMutate re-applies the change on the newest copy after a lost race', as
   context.structuredClone = v => JSON.parse(JSON.stringify(v));
   let row = { league: { club: { v: 1, matches: [{ id: 'old' }] } }, updated_at: 't1' }, patches = 0, first = true;
   context.fetch = async (url, options) => {
+    if (String(url).includes('/rpc/')) return { ok: false, status: 404, json: async () => ({ code: 'PGRST202' }) };
     if (options.method === 'GET') return { ok: true, json: async () => [row] };
     patches++;
     if (first) { first = false; row = { league: { club: { v: 1, matches: [{ id: 'old' }, { id: 'other' }] } }, updated_at: 't2' }; return { ok: true, json: async () => [] }; }

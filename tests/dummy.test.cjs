@@ -171,7 +171,7 @@ test('mergeDummy with different line-ups: the side that changed players wins, th
 test('shared.js Dummy cloud helpers read the dummy column and lock on dummy.rev, never updated_at', async () => {
   const requests = [];
   let reply = [{ dummy: { players: ['A', 'B'], rev: 2 } }];
-  const context = { localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetch: async (url, options) => { requests.push({ url, options }); return { ok: true, json: async () => reply }; } };
+  const context = { localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, fetch: async (url, options) => { if (String(url).includes('/rpc/')) return { ok: false, status: 404, json: async () => ({ code: 'PGRST202' }) }; requests.push({ url, options }); return { ok: true, json: async () => reply }; } };
   vm.runInNewContext(fs.readFileSync('shared.js', 'utf8') + '\nglobalThis.shared = LeagueShared;', context);
   const S = context.shared;
   assert.deepEqual(plainJson(await S.loadDummyCloud()), { players: ['A', 'B'], rev: 2 });

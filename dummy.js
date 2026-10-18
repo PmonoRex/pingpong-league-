@@ -248,6 +248,7 @@
     } catch (error) {
       // 400 = the `dummy` column is not there yet (migration not run): stay local-only for this visit.
       if (/\b400\b/.test(error?.message || "")) { cloudOff = true; setSync("ยังไม่เปิดซิงก์ • เก็บในเครื่อง", "offline"); }
+      else if (error?.authRequired) setSync("เข้าสู่ระบบก่อนจึงจะซิงก์ • เก็บในเครื่อง", "offline");
       else setSync("ออฟไลน์ • เก็บในเครื่อง", "offline");
     } finally { syncing = false; }
   }
