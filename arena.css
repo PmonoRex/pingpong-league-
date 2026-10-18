@@ -556,3 +556,48 @@ body.sport-redesign #schedule .match.has-bg-a .pair>b:first-child:before{border:
 body.sport-redesign #schedule .match.has-bg-b .pair>b:last-child:before{border:1px solid rgba(91,140,255,.6)}
 /* a finished bout: the loser's picture goes grey and dim */
 body.sport-redesign #schedule .match.has-bg-b[data-win=a] .mbg-b,body.sport-redesign #schedule .match.has-bg-a[data-win=b] .mbg-a{filter:grayscale(1) brightness(.6)}
+
+/* ---------- Player card (player-card.js): tap a player's name or photo anywhere ---------- */
+body.sport-redesign .pc-tap{cursor:pointer}
+@media (hover:hover){body.sport-redesign .pc-tap:hover{filter:brightness(1.12)}}
+.pc-backdrop{position:fixed;inset:0;z-index:600;display:flex;align-items:flex-end;justify-content:center;background:rgba(5,6,8,0);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0);transition:background 260ms ease,backdrop-filter 260ms ease}
+.pc-backdrop[hidden]{display:none}
+.pc-backdrop.on{background:rgba(5,6,8,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.pc-sheet{position:relative;width:min(480px,100%);max-height:92vh;overflow-y:auto;overscroll-behavior:contain;border-radius:24px 24px 0 0;background:linear-gradient(180deg,#16181d,#0c0d11);border:1px solid rgba(255,255,255,.1);border-bottom:0;box-shadow:0 -24px 60px rgba(0,0,0,.6);color:var(--text,#f4f5f7);outline:none;
+  transform:translateY(100%);transition:transform 360ms cubic-bezier(.16,1,.3,1);padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+.pc-backdrop.on .pc-sheet{transform:none}
+@media (min-width:700px){.pc-backdrop{align-items:center}.pc-sheet{border-radius:24px;border-bottom:1px solid rgba(255,255,255,.1)}}
+/* cover: the player's own background picture, or an arena glow */
+.pc-cover{position:relative;height:190px;border-radius:24px 24px 0 0;overflow:hidden;
+  background:radial-gradient(320px 200px at 80% 0,rgba(229,36,47,.55),transparent 70%),radial-gradient(260px 180px at 0 100%,rgba(91,140,255,.25),transparent 70%),linear-gradient(160deg,#20232b,#0c0d11)}
+.pc-cover.has-pic{height:240px;background:linear-gradient(180deg,rgba(12,13,17,0) 40%,rgba(12,13,17,.6) 75%,#0f1014),var(--pc-bg) center 25%/cover no-repeat,#16181d}
+.pc-cover:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,transparent,#ff4752 30%,#fff 50%,#ff4752 70%,transparent);opacity:.8}
+.pc-close{position:absolute;top:12px;right:12px;display:grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;border-radius:14px!important;background:rgba(10,11,14,.55)!important;border:1px solid rgba(255,255,255,.2)!important;color:#fff!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.pc-body{position:relative;padding:0 18px;text-align:center}
+.pc-avatar{margin-top:-56px;display:flex;justify-content:center}
+.pc-avatar .pa{--s:108px!important;font-size:40px;box-shadow:0 0 0 4px #0f1014,0 0 0 7px #ff4752,0 0 40px rgba(255,71,82,.6)!important}
+.pc-name{margin:12px 0 2px;font-family:var(--display);font-style:italic;font-weight:800;font-size:clamp(30px,8.6vw,40px);line-height:1.1;color:#fff;text-shadow:0 0 24px rgba(229,36,47,.35)}
+.pc-tagline{margin:4px auto 0;max-width:30ch;color:var(--text-2,#c9cdd5);font-size:15px;font-style:italic}
+.pc-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:12px 0 4px}
+.pc-chip{padding:4px 11px 3px;border-radius:999px;font-size:12.5px;font-weight:700;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff}
+.pc-chip.tier{border-color:rgba(255,71,82,.55);background:rgba(229,36,47,.14)}
+.pc-chip.pc-gold{color:#1a1300;background:var(--gold,#f5b80b);border-color:var(--gold,#f5b80b);box-shadow:0 0 14px rgba(245,184,11,.45)}
+.pc-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:16px 0 10px}
+.pc-stats>div{display:grid;gap:2px;padding:10px 4px 8px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.pc-stats b{font-family:var(--display);font-style:italic;font-weight:800;font-size:22px;line-height:1.1;color:#fff}
+.pc-stats small{font-size:11.5px;color:var(--text-soft,#9ba1ad)}
+.pc-stats .w b{color:var(--win,#34d27c)}.pc-stats .l b{color:var(--lose,#ff5c68)}
+.pc-stats .rate{background:rgba(229,36,47,.14);border-color:rgba(255,71,82,.45)}
+.pc-form,.pc-line,.pc-vs{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 2px;border-top:1px solid rgba(255,255,255,.08);text-align:left;font-size:14px;color:var(--text-2,#c9cdd5)}
+.pc-form .form-strip{display:flex;gap:5px}
+.pc-form .dot{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;font-size:13px}
+.pc-line b{color:#fff}
+.pc-vs{flex-direction:column;align-items:flex-start;gap:3px;margin-top:2px;padding:12px;border:1px solid rgba(255,71,82,.35);border-radius:14px;background:linear-gradient(100deg,rgba(229,36,47,.14),rgba(91,140,255,.1))}
+.pc-vs b{color:#fff;font-size:15px}
+.pc-actions{display:grid;gap:8px;margin-top:14px}
+.pc-actions>*{box-sizing:border-box;min-height:50px;display:flex;align-items:center;justify-content:center;width:100%;margin:0;text-decoration:none}
+.pc-sheet,.pc-sheet *{box-sizing:border-box}
+body.pc-open{overflow:hidden}
+.me-head-actions{display:flex;align-items:center;gap:8px}
+body.sport-redesign .me-view{min-height:44px;padding:6px 12px;font-size:13px}
+@media (prefers-reduced-motion:reduce){.pc-sheet,.pc-backdrop{transition:none}}
