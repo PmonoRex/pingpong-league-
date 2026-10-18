@@ -34,15 +34,19 @@ html.pt-cards .pt-video{width:min(84vw,460px)}
 /* leaving: blade then panel sweep in to cover */
 html.pt-out::before{animation:ptBladeInR 300ms cubic-bezier(.7,0,.3,1) both}
 html.pt-out::after{animation:ptCoverInR 340ms cubic-bezier(.7,0,.3,1) 60ms both}
-/* arriving: panel sweeps away, the blade trails it out */
-html.pt-in::after{animation:ptCoverOutL 520ms cubic-bezier(.7,0,.2,1) 720ms both}
-html.pt-in::before{animation:ptBladeOutL 560ms cubic-bezier(.7,0,.2,1) 800ms both}
+/* arriving: the cover holds until transition.js adds .pt-go (the clip has reached the spinning ball); the long delay on
+   the plain .pt-in rule is only a safety net that uncovers the page even if no script runs */
+html.pt-in::after{animation:ptCoverOutL 520ms cubic-bezier(.7,0,.2,1) 2600ms both}
+html.pt-in.pt-go::after{animation:ptCoverOutL 520ms cubic-bezier(.7,0,.2,1) both}
+html.pt-in::before{animation:ptBladeOutL 560ms cubic-bezier(.7,0,.2,1) 2680ms both}
+html.pt-in.pt-go::before{animation:ptBladeOutL 560ms cubic-bezier(.7,0,.2,1) 80ms both}
 @keyframes ptBladeInR{from{transform:translateX(130%)}to{transform:translateX(-10%)}}
 @keyframes ptCoverInR{from{transform:translateX(130%)}to{transform:translateX(0)}}
 @keyframes ptCoverOutL{from{transform:translateX(0)}to{transform:translateX(-130%)}}
 @keyframes ptBladeOutL{from{transform:translateX(-10%)}to{transform:translateX(-140%)}}
 /* the page underneath settles in as the cover leaves */
-html.pt-in body.sport-redesign main{animation:pageIn 560ms var(--motion-ease) 820ms both}
+html.pt-in body.sport-redesign main{animation:pageIn 560ms var(--motion-ease) 2700ms both}
+html.pt-in.pt-go body.sport-redesign main{animation:pageIn 560ms var(--motion-ease) 100ms both}
 @keyframes pageIn{from{opacity:0;transform:translateY(14px) scale(.985)}}
 
 /* ---------- Feedback: press-down controls ---------- */

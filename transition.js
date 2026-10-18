@@ -7,8 +7,10 @@
   const KEY = "pp_pt";
   // H.264 MP4 for phones and most browsers; VP9 WebM where H.264 is missing (e.g. open-source Chromium builds).
   const EXT = document.createElement("video").canPlayType('video/mp4; codecs="avc1.4D401E"') ? ".mp4" : ".webm";
-  const SMASH = "img/video/loader-smash" + EXT, CARDS = "img/video/loader-cards" + EXT;
-  const LOOP_FROM = 2.1, LOOP_TO = 4.7; // the smash clip: 0-2s is the hit, 2-5s the ball spinning in place
+  const SMASH = "img/video/loader-smash" + EXT + "?v=2", CARDS = "img/video/loader-cards" + EXT + "?v=1";
+  const LOOP_FROM = 1.7, LOOP_TO = 4.7; // the smash clip: 0-0.6s the hit, the ball in the rings from ~1.2s, 1.7-4.7s loops
+  // The arriving page keeps the cover up until the clip reaches this point (the ball spinning in its rings), within limits.
+  const SHOW_UNTIL = { smash: 1.45, cards: 0.9 }, MIN_HOLD = 350, MAX_HOLD = 2200, START_GRACE = 700;
   const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function video(cards, start) {
@@ -35,9 +37,20 @@
     sessionStorage.removeItem(KEY);
     if (t && Date.now() - t.at < 4000 && !still()) {
       html.classList.add("pt-in"); if (t.cards) html.classList.add("pt-cards");
-      const v = video(t.cards, (t.vt || 0) + (Date.now() - t.at) / 1000);
-      fadeOut(v, 720);
-      setTimeout(() => html.classList.remove("pt-in", "pt-cards"), 1800);
+      const v = video(t.cards, (t.vt || 0) + (Date.now() - t.at) / 1000), t0 = Date.now(), need = t.cards ? SHOW_UNTIL.cards : SHOW_UNTIL.smash;
+      let done = false, playing = false;
+      // Lift the cover (html.pt-go starts the sweep) once the ball is spinning; never later than MAX_HOLD, and at once
+      // if the clip cannot play (autoplay blocked, low power mode, a failed load).
+      const go = () => {
+        if (done) return; done = true;
+        html.classList.add("pt-go"); v.style.transition = "opacity 120ms ease"; fadeOut(v, 0);
+        setTimeout(() => html.classList.remove("pt-in", "pt-cards", "pt-go"), 1300);
+      };
+      v.addEventListener("playing", () => { playing = true; }, { once: true });
+      v.addEventListener("timeupdate", () => { if (v.currentTime >= need && Date.now() - t0 >= MIN_HOLD) go(); });
+      v.addEventListener("error", go);
+      setTimeout(() => { if (!playing) go(); }, START_GRACE);
+      setTimeout(go, MAX_HOLD);
     }
   } catch {}
 
