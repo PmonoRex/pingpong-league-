@@ -105,7 +105,7 @@ const LeagueProfile = (() => {
   const RADIO = (value, label, on) => `<label class="me-seg-opt"><input type="radio" name="mePayMethod" value="${value}"${on ? " checked" : ""}><span>${label}</span></label>`;
   function sheetHtml(person, draft) {
     const preview = draft.avatar ? `<img src="${esc(draft.avatar)}" alt="">` : esc(UI()?.initials ? UI().initials(draft.displayName || person.displayName) : "?");
-    return `<div class="me-head"><h2 id="meTitle">โปรไฟล์ของฉัน</h2>${CLOSE}</div>
+    return `<div class="me-head"><h2 id="meTitle">โปรไฟล์ของฉัน</h2><div class="me-head-actions">${typeof window !== "undefined" && window.PlayerCard ? '<button type="button" class="secondary me-view" data-me-view>ดูแบบที่คนอื่นเห็น</button>' : ""}${CLOSE}</div></div>
 <div class="me-pic"><span class="me-pic-preview" id="mePicPreview" style="--pa:${esc(UI()?.color ? UI().color(person.id) : "#3b322c")};--pa-fg:${esc(UI()?.inkOn ? UI().inkOn(person.id) : "#fff")}">${preview}</span><div class="me-pic-actions"><button type="button" class="secondary" data-me-pick="avatar">เลือกรูป</button><button type="button" class="secondary" id="meAvatarClear"${draft.avatar ? "" : " hidden"}>ลบรูป</button><small id="mePicInfo">ย่อเป็นรูปสี่เหลี่ยม 96×96 ก่อนบันทึก</small></div></div>
 <div class="me-banner"><span class="me-banner-preview" id="meBannerPreview">${draft.banner ? `<img src="${esc(draft.banner)}" alt="ภาพพื้นหลังที่เลือก">` : "<small>ยังไม่มีภาพ</small>"}</span><div class="me-pic-actions"><b>ภาพพื้นหลังการ์ด</b><small>ขึ้นหลังฝั่งของคุณในการ์ดคู่แข่ง</small><button type="button" class="secondary" data-me-pick="banner">${draft.banner ? "เปลี่ยนภาพ" : "เลือกภาพ"}</button><button type="button" class="secondary" id="meBannerClear"${draft.banner ? "" : " hidden"}>ลบภาพ</button></div></div>
 <div class="field"><label for="meName">ชื่อเล่น</label><input id="meName" maxlength="${LIMITS.name}" autocomplete="nickname" value="${esc(draft.displayName)}"></div>
@@ -245,6 +245,7 @@ const LeagueProfile = (() => {
     const p = e.target.closest("[data-me-pick]"); if (p) { picking = p.dataset.mePick; const f = $("meFile"); f.value = ""; return f.click(); }
     if (e.target.closest("#meAvatarClear")) { readForm(); draft.touched = true; draft.avatar = ""; const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())]; if (person) show(sheetHtml(person, draft), "meTitle"); return; }
     if (e.target.closest("#meBannerClear")) { readForm(); draft.touched = true; draft.banner = ""; const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())]; if (person) show(sheetHtml(person, draft), "meTitle"); return; }
+    if (e.target.closest("[data-me-view]")) { const id = LeagueShared.sessionUserId(LeagueShared.readLocalLeague()); close(); return window.PlayerCard?.open(id); }
     if (e.target.closest("#meSave")) return save();
     const c = e.target.closest("[data-pay-copy]"); if (c) copy(c.dataset.payCopy);
   }
