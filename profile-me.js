@@ -161,7 +161,8 @@ const LeagueProfile = (() => {
     const first = checkEdit(local, id, draft); if (first.error) return status(first.error, "bad");
     saving = true; $("meSave").disabled = true; status("กำลังบันทึก…");
     try {
-      for (let attempt = 0; attempt < 3; attempt++) {
+      for (let attempt = 0; attempt < LeagueShared.LOCK_TRIES; attempt++) {
+        if (attempt) await LeagueShared.lockBackoff(attempt - 1);
         const row = (await LeagueShared.cloudRequest("league,updated_at"))[0], latest = row?.league?.uidLeague;
         if (!latest?.profiles) throw new Error("ไม่พบข้อมูลลีก");
         const me = LeagueShared.sessionUserId(latest); if (!me) throw new Error("กรุณาเข้าสู่ระบบใหม่");

@@ -23,6 +23,8 @@ async function loadCloud() {
 async function mutate(change) {
   if (saving) return false; saving = true; setStatus("กำลังตรวจข้อมูลล่าสุด…");
   try {
+   // Lost the write race to another phone: re-read and re-apply this change to the newer copy, then retry.
+   for (let attempt = 0; ; attempt++) {
     const row = (await cloudRequest())[0], latest = row?.league?.uidLeague;
     if (!latest?.profiles) throw new Error("ไม่พบข้อมูลบัญชีในระบบ");
     currentUserId = LeagueShared.sessionUserId(latest);
@@ -34,8 +36,12 @@ async function mutate(change) {
     const expected = row?.updated_at || "";
     const filter = expected ? `updated_at=eq.${encodeURIComponent(expected)}` : "";
     const saved = await cloudRequest("PATCH", { league: { ...(row.league || {}), uidLeague: updated }, updated_at: now }, filter);
-    if (!saved?.length) throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง กรุณาลองใหม่");
+    if (!saved?.length) {
+      if (attempt < LeagueShared.LOCK_TRIES - 1) { setStatus("มีคนบันทึกพร้อมกัน • กำลังลองใหม่…"); await LeagueShared.lockBackoff(attempt); continue; }
+      throw new Error("มีคนบันทึกพร้อมกันหลายครั้ง กรุณาลองใหม่");
+    }
     state = updated; LeagueShared.saveLocalLeague(state); render(); setStatus("ออนไลน์ • บันทึกแล้ว"); return true;
+   }
   } catch (error) { setStatus(`บันทึกไม่ได้: ${error.message}`); await loadCloud(); return false; }
   finally { saving = false; }
 }
