@@ -52,9 +52,11 @@
     return mediaOk(url) && probe(url) === "ok" ? url : "";
   };
   const IMG_STYLE = "width:100%;height:100%;border-radius:50%;object-fit:cover;display:block";
+  // The sharp 512px copy in the media bucket, once it is known to load (see probe below); "" otherwise.
+  const sharpPictureOf = id => { const url = league()?.profiles?.[id]?.avatarHd; return mediaOk(url) && probe(url) === "ok" ? url : ""; };
   function avatar(id, name = nameOf(id), size = "") {
-    const pic = pictureOf(id);
-    return `<span class="pa ${size}${pic ? " pa-img" : ""}" style="--pa:${color(id)};--pa-fg:${inkOn(id)}" aria-hidden="true">${pic ? `<img src="${esc(pic)}" alt="" decoding="async" style="${IMG_STYLE}">` : esc(initials(name))}</span>`;
+    const pic = sharpPictureOf(id) || pictureOf(id);
+    return `<span class="pa ${size}${pic ? " pa-img" : ""}" data-pid="${esc(id)}" style="--pa:${color(id)};--pa-fg:${inkOn(id)}" aria-hidden="true">${pic ? `<img src="${esc(pic)}" alt="" decoding="async" style="${IMG_STYLE}">` : esc(initials(name))}</span>`;
   }
   const chip = (id, name = nameOf(id), size = "") => `<span class="pchip">${avatar(id, name, size)}<span class="pchip-name">${esc(name)}</span></span>`;
 
@@ -89,6 +91,8 @@
       const known = league()?.profiles?.[id]?.displayName;
       el.classList.add("has-pa"); el.insertAdjacentHTML("afterbegin", avatar(id, known || ownName(el) || id, "sm"));
     }));
+    // Avatars drawn before their sharp copy finished loading switch to it now.
+    root.querySelectorAll?.(".pa.pa-img[data-pid] > img").forEach(img => { const sharp = sharpPictureOf(img.parentElement.dataset.pid); if (sharp && img.getAttribute("src") !== sharp) img.setAttribute("src", sharp); });
     // Match cards: each corner gets its player's background picture (--bg-a red corner, --bg-b blue corner).
     root.querySelectorAll?.(".match").forEach(m => {
       const names = m.querySelectorAll(":scope > .pair > b"); if (names.length < 2) return;

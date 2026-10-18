@@ -21,8 +21,8 @@ const LeagueProfile = (() => {
     if (!name) return { error: "กรอกชื่อเล่นก่อน" };
     if (name.length > LIMITS.name) return { error: `ชื่อเล่นยาวได้ไม่เกิน ${LIMITS.name} ตัวอักษร` };
     if (Object.values(league.profiles).some(p => p && p.id !== id && String(p.displayName || "").toLowerCase() === name.toLowerCase())) return { error: "มีชื่อนี้แล้ว" };
-    const clean = { displayName: name, tagline: cleanText(edit.tagline, LIMITS.tagline), avatar: "", banner: "", promptpay: "", payQr: "" };
-    if (edit.avatar) { if (!imageOk(edit.avatar, LIMITS.avatar)) return { error: "รูปโปรไฟล์ใหญ่เกินไป ลองเลือกรูปใหม่" }; clean.avatar = edit.avatar; }
+    const clean = { displayName: name, tagline: cleanText(edit.tagline, LIMITS.tagline), avatar: "", avatarHd: "", banner: "", promptpay: "", payQr: "" };
+    if (edit.avatar) { if (!imageOk(edit.avatar, LIMITS.avatar)) return { error: "รูปโปรไฟล์ใหญ่เกินไป ลองเลือกรูปใหม่" }; clean.avatar = edit.avatar; if (mediaOk(edit.avatarHd)) clean.avatarHd = edit.avatarHd; }
     if (edit.banner) { if (!bannerOk(edit.banner)) return { error: "ภาพพื้นหลังใหญ่เกินไป ลองเลือกรูปใหม่" }; clean.banner = edit.banner; }
     if (edit.payMethod === "promptpay") {
       const problem = PP().problem(edit.promptpay);
@@ -37,7 +37,7 @@ const LeagueProfile = (() => {
   // Writes only what is needed: empty fields are removed rather than stored as "". Returns the changed field names.
   function applyEdit(person, clean) {
     const changed = [];
-    ["displayName", "tagline", "avatar", "banner", "promptpay", "payQr"].forEach(key => {
+    ["displayName", "tagline", "avatar", "avatarHd", "banner", "promptpay", "payQr"].forEach(key => {
       const before = person[key] || "", after = clean[key] || "";
       if (before === after) return;
       changed.push(key);
@@ -63,6 +63,7 @@ const LeagueProfile = (() => {
   const BANNER_PLAN = [480, 420, 360, 300].flatMap(s => [.8, .7, .6, .5].map(q => [s, q]));
   // Full resolution for the media bucket: 1080px square, about 120-250KB. Used whenever the upload works.
   const BANNER_HD = [1080, .86];
+  const AVATAR_HD = [512, .86];
   const QR_PLAN = [480, 400, 340, 280, 240].flatMap(s => [.8, .62, .45].map(q => [s, q]));
   function payeeByName(league, name) {
     const key = String(name ?? "").trim().toLowerCase();
@@ -153,7 +154,7 @@ const LeagueProfile = (() => {
     if (!id) return alert("เข้าสู่ระบบก่อน แล้วค่อยแก้โปรไฟล์");
     const draw = person => {
       const method = payMethod(person);
-      draft = { displayName: person.displayName || "", tagline: person.tagline || "", avatar: imageOk(person.avatar, LIMITS.avatar) ? person.avatar : "", banner: bannerOk(person.banner) ? person.banner : "", payMethod: method?.type || "", promptpay: method?.type === "promptpay" ? PP().format(method.id) : "", payQr: method?.type === "qr" ? method.url : "" };
+      draft = { displayName: person.displayName || "", tagline: person.tagline || "", avatar: imageOk(person.avatar, LIMITS.avatar) ? person.avatar : "", avatarHd: mediaOk(person.avatarHd) ? person.avatarHd : "", banner: bannerOk(person.banner) ? person.banner : "", payMethod: method?.type || "", promptpay: method?.type === "promptpay" ? PP().format(method.id) : "", payQr: method?.type === "qr" ? method.url : "" };
       show(sheetHtml(person, draft), "meTitle");
     };
     draw(league.profiles[id]);
@@ -214,26 +215,35 @@ const LeagueProfile = (() => {
       return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/jpeg", quality);
     };
   }
+  // Uploads a sharp copy to the media bucket and returns its link once the picture really opens from it
+  // (a private bucket or a blocked read would otherwise leave a blank picture). Throws with a readable reason.
+  // The bucket's upload policy covers the banners/ folder, so avatars go there too, named "<id>-avatar-<time>".
+  async function uploadHd(source, shape, [size, quality], tag) {
+    const id = String(LeagueShared.sessionUserId(LeagueShared.readLocalLeague())).replace(/[^A-Za-z0-9_-]/g, "") || "player";
+    const blob = await (await fetch(encoder(source, shape)(size, quality))).blob();
+    const link = await LeagueShared.uploadMedia(`banners/${id}${tag}-${Date.now()}.${blob.type === "image/jpeg" ? "jpg" : "webp"}`, blob);
+    await new Promise((ok, fail) => { const img = new Image(); img.onload = ok; img.onerror = () => fail(new Error("อัปโหลดได้ แต่เปิดภาพจากที่เก็บไม่ได้ (bucket อาจยังไม่ public)")); img.src = link; });
+    return link;
+  }
   async function pick(file) {
     const kind = picking; status("กำลังย่อรูป…");
     try {
       const source = await decode(file);
-      let url = "", hd = false, hdError = "";
+      let url = "", hd = false, hdError = "", avatarHd = "";
       if (kind === "banner") {
         // Sharp copy to the media bucket first; if the bucket is not set up (or offline), the small in-row copy instead.
-        try {
-          const id = LeagueShared.sessionUserId(LeagueShared.readLocalLeague());
-          const blob = await (await fetch(encoder(source, "banner")(...BANNER_HD))).blob();
-          const link = await LeagueShared.uploadMedia(`banners/${String(id).replace(/[^A-Za-z0-9_-]/g, "") || "player"}-${Date.now()}.${blob.type === "image/jpeg" ? "jpg" : "webp"}`, blob);
-          // Only keep the link once the picture really opens from it (a private bucket or a blocked read would leave a blank card).
-          await new Promise((ok, fail) => { const img = new Image(); img.onload = ok; img.onerror = () => fail(new Error("อัปโหลดได้ แต่เปิดภาพจากที่เก็บไม่ได้ (bucket อาจยังไม่ public)")); img.src = link; });
-          url = link; hd = true;
-        } catch (error) { hdError = error?.message || "อัปโหลดไม่สำเร็จ"; url = compress(encoder(source, "banner"), BANNER_PLAN, LIMITS.banner); }
-      } else url = kind === "avatar" ? compress(encoder(source, "square"), AVATAR_PLAN, LIMITS.avatar) : compress(encoder(source, "fit"), QR_PLAN, LIMITS.payQr);
+        try { url = await uploadHd(source, "banner", BANNER_HD, ""); hd = true; }
+        catch (error) { hdError = error?.message || "อัปโหลดไม่สำเร็จ"; url = compress(encoder(source, "banner"), BANNER_PLAN, LIMITS.banner); }
+      } else if (kind === "avatar") {
+        // The small 96px copy stays in the row (every list uses it); a 512px copy goes to the bucket for big displays.
+        url = compress(encoder(source, "square"), AVATAR_PLAN, LIMITS.avatar);
+        try { avatarHd = await uploadHd(source, "square", AVATAR_HD, "-avatar"); hd = true; }
+        catch (error) { hdError = error?.message || "อัปโหลดไม่สำเร็จ"; }
+      } else url = compress(encoder(source, "fit"), QR_PLAN, LIMITS.payQr);
       source.close?.();
       if (!url || !draft) return status("ย่อรูปให้เล็กพอไม่ได้ ลองรูปอื่น", "bad");
       readForm(); draft.touched = true;
-      if (kind === "avatar") draft.avatar = url; else if (kind === "banner") draft.banner = url; else { draft.payQr = url; draft.payMethod = "qr"; }
+      if (kind === "avatar") { draft.avatar = url; draft.avatarHd = avatarHd; } else if (kind === "banner") draft.banner = url; else { draft.payQr = url; draft.payMethod = "qr"; }
       const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())];
       if (!person) return;
       show(sheetHtml(person, draft), "meTitle");
@@ -243,7 +253,7 @@ const LeagueProfile = (() => {
   function onClick(e) {
     if (e.target === sheet || e.target.closest("[data-me-close]")) return close();
     const p = e.target.closest("[data-me-pick]"); if (p) { picking = p.dataset.mePick; const f = $("meFile"); f.value = ""; return f.click(); }
-    if (e.target.closest("#meAvatarClear")) { readForm(); draft.touched = true; draft.avatar = ""; const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())]; if (person) show(sheetHtml(person, draft), "meTitle"); return; }
+    if (e.target.closest("#meAvatarClear")) { readForm(); draft.touched = true; draft.avatar = ""; draft.avatarHd = ""; const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())]; if (person) show(sheetHtml(person, draft), "meTitle"); return; }
     if (e.target.closest("#meBannerClear")) { readForm(); draft.touched = true; draft.banner = ""; const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())]; if (person) show(sheetHtml(person, draft), "meTitle"); return; }
     if (e.target.closest("[data-me-view]")) { const id = LeagueShared.sessionUserId(LeagueShared.readLocalLeague()); close(); return window.PlayerCard?.open(id); }
     if (e.target.closest("#meSave")) return save();
