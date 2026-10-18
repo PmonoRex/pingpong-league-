@@ -34,7 +34,8 @@
   function imageOk(url, max) { return typeof url === "string" && url.length <= max && /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/]+={0,2}$/.test(url); }
   const pictureOf = id => { const url = league()?.profiles?.[id]?.avatar; return imageOk(url, LIMITS.avatar) ? url : ""; };
   // A player's own background picture (square, up to 480px), shown behind their corner of every match card.
-  const bannerOf = id => { const url = league()?.profiles?.[id]?.banner; return imageOk(url, LIMITS.banner) ? url : ""; };
+  const mediaOk = url => { try { return typeof LeagueShared !== "undefined" && !!LeagueShared.mediaUrlOk?.(url); } catch { return false; } };
+  const bannerOf = id => { const url = league()?.profiles?.[id]?.banner; return imageOk(url, LIMITS.banner) || mediaOk(url) ? url : ""; };
   const IMG_STYLE = "width:100%;height:100%;border-radius:50%;object-fit:cover;display:block";
   function avatar(id, name = nameOf(id), size = "") {
     const pic = pictureOf(id);
@@ -102,5 +103,5 @@
   function boot() { decorate(); new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 
-  window.LeagueUI = Object.freeze({ color, inkOn, initials, avatar, chip, empty, decorate, imageOk, pictureOf, bannerOf, LIMITS });
+  window.LeagueUI = Object.freeze({ color, inkOn, initials, avatar, chip, empty, decorate, imageOk, mediaOk, pictureOf, bannerOf, LIMITS });
 })();

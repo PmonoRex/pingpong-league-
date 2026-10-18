@@ -146,6 +146,22 @@ const LeagueShared = (() => {
     if (!response.ok) throw new Error(`Cloud request failed: ${response.status}`);
     return response.json();
   }
+  // Full-resolution pictures (match-card backgrounds) live in the public Supabase Storage bucket "media", not in the
+  // league row, so polls stay small. Only URLs under MEDIA_BASE with a plain file path are ever used as a picture.
+  const MEDIA_BASE = `${SUPABASE_URL}/storage/v1/object/public/media/`;
+  const mediaUrlOk = url => typeof url === "string" && url.length < 300 && url.startsWith(MEDIA_BASE) && /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_.-]+)+$/.test(url.slice(MEDIA_BASE.length)) && !url.includes("..");
+  // Uploads a picture and returns its public URL; throws when the bucket is missing or refuses (see docs/media-storage.md).
+  async function uploadMedia(path, blob) {
+    const response = await fetch(`${SUPABASE_URL}/storage/v1/object/media/${path}`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": blob.type || "image/webp", "x-upsert": "true", "cache-control": "31536000" },
+      body: blob
+    });
+    if (!response.ok) throw new Error(`Media upload failed: ${response.status}`);
+    const url = MEDIA_BASE + path;
+    if (!mediaUrlOk(url)) throw new Error("Media path not allowed");
+    return url;
+  }
   // Dummy card scores live in their own `dummy` column. Their optimistic lock is `dummy.rev` (not updated_at),
   // so a Dummy save never makes an in-flight league or predictions save look stale.
   async function loadDummyCloud() {
@@ -162,5 +178,5 @@ const LeagueShared = (() => {
 
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
-    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff });
+    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff, MEDIA_BASE, mediaUrlOk, uploadMedia });
 })();
