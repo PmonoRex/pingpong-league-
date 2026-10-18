@@ -95,7 +95,11 @@ if (typeof module !== "undefined") module.exports = LiveScore;
         await LS().lockBackoff(attempt);
       }
       sending.forEach((m, k) => { if (!dirty.has(k)) dirty.set(k, m); }); // try again with the next change
-    } catch { sending.forEach((m, k) => { if (!dirty.has(k)) dirty.set(k, m); }); }
+    } catch (error) {
+      sending.forEach((m, k) => { if (!dirty.has(k)) dirty.set(k, m); });
+      // Network drop: send the kept points again shortly, so watchers catch up without waiting for the next tap.
+      if (error instanceof TypeError) { clearTimeout(pushTimer); pushTimer = setTimeout(push, 3000); }
+    }
     finally { pushing = false; }
   }
 
@@ -126,11 +130,12 @@ if (typeof module !== "undefined") module.exports = LiveScore;
     Object.keys(remote).forEach(k => { const m = /^[ct]:/.test(k) && clubLive(k); if (m && !m.done) live.push({ id: k, m, pair: m.pair || [] }); });
     let strip = document.querySelector(".lv-strip");
     const going = live.filter(x => !x.m.done);
+    // An open "ดูสด" board follows every change, the final point included (when nothing is left going).
+    if (board && !board.hidden && board.dataset.mode === "watch") renderBoard();
     if (!going.length) { strip?.remove(); return; }
     if (!strip) { strip = document.createElement("div"); strip.className = "lv-strip"; (document.getElementById("nextUp") || box).before(strip); }
     const html = `<span class="lv-tag"><i aria-hidden="true"></i>กำลังแข่งสด</span>${going.map(x => `<button type="button" data-lv-watch="${esc(x.id)}"><b>${esc(label(l, x.m, 0))}</b> <em>${x.m.cur[0]}–${x.m.cur[1]}</em> <b>${esc(label(l, x.m, 1))}</b>${x.m.bestOf > 1 ? `<small>เกม ${L.wins(x.m.games).join("–")}</small>` : ""}</button>`).join("")}`;
     if (strip.dataset.html !== html) { strip.dataset.html = html; strip.innerHTML = html; }
-    if (board && !board.hidden && board.dataset.mode === "watch") renderBoard();
   }
 
   // ---------- Scoreboard ----------

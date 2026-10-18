@@ -97,10 +97,16 @@
       dirty=changeVersion!==startedVersion;saved=true;saveLocal();setSync('ออนไลน์ • บันทึกแล้ว','online');
       return;
      }
-    }catch(error){console.error(error);setSync('ออฟไลน์ • เก็บในเครื่อง','offline')}
+    }catch(error){
+      console.warn(error);setSync('ออฟไลน์ • เก็บในเครื่อง','offline');
+      // The network dropped (fetch threw): keep trying on our own, or the kept scores never reach the cloud and the
+      // next page load replaces them with the cloud copy.
+      if(error instanceof TypeError&&dirty){clearTimeout(saveTimer);saveTimer=setTimeout(pushCloud,4000)}
+    }
     finally{cloudSaving=false;if(saved&&dirty)saveTimer=setTimeout(pushCloud,400)}
   };
 
+  addEventListener('online',()=>{if(dirty&&!cloudSaving){clearTimeout(saveTimer);pushCloud()}});
   setInterval(()=>{
     if(!dirty&&!cloudSaving&&lastCloudUpdate&&lastCloudUpdate!==baseUpdatedAt){syncBase=clone(state);baseUpdatedAt=lastCloudUpdate}
   },1200);
