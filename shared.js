@@ -393,12 +393,26 @@ const LeagueShared = (() => {
   const emptyClub = () => ({ v: 1, matches: [], challenges: [], tournaments: [], social: { reactions: {}, comments: [] }, mvp: {}, checkin: {} });
   const normalizeClub = c => { const e = emptyClub(), x = c && typeof c === "object" ? c : {}; return { ...e, ...x, social: { ...e.social, ...(x.social || {}) } }; };
   function readLocalClub() { try { return normalizeClub(JSON.parse(localStorage.getItem(CLUB_KEY) || "null")); } catch { return emptyClub(); } }
+  // Several scripts poll the club row (challenge.js, social.js, tournament.js, hall.js): reads that overlap share one
+  // request, and a read that was already on its way when this page saved is answered with the saved copy instead, so
+  // it cannot put the older row back into pp_club_v1 (and the pages) after the save.
+  let clubSeq = 0, clubSavedSeq = -1, clubSaved = null, clubPending = null;
+  const clubCopy = res => res ? { club: JSON.parse(JSON.stringify(res.club)), updatedAt: res.updatedAt } : res;
   async function clubRead() {
-    const row = (await clubRequest())[0];
-    if (!row) return null;
-    const club = normalizeClub(row.league?.club);
-    try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {}
-    return { club, updatedAt: row.updated_at };
+    if (!clubPending) {
+      const seq = ++clubSeq;
+      clubPending = (async () => {
+        try {
+          const row = (await clubRequest())[0];
+          if (!row) return null;
+          if (seq < clubSavedSeq && clubSaved) return clubSaved;
+          const club = normalizeClub(row.league?.club);
+          try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {}
+          return { club, updatedAt: row.updated_at };
+        } finally { clubPending = null; }
+      })();
+    }
+    return clubCopy(await clubPending);
   }
   // Apply change(club) to the newest copy and save it; change may return false to cancel. Returns the saved club.
   async function clubMutate(change) {
@@ -410,7 +424,11 @@ const LeagueShared = (() => {
       if (club.social.comments.length > 300) club.social.comments = club.social.comments.slice(-300);
       const filter = row.updated_at ? `updated_at=eq.${encodeURIComponent(row.updated_at)}` : "";
       const saved = await clubRequest("PATCH", { league: { ...(row.league || {}), club }, updated_at: new Date().toISOString() }, filter);
-      if (saved?.length) { try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {} return club; }
+      if (saved?.length) {
+        try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {}
+        clubSavedSeq = ++clubSeq; clubSaved = { club: JSON.parse(JSON.stringify(club)), updatedAt: saved[0]?.updated_at || "" };
+        return club;
+      }
       await lockBackoff(attempt);
     }
     throw new Error("มีคนบันทึกพร้อมกันหลายครั้ง กรุณาลองใหม่");

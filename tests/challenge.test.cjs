@@ -77,6 +77,24 @@ test('doubles finish stores team arrays; history is latest first and challenge-o
   assert.deepEqual(C.history(club).map(m => m.id), ['cm_9', 'old']);
 });
 
+test('history skips matches whose score is not whole numbers (markup in the club row)', () => {
+  const club = { matches: [
+    { id: 'x', kind: 'challenge', a: 'a', b: 'b', s: { a: '<img src=x onerror=alert(1)>', b: 0 }, at: '2026-10-02T00:00:00Z' },
+    { id: 'ok', kind: 'challenge', a: 'a', b: 'b', s: { a: 11, b: 4 }, at: '2026-10-01T00:00:00Z' }] };
+  assert.deepEqual(C.history(club).map(m => m.id), ['ok']);
+});
+
+test('trimming past 200 challenges only drops finished ones the sender took part in (server rule)', () => {
+  const club = { challenges: [] };
+  for (let i = 0; i < 200; i++) club.challenges.push({ id: `old${i}`, from: i % 2 ? 'c' : 'a', to: 'd', format: 'singles', status: 'done', at: '2026-01-01T00:00:00Z' });
+  C.create(club, { from: 'b', format: 'singles', to: 'c', note: '' }, { id: 'ch_new' });
+  assert.equal(club.challenges.length, 201, 'b took part in none of the old ones, so nothing of others is removed');
+  club.challenges.push({ id: 'mine_done', from: 'b', to: 'a', format: 'singles', status: 'declined', at: '2026-01-02T00:00:00Z' });
+  C.create(club, { from: 'b', format: 'singles', to: 'd', note: '' }, { id: 'ch_new2' });
+  assert.ok(!club.challenges.some(c => c.id === 'mine_done'));
+  assert.equal(club.challenges.filter(c => c.id.startsWith('old')).length, 200);
+});
+
 test('helpers survive a missing or malformed club', () => {
   assert.deepEqual(C.openForMe(null, 'a'), []);
   assert.deepEqual(C.history({ matches: 'x' }), []);

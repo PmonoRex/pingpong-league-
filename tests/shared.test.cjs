@@ -172,6 +172,33 @@ test('clubMutate re-applies the change on the newest copy after a lost race', as
   assert.deepEqual(row.league.club.social, { reactions: {}, comments: [] });
 });
 
+test('clubRead: overlapping reads share one request; a read sent before a save cannot bring the old row back', async () => {
+  const { shared, context, localStorage } = loadShared();
+  context.structuredClone = v => JSON.parse(JSON.stringify(v));
+  let row = { league: { club: { v: 1, challenges: [{ id: 'c1', status: 'open' }] } }, updated_at: '2026-10-18T01:00:00Z' }, gets = 0, release = null;
+  context.fetch = async (url, options) => {
+    if (String(url).includes('/rpc/')) return { ok: false, status: 404, json: async () => ({ code: 'PGRST202' }) };
+    if (options.method === 'GET') {
+      gets++;
+      const snapshot = JSON.parse(JSON.stringify(row));
+      if (gets === 1) return new Promise(done => { release = () => done({ ok: true, json: async () => [snapshot] }); });
+      return { ok: true, json: async () => [snapshot] };
+    }
+    const body = JSON.parse(options.body); row = { ...body, updated_at: '2026-10-18T01:00:05Z' }; return { ok: true, json: async () => [row] };
+  };
+  const slow = shared.clubRead(), joined = shared.clubRead();
+  await new Promise(r => setImmediate(r));
+  assert.equal(gets, 1, 'the second read joins the first');
+  await shared.clubMutate(c => { c.challenges[0].status = 'accepted'; });
+  release();
+  const [a, b] = await Promise.all([slow, joined]);
+  assert.equal(a.club.challenges[0].status, 'accepted');
+  assert.equal(b.club.challenges[0].status, 'accepted');
+  assert.notEqual(a.club, b.club, 'each caller gets its own copy');
+  assert.equal(JSON.parse(localStorage.getItem('pp_club_v1')).challenges[0].status, 'accepted');
+  assert.equal((await shared.clubRead()).club.challenges[0].status, 'accepted', 'a read sent after the save uses the row');
+});
+
 test('clubRead returns null before the club row exists', async () => {
   const { shared, context } = loadShared();
   context.fetch = async () => ({ ok: true, json: async () => [] });

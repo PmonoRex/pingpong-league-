@@ -48,7 +48,26 @@ const LiveScore = (() => {
     if (top > 5) return { bestOf: 1, record: "points" };
     return { bestOf: top >= 3 ? 5 : top === 2 ? 3 : 1, record: top >= 2 ? "games" : "points" };
   }
-  return Object.freeze({ gameOver, wins, matchOver, server, fresh, point, undo, result, guessFormat, other });
+  // An entry read from the shared live row (any signed-in player can write it) as a well-formed match, or null.
+  // Scores go into the scoreboard, the LIVE chips and the tournament cards as markup, so they must be numbers.
+  const int = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
+  const scoreOk = g => Array.isArray(g) && g.length === 2 && g.every(x => int(x, 0, 999));
+  const str = (v, max = 200) => typeof v === "string" ? v.slice(0, max) : "";
+  const idOk = v => v === null || typeof v === "string" || (Array.isArray(v) && v.length <= 2 && v.every(x => typeof x === "string"));
+  function clean(m) {
+    if (!m || typeof m !== "object" || Array.isArray(m)) return null;
+    if (![1, 3, 5, 7].includes(m.bestOf) || !int(m.to, 1, 99) || !scoreOk(m.cur) || !Array.isArray(m.games) || m.games.length > 7 || !m.games.every(scoreOk)) return null;
+    const out = { key: str(m.key), season: Number.isFinite(m.season) ? m.season : null, id: str(m.id), pair: Array.isArray(m.pair) && m.pair.length === 2 && m.pair.every(idOk) ? m.pair : [null, null],
+      bestOf: m.bestOf, to: m.to, record: m.bestOf > 1 || m.record === "games" ? "games" : "points", first: m.first === "b" ? "b" : "a", by: str(m.by),
+      games: m.games.map(g => [g[0], g[1]]), cur: [m.cur[0], m.cur[1]], at: str(m.at, 40),
+      hist: (Array.isArray(m.hist) ? m.hist : []).filter(h => h && scoreOk(h.cur) && Array.isArray(h.games) && h.games.length <= 7 && h.games.every(scoreOk)).slice(-80).map(h => ({ games: h.games.map(g => [g[0], g[1]]), cur: [h.cur[0], h.cur[1]] })) };
+    out.done = m.done === true && matchOver(out);
+    if (m.club === true) out.club = true;
+    if (Array.isArray(m.names) && m.names.length === 2 && m.names.every(n => typeof n === "string")) out.names = m.names.map(n => n.slice(0, 80));
+    return out;
+  }
+  const cleanAll = map => Object.fromEntries(Object.entries(map && typeof map === "object" && !Array.isArray(map) ? map : {}).map(([k, m]) => [k, clean(m)]).filter(([, m]) => m));
+  return Object.freeze({ gameOver, wins, matchOver, server, fresh, point, undo, result, guessFormat, other, clean, cleanAll });
 })();
 if (typeof module !== "undefined") module.exports = LiveScore;
 
@@ -72,7 +91,7 @@ if (typeof module !== "undefined") module.exports = LiveScore;
       if (!row) { cloud = false; return; }
       cloud = true;
       if (row.updated_at === stamp) return;
-      stamp = row.updated_at; remote = row.league?.matches || {};
+      stamp = row.updated_at; remote = L.cleanAll(row.league?.matches);
       paint();
       if (cur?.club && board && !board.hidden && board.dataset.mode === "watch") renderBoard();
     } catch { if (cloud === null) cloud = false; }
@@ -87,11 +106,13 @@ if (typeof module !== "undefined") module.exports = LiveScore;
       for (let attempt = 0; attempt < LS().LOCK_TRIES; attempt++) {
         const row = (await LS().liveRequest())[0]; if (!row) { cloud = false; return; }
         const now = Date.now(), matches = { ...(row.league?.matches || {}) };
-        Object.keys(matches).forEach(k => { if (!matches[k] || now - Date.parse(matches[k].at || 0) > STALE_MS) delete matches[k]; });
+        // Others' stale entries go too; the server (pp_save_live) allows that only past 6 h by its own clock, so leave a
+        // margin for a phone clock that runs ahead, or the whole save would be refused.
+        Object.keys(matches).forEach(k => { if (!matches[k] || now - Date.parse(matches[k].at || 0) > STALE_MS + 30 * 60e3) delete matches[k]; });
         sending.forEach((m, k) => { if (m) matches[k] = m; else delete matches[k]; });
         const filter = row.updated_at ? `updated_at=eq.${encodeURIComponent(row.updated_at)}` : "";
         const saved = await LS().liveRequest("PATCH", { league: { matches }, updated_at: new Date().toISOString() }, filter);
-        if (saved?.length) { stamp = saved[0].updated_at; remote = matches; paint(); return; }
+        if (saved?.length) { stamp = saved[0].updated_at; remote = L.cleanAll(matches); paint(); return; }
         await LS().lockBackoff(attempt);
       }
       sending.forEach((m, k) => { if (!dirty.has(k)) dirty.set(k, m); }); // try again with the next change
