@@ -8,7 +8,7 @@
   function ensureStyles(){
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
-      ['motion.css?v=20261018-loader','motion.css'],
+      ['motion.css?v=20261018-video','motion.css'],
       ['arena.css?v=20261018-nav2','arena.css']
     ];
     required.forEach(([href,file])=>{
@@ -174,30 +174,8 @@
   function markEmptyStats(){document.querySelectorAll('.stat').forEach(s=>{const v=(s.querySelector('b')?.textContent||'').trim();s.classList.toggle('stat-empty',v==='-'||v==='–'||v==='')})}
   let statTimer=0;
   new MutationObserver(()=>{clearTimeout(statTimer);statTimer=setTimeout(markEmptyStats,60)}).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
-  // Page transition, leaving half: an internal link tap sweeps the red wipe across (motion.css html.pt-out), then goes.
-  // The next page's inline head script sees the flag in sessionStorage and sweeps the cover away. Always right to left.
-  function wipeLinks(){
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-    document.addEventListener('click',e=>{
-      if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
-      const a=e.target.closest?.('a[href]');if(!a||a.target||a.hasAttribute('download'))return;
-      const url=new URL(a.href,location.href);
-      if(url.origin!==location.origin||!/\.html$|\/$/.test(url.pathname)||(url.pathname===location.pathname&&url.search===location.search))return;
-      e.preventDefault();
-      const h=document.documentElement;
-      const cards=/dummy\.html$/i.test(url.pathname)||page==='dummy.html';
-      try{sessionStorage.setItem('pp_pt',JSON.stringify({at:Date.now(),cards}))}catch{}
-      h.classList.remove('pt-in');h.classList.toggle('pt-cards',cards);h.classList.add('pt-out');
-      setTimeout(()=>{location.href=url.href},400);
-      // If the next page never comes (offline, a stalled request) the cover lifts again instead of trapping the screen.
-      setTimeout(()=>h.classList.remove('pt-out','pt-cards'),5000);
-    });
-    // Coming back through the back/forward cache must not leave the page covered.
-    addEventListener('pageshow',e=>{if(e.persisted)document.documentElement.classList.remove('pt-out','pt-cards')});
-  }
-  wipeLinks();
-  // Warm the two loader pictures so the cover never shows up empty on the first tap.
-  addEventListener('load',()=>setTimeout(()=>['img/loader-pingpong.svg','img/loader-cards.svg'].forEach(src=>{const i=new Image();i.src=src}),600),{once:true});
+  // Page changes (the red wipe and the video loader) live in transition.js, loaded in <head>.
+
   function boot(){setupMenu();markEmptyStats();elevateImportantCards();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
   // Installable app: sw.js keeps the shell (pages, css, js, fonts) on the phone; league data still comes live from Supabase.
