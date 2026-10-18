@@ -89,17 +89,13 @@
     const a = new Uint8Array(have), b = keyBytes(vapidKey());
     return a.length === b.length && a.every((v, i) => v === b[i]);
   };
-<<<<<<< HEAD
   const signedIn = () => { const S = LS(); try { return S?.sessionUserId((S.peekLocalLeague || S.readLocalLeague)()) || ""; } catch { return ""; } };
-=======
-  const signedIn = () => { const S = LS(); try { return S?.sessionUserId(S.readLocalLeague()) || ""; } catch { return ""; } };
   // The server session token from pp_login (shared.js), or "" when this browser has none for the signed-in account
   // (server auth not installed, signed in offline, or the session expired).
   const sessionToken = () => { try { return LS()?.sessionToken?.() || ""; } catch { return ""; } };
   const tokTag = t => t ? t.slice(-12) : "";
   // Registered with this token already (or, without a token, still registered for this player from an earlier one).
   const pushCurrent = (stored, me, token) => !!stored?.endpoint && stored.userId === me && (!token || stored.tok === tokTag(token));
->>>>>>> origin/main
   async function rpc(name, args) {
     const S = LS();
     const res = await fetch(`${S.SUPABASE_URL}/rest/v1/rpc/${name}`, { method: "POST", body: JSON.stringify(args),
@@ -179,16 +175,6 @@
   let lastSig = null;
   function check() {
     if (!enabled()) return;
-<<<<<<< HEAD
-    // Re-register when the signed-in player changed (or signed out), and once a minute in case the browser rotated it.
-    if (pushCapable() && ((read(PUSH)?.userId || "") !== signedIn() || Date.now() - lastSync > 60000)) syncPush();
-    // Nothing to tell unless a stored copy changed since the last look: comparing the stored strings is cheap, working
-    // the events out of the whole league (and Hall of Fame records) every 5 seconds is not.
-    const S = LS(), sig = [S?.LEAGUE_KEY, S?.PRED_KEY, S?.CLUB_KEY, S?.SESSION_KEY, SEEN].map(k => { try { return k ? localStorage.getItem(k) : null; } catch { return null; } });
-    sig.push(window.LeagueSocial?.available?.() ?? null);
-    if (lastSig && sig.every((v, i) => v === lastSig[i])) return;
-    lastSig = sig;
-=======
     // Re-register when the signed-in player or the session token changed (or signed out), and once a minute in case
     // the browser rotated it. A new token (fresh sign-in) skips the retry wait.
     if (pushCapable()) {
@@ -197,7 +183,12 @@
       if (newToken && !pushCurrent(stored, me, token)) syncPush(true);
       else if ((stored?.userId || "") !== me || (token && stored?.tok !== tokTag(token)) || Date.now() - lastSync > 60000) syncPush();
     }
->>>>>>> origin/main
+    // Nothing to tell unless a stored copy changed since the last look: comparing the stored strings is cheap, working
+    // the events out of the whole league (and Hall of Fame records) every 5 seconds is not.
+    const S = LS(), sig = [S?.LEAGUE_KEY, S?.PRED_KEY, S?.CLUB_KEY, S?.SESSION_KEY, SEEN].map(k => { try { return k ? localStorage.getItem(k) : null; } catch { return null; } });
+    sig.push(window.LeagueSocial?.available?.() ?? null);
+    if (lastSig && sig.every((v, i) => v === lastSig[i])) return;
+    lastSig = sig;
     const seenList = read(SEEN); if (!Array.isArray(seenList)) return baseline();
     const seen = new Set(seenList), now = events(), fresh = now.filter(e => !seen.has(e.key));
     if (!fresh.length) return;

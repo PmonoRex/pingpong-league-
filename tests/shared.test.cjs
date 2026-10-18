@@ -172,7 +172,6 @@ test('clubMutate re-applies the change on the newest copy after a lost race', as
   assert.deepEqual(row.league.club.social, { reactions: {}, comments: [] });
 });
 
-<<<<<<< HEAD
 test('clubRead downloads the club row again only when its updated_at changed, and shares a read in flight', async () => {
   const { shared, context, localStorage } = loadShared();
   let row = { league: { club: { v: 1, matches: [{ id: 'a' }] } }, updated_at: 't1' };
@@ -206,7 +205,8 @@ test('peekLocalLeague parses once and sees writes made through saveLocalLeague',
   shared.saveLocalLeague({ profiles, currentSeason: 2 });
   assert.equal(shared.peekLocalLeague().currentSeason, 2);
   assert.notEqual(shared.readLocalLeague(), shared.readLocalLeague()); // private copies stay private
-=======
+});
+
 test('clubRead: overlapping reads share one request; a read sent before a save cannot bring the old row back', async () => {
   const { shared, context, localStorage } = loadShared();
   context.structuredClone = v => JSON.parse(JSON.stringify(v));
@@ -232,7 +232,6 @@ test('clubRead: overlapping reads share one request; a read sent before a save c
   assert.notEqual(a.club, b.club, 'each caller gets its own copy');
   assert.equal(JSON.parse(localStorage.getItem('pp_club_v1')).challenges[0].status, 'accepted');
   assert.equal((await shared.clubRead()).club.challenges[0].status, 'accepted', 'a read sent after the save uses the row');
->>>>>>> origin/main
 });
 
 test('clubRead returns null before the club row exists', async () => {
