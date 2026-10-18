@@ -10,6 +10,8 @@ async function mutatePred(change){
  if(predSaving)return false;
  predSaving=true;
  try{
+  // Someone else saved first (a bet, a score, a market): re-read and re-apply this change to the newer copy, then retry.
+  for(let attempt=0;;attempt++){
   const row=(await cloudRequest())[0];
   const freshLeague=row?.league?.uidLeague;
   if(!freshLeague?.profiles)throw new Error("ไม่พบข้อมูลบัญชีล่าสุด");
@@ -24,11 +26,15 @@ async function mutatePred(change){
   const expected=row?.updated_at||"";
   const filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:"";
   const saved=await cloudRequest("PATCH",{predictions:{...(row.predictions||{}),uidPredictions:pred},updated_at:now},filter);
-  if(!saved?.length)throw new Error("ข้อมูลถูกแก้จากอีกเครื่อง กรุณาลองใหม่อีกครั้ง");
+  if(!saved?.length){
+   if(attempt<LeagueShared.LOCK_TRIES-1){setSync("มีคนบันทึกพร้อมกัน • กำลังลองใหม่…");await LeagueShared.lockBackoff(attempt);continue}
+   throw new Error("มีคนบันทึกพร้อมกันหลายครั้ง กรุณาลองใหม่อีกครั้ง");
+  }
   localStorage.setItem(PRED_KEY,JSON.stringify(pred));
   lastCloudUpdate=saved[0]?.updated_at||now;
   render();setSync("ออนไลน์ • บันทึกแล้ว","online");
   return true;
+  }
  }catch(error){league=loadLeague();pred=loadPred();reconcileSession();renderLogin();render();setSync("บันทึกไม่ได้ • โปรดลองใหม่","offline");alert(`บันทึกไม่ได้: ${error.message}`);return false}
  finally{predSaving=false}
 }

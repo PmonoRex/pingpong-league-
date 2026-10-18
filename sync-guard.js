@@ -53,6 +53,8 @@
     const startedVersion=changeVersion;
     let saved=false;
     try{
+     // Lost the write race to another phone: re-read, re-merge this phone's score changes onto the newer copy, retry.
+     for(let attempt=0;;attempt++){
       const local=clone(state);
       const latest=(await cloudRequest())[0];
       const remote=latest?.league?.uidLeague;
@@ -82,14 +84,18 @@
       next=mergeLocalAudit(syncBase,local,next);
       const now=new Date().toISOString(),expected=latest?.updated_at||'',filter=expected?`updated_at=eq.${encodeURIComponent(expected)}`:'';
       const rows=await cloudRequest('PATCH',{league:{...(latest?.league||{}),uidLeague:next},updated_at:now},filter);
+      if(!rows?.length&&attempt<LeagueShared.LOCK_TRIES-1){setSync('มีคนบันทึกพร้อมกัน • กำลังรวมข้อมูล…');await LeagueShared.lockBackoff(attempt);continue}
       if(!rows?.length){
         saveConflict(local,'ข้อมูลเปลี่ยนระหว่างกำลังบันทึก');
         const refreshed=(await cloudRequest())[0],newest=refreshed?.league?.uidLeague;
         if(newest?.profiles){adoptRemote(newest,refreshed?.updated_at,'มีข้อมูลใหม่จากอีกเครื่อง • เก็บร่างไว้ในข้อมูลสำรอง');return}
         throw new Error('ข้อมูลถูกแก้จากอีกเครื่อง');
       }
-      state=next;lastCloudUpdate=rows[0]?.updated_at||now;baseUpdatedAt=lastCloudUpdate;syncBase=clone(next);
+      // Scores typed while this save was in flight (or waiting to retry) stay on top of what was just saved.
+      state=changeVersion===startedVersion?next:applyResultDelta(local,state,next);lastCloudUpdate=rows[0]?.updated_at||now;baseUpdatedAt=lastCloudUpdate;syncBase=clone(next);
       dirty=changeVersion!==startedVersion;saved=true;saveLocal();setSync('ออนไลน์ • บันทึกแล้ว','online');
+      return;
+     }
     }catch(error){console.error(error);setSync('ออฟไลน์ • เก็บในเครื่อง','offline')}
     finally{cloudSaving=false;if(saved&&dirty)saveTimer=setTimeout(pushCloud,400)}
   };

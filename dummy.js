@@ -223,7 +223,8 @@
     if (cloudOff || syncing) return;
     syncing = true;
     try {
-      for (let attempt = 0; attempt < 3; attempt++) {
+      for (let attempt = 0; attempt < (Cloud.LOCK_TRIES || 3); attempt++) {
+        if (attempt && Cloud.lockBackoff) await Cloud.lockBackoff(attempt - 1);
         const remote = normalize(await Cloud.loadDummyCloud());
         if (!meta.dirty) { if (remote.rev !== state.rev) adopt(remote); setSync("ออนไลน์ • ซิงก์แล้ว", "online"); return; }
         if (remote.rev !== meta.base.rev) {

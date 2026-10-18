@@ -133,6 +133,11 @@ const LeagueShared = (() => {
     }));
     return out;
   }
+  // Every save to the shared row is optimistic: it lands only if the row is still at the version that was read.
+  // When several phones save in the same moment one wins and the rest are refused; those wait a short random beat
+  // (so they do not collide again) and redo their read-merge-write, instead of giving up and falling back.
+  const LOCK_TRIES = 6;
+  function lockBackoff(attempt) { return new Promise(done => setTimeout(done, Math.min(1600, 160 * 2 ** attempt) * (0.5 + Math.random()))); }
   async function cloudRequest(columns, method = "GET", body = null, extraQuery = "") {
     const options = { method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } };
     if (body !== null) { options.headers["Content-Type"] = "application/json"; options.headers.Prefer = "return=representation"; options.body = JSON.stringify(body); }
@@ -157,5 +162,5 @@ const LeagueShared = (() => {
 
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
-    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud });
+    sessionUserId, login, loginGuardStatus, logout, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff });
 })();
