@@ -8,7 +8,7 @@
   function ensureStyles(){
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
-      ['motion.css?v=20261018-wipe','motion.css'],
+      ['motion.css?v=20261018-wipe2','motion.css'],
       ['arena.css?v=20261018-nav2','arena.css']
     ];
     required.forEach(([href,file])=>{
@@ -175,9 +175,7 @@
   let statTimer=0;
   new MutationObserver(()=>{clearTimeout(statTimer);statTimer=setTimeout(markEmptyStats,60)}).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
   // Page transition, leaving half: an internal link tap sweeps the red wipe across (motion.css html.pt-out), then goes.
-  // The next page's inline head script picks the direction up from sessionStorage and sweeps the cover away.
-  const TAB_ORDER=['index.html','predictions.html','dummy.html','stats.html'];
-  const tabAt=path=>{const i=TAB_ORDER.indexOf((path.split('/').pop()||'index.html').toLowerCase());return i<0?TAB_ORDER.length:i};
+  // The next page's inline head script sees the flag in sessionStorage and sweeps the cover away. Always right to left.
   function wipeLinks(){
     if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     document.addEventListener('click',e=>{
@@ -186,15 +184,15 @@
       const url=new URL(a.href,location.href);
       if(url.origin!==location.origin||!/\.html$|\/$/.test(url.pathname)||(url.pathname===location.pathname&&url.search===location.search))return;
       e.preventDefault();
-      const dir=tabAt(url.pathname)<tabAt(location.pathname)?'back':'fwd',h=document.documentElement;
-      try{sessionStorage.setItem('pp_pt',JSON.stringify({dir,at:Date.now()}))}catch{}
-      h.classList.remove('pt-in','pt-fwd','pt-back');h.classList.add('pt-out','pt-'+dir);
+      const h=document.documentElement;
+      try{sessionStorage.setItem('pp_pt',JSON.stringify({at:Date.now()}))}catch{}
+      h.classList.remove('pt-in');h.classList.add('pt-out');
       setTimeout(()=>{location.href=url.href},400);
       // If the next page never comes (offline, a stalled request) the cover lifts again instead of trapping the screen.
-      setTimeout(()=>h.classList.remove('pt-out','pt-fwd','pt-back'),5000);
+      setTimeout(()=>h.classList.remove('pt-out'),5000);
     });
     // Coming back through the back/forward cache must not leave the page covered.
-    addEventListener('pageshow',e=>{if(e.persisted)document.documentElement.classList.remove('pt-out','pt-fwd','pt-back')});
+    addEventListener('pageshow',e=>{if(e.persisted)document.documentElement.classList.remove('pt-out')});
   }
   wipeLinks();
   function boot(){setupMenu();markEmptyStats();elevateImportantCards();document.body.classList.add('sport-ready')}

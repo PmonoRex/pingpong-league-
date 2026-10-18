@@ -16,8 +16,7 @@ html{scroll-behavior:smooth}
 
 /* ---------- Page to page: the red wipe ----------
    Tapping a link to another page sweeps a red blade and a dark panel (with the paddle mark) across the screen; the next
-   page opens under the same cover and the cover sweeps away. Direction follows the tab order (หน้าแรก → ทายผล →
-   ดัมมี่ → สถิติ → menu pages): going right sweeps in from the right, going back sweeps from the left.
+   page opens under the same cover and the cover sweeps away, always right to left, whichever page you go to.
    sport-ui.js adds html.pt-out (leaving); the inline head script adds html.pt-in (arriving). Both are pure CSS
    animations that end uncovered, so a stuck class can never hide the page. Browser back/forward is not wiped. */
 html.pt-out::before,html.pt-out::after,html.pt-in::before,html.pt-in::after{content:"";position:fixed;top:0;bottom:0;left:-20vw;right:-20vw;z-index:2147483000;pointer-events:none;will-change:transform}
@@ -26,23 +25,15 @@ html.pt-out::before,html.pt-in::before{background:linear-gradient(90deg,transpar
 /* the panel: arena dark with a red glow and the paddle mark */
 html.pt-out::after,html.pt-in::after{background:url(img/icons/paddle-256.webp) center/112px 112px no-repeat,radial-gradient(420px 320px at 50% 50%,rgba(229,36,47,.35),transparent 70%),#0a0b0e;clip-path:polygon(14% 0,100% 0,86% 100%,0 100%)}
 /* leaving: blade then panel sweep in to cover */
-html.pt-out.pt-fwd::before{animation:ptBladeInR 300ms cubic-bezier(.7,0,.3,1) both}
-html.pt-out.pt-fwd::after{animation:ptCoverInR 340ms cubic-bezier(.7,0,.3,1) 60ms both}
-html.pt-out.pt-back::before{animation:ptBladeInL 300ms cubic-bezier(.7,0,.3,1) both}
-html.pt-out.pt-back::after{animation:ptCoverInL 340ms cubic-bezier(.7,0,.3,1) 60ms both}
+html.pt-out::before{animation:ptBladeInR 300ms cubic-bezier(.7,0,.3,1) both}
+html.pt-out::after{animation:ptCoverInR 340ms cubic-bezier(.7,0,.3,1) 60ms both}
 /* arriving: panel sweeps away, the blade trails it out */
-html.pt-in.pt-fwd::after{animation:ptCoverOutL 520ms cubic-bezier(.7,0,.2,1) 80ms both}
-html.pt-in.pt-fwd::before{animation:ptBladeOutL 560ms cubic-bezier(.7,0,.2,1) 160ms both}
-html.pt-in.pt-back::after{animation:ptCoverOutR 520ms cubic-bezier(.7,0,.2,1) 80ms both}
-html.pt-in.pt-back::before{animation:ptBladeOutR 560ms cubic-bezier(.7,0,.2,1) 160ms both}
+html.pt-in::after{animation:ptCoverOutL 520ms cubic-bezier(.7,0,.2,1) 80ms both}
+html.pt-in::before{animation:ptBladeOutL 560ms cubic-bezier(.7,0,.2,1) 160ms both}
 @keyframes ptBladeInR{from{transform:translateX(130%)}to{transform:translateX(-10%)}}
 @keyframes ptCoverInR{from{transform:translateX(130%)}to{transform:translateX(0)}}
-@keyframes ptBladeInL{from{transform:translateX(-130%)}to{transform:translateX(10%)}}
-@keyframes ptCoverInL{from{transform:translateX(-130%)}to{transform:translateX(0)}}
 @keyframes ptCoverOutL{from{transform:translateX(0)}to{transform:translateX(-130%)}}
 @keyframes ptBladeOutL{from{transform:translateX(-10%)}to{transform:translateX(-140%)}}
-@keyframes ptCoverOutR{from{transform:translateX(0)}to{transform:translateX(130%)}}
-@keyframes ptBladeOutR{from{transform:translateX(10%)}to{transform:translateX(140%)}}
 /* the page underneath settles in as the cover leaves */
 html.pt-in body.sport-redesign main{animation:pageIn 560ms var(--motion-ease) 180ms both}
 @keyframes pageIn{from{opacity:0;transform:translateY(14px) scale(.985)}}
