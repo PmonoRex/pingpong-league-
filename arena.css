@@ -507,15 +507,17 @@ body.sport-redesign #schedule .match[data-win=a] .pair>b:last-child .pa,body.spo
 body.sport-redesign #schedule .match[data-win=a] .pair>b:first-child .pa{box-shadow:0 0 0 2px #0c0d11,0 0 0 4px #ff4752,0 0 34px rgba(255,71,82,.9)}
 body.sport-redesign #schedule .match[data-win=b] .pair>b:last-child .pa{box-shadow:0 0 0 2px #0c0d11,0 0 0 4px #5b8cff,0 0 34px rgba(91,140,255,.85)}
 @media (prefers-reduced-motion:reduce){body.sport-redesign #schedule .pair>.vs:before{animation:none}body.sport-redesign #schedule .match{transition:none}}
-/* Each corner can carry its player's own background picture (profile-me.js "ภาพพื้นหลังการ์ด", set by player-ui.js as
-   --bg-a / --bg-b). The picture sits under a dark corner-tinted veil so the name, photo and score stay readable. */
-body.sport-redesign #schedule .match:is(.has-bg-a,.has-bg-b){
-  background:
-    linear-gradient(112deg,rgba(229,36,47,.28) 0,rgba(12,13,17,.22) 49.4%,rgba(255,255,255,.3) 49.7%,rgba(255,255,255,.3) 50.3%,rgba(12,13,17,.22) 50.6%,rgba(91,140,255,.24) 100%),
-    linear-gradient(180deg,rgba(10,11,14,.05),rgba(10,11,14,.35) 45%,rgba(10,11,14,.78) 80%),
-    var(--bg-a,none) left center/50% auto no-repeat,
-    var(--bg-b,none) right center/50% auto no-repeat,
-    var(--panel-2)}
+/* The split is three clipped layers (player-ui.js adds span.mbg-a / .mbg-b / .mbg-seam to each card): the red corner
+   runs from the left edge to a seam from 60% at the top to 40% at the bottom, the blue corner from that same seam to
+   the right edge. A player's own background picture (profile-me.js "ภาพพื้นหลังการ์ด", --bg-a / --bg-b) fills its corner
+   and stops exactly at the seam, under a corner tint and a bottom fade so the name, photo and score stay readable. */
+body.sport-redesign #schedule .match:has(> .mbg){background:var(--panel-2)}
+body.sport-redesign #schedule .mbg{position:absolute;top:0;bottom:0;z-index:-2;pointer-events:none;border-radius:inherit}
+body.sport-redesign #schedule .mbg-a{left:0;right:40%;clip-path:polygon(0 0,100% 0,66.667% 100%,0 100%);border-top-right-radius:0;border-bottom-right-radius:0;
+  background:linear-gradient(180deg,rgba(10,11,14,0),rgba(10,11,14,.35) 45%,rgba(10,11,14,.8) 82%),linear-gradient(100deg,rgba(229,36,47,.34),rgba(229,36,47,.12)),var(--bg-a,none) center/cover no-repeat,#1f1418}
+body.sport-redesign #schedule .mbg-b{left:40%;right:0;clip-path:polygon(33.333% 0,100% 0,100% 100%,0 100%);border-top-left-radius:0;border-bottom-left-radius:0;
+  background:linear-gradient(180deg,rgba(10,11,14,0),rgba(10,11,14,.35) 45%,rgba(10,11,14,.8) 82%),linear-gradient(260deg,rgba(91,140,255,.3),rgba(91,140,255,.1)),var(--bg-b,none) center/cover no-repeat,#141a28}
+body.sport-redesign #schedule .mbg-seam{left:0;right:0;z-index:-1;clip-path:polygon(59.75% 0,60.25% 0,40.25% 100%,39.75% 100%);background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.25));filter:drop-shadow(0 0 4px rgba(255,255,255,.5))}
 body.sport-redesign #schedule .match:is(.has-bg-a,.has-bg-b) .pair>b{text-shadow:0 2px 8px rgba(0,0,0,.9)}
 /* Profile sheet: the background picture picker */
 .me-banner{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;align-items:center;margin:4px 0 12px}
