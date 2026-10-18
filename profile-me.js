@@ -6,7 +6,7 @@ const LeagueProfile = (() => {
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const UI = () => (typeof window !== "undefined" && window.LeagueUI) || null;
   const PP = () => (typeof window !== "undefined" && window.PromptPay) || (typeof PromptPay !== "undefined" ? PromptPay : null);
-  const LIMITS = Object.freeze({ name: 30, tagline: 40, avatarSide: 96, bannerW: 240, ...(UI()?.LIMITS || { avatar: 12 * 1024, payQr: 20 * 1024, banner: 16 * 1024 }) });
+  const LIMITS = Object.freeze({ name: 30, tagline: 40, avatarSide: 96, bannerW: 240, ...(UI()?.LIMITS || { avatar: 12 * 1024, payQr: 20 * 1024, banner: 40 * 1024 }) });
   const imageOk = (url, max) => UI()?.imageOk ? UI().imageOk(url, max) : false;
 
   // ---- pure rules (tests/profile.test.cjs) ----
@@ -55,9 +55,10 @@ const LeagueProfile = (() => {
     return "";
   }
   const AVATAR_PLAN = [.82, .72, .62, .5, .38, .26].map(q => [LIMITS.avatarSide, q]);
-  // Card background: a 3:5 portrait (one corner of a match card), 240px wide at most, under LIMITS.banner.
-  const BANNER_RATIO = 3 / 5;
-  const BANNER_PLAN = [240, 210, 180, 150].flatMap(s => [.62, .48, .36].map(q => [s, q]));
+  // Card background: a square (a match-card corner is about as tall as it is wide), as sharp as fits LIMITS.banner.
+  // Phones draw a corner about 250 CSS px wide at 2-3x, so the plan starts at 480px and steps down only when needed.
+  const BANNER_RATIO = 1;
+  const BANNER_PLAN = [480, 420, 360, 300].flatMap(s => [.8, .7, .6, .5].map(q => [s, q]));
   const QR_PLAN = [480, 400, 340, 280, 240].flatMap(s => [.8, .62, .45].map(q => [s, q]));
   function payeeByName(league, name) {
     const key = String(name ?? "").trim().toLowerCase();
@@ -102,7 +103,7 @@ const LeagueProfile = (() => {
     const preview = draft.avatar ? `<img src="${esc(draft.avatar)}" alt="">` : esc(UI()?.initials ? UI().initials(draft.displayName || person.displayName) : "?");
     return `<div class="me-head"><h2 id="meTitle">โปรไฟล์ของฉัน</h2>${CLOSE}</div>
 <div class="me-pic"><span class="me-pic-preview" id="mePicPreview" style="--pa:${esc(UI()?.color ? UI().color(person.id) : "#3b322c")};--pa-fg:${esc(UI()?.inkOn ? UI().inkOn(person.id) : "#fff")}">${preview}</span><div class="me-pic-actions"><button type="button" class="secondary" data-me-pick="avatar">เลือกรูป</button><button type="button" class="secondary" id="meAvatarClear"${draft.avatar ? "" : " hidden"}>ลบรูป</button><small id="mePicInfo">ย่อเป็นรูปสี่เหลี่ยม 96×96 ก่อนบันทึก</small></div></div>
-<div class="me-banner"><span class="me-banner-preview" id="meBannerPreview">${draft.banner ? `<img src="${esc(draft.banner)}" alt="ภาพพื้นหลังที่เลือก">` : "<small>ยังไม่มีภาพ</small>"}</span><div class="me-pic-actions"><b>ภาพพื้นหลังการ์ด</b><small>ขึ้นหลังชื่อคุณในการ์ดคู่แข่ง (แนวตั้ง)</small><button type="button" class="secondary" data-me-pick="banner">${draft.banner ? "เปลี่ยนภาพ" : "เลือกภาพ"}</button><button type="button" class="secondary" id="meBannerClear"${draft.banner ? "" : " hidden"}>ลบภาพ</button></div></div>
+<div class="me-banner"><span class="me-banner-preview" id="meBannerPreview">${draft.banner ? `<img src="${esc(draft.banner)}" alt="ภาพพื้นหลังที่เลือก">` : "<small>ยังไม่มีภาพ</small>"}</span><div class="me-pic-actions"><b>ภาพพื้นหลังการ์ด</b><small>ขึ้นหลังฝั่งของคุณในการ์ดคู่แข่ง</small><button type="button" class="secondary" data-me-pick="banner">${draft.banner ? "เปลี่ยนภาพ" : "เลือกภาพ"}</button><button type="button" class="secondary" id="meBannerClear"${draft.banner ? "" : " hidden"}>ลบภาพ</button></div></div>
 <div class="field"><label for="meName">ชื่อเล่น</label><input id="meName" maxlength="${LIMITS.name}" autocomplete="nickname" value="${esc(draft.displayName)}"></div>
 <div class="field"><label for="meTagline">คำท้า <small id="meTagCount">${draft.tagline.length}/${LIMITS.tagline}</small></label><input id="meTagline" maxlength="${LIMITS.tagline}" placeholder="เช่น ตบไม่เลือกหน้า" value="${esc(draft.tagline)}"></div>
 <fieldset class="me-pay"><legend>ช่องทางรับเงิน</legend><div class="me-seg">${RADIO("promptpay", "PromptPay", draft.payMethod === "promptpay")}${RADIO("qr", "รูป QR ธนาคาร", draft.payMethod === "qr")}${RADIO("", "ไม่ใส่", !draft.payMethod)}</div>

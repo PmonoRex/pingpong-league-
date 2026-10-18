@@ -115,15 +115,17 @@ test('pay sheet draws a PromptPay QR with the amount and a bank QR as an image',
   assert.match(P.payHtml({ payee: { id: 'b', displayName: 'Golf' }, amount: 5 }), /ยังไม่ได้ใส่ช่องทางรับเงิน/);
 });
 
-test('card background picture: 3:5 crop, size limit, stored and cleared like the avatar', () => {
+test('card background picture: square crop, size limit, stored and cleared like the avatar', () => {
   const { UI, P } = load();
-  assert.equal(UI.LIMITS.banner, 16 * 1024);
-  assert.equal(JSON.stringify(P.coverRect(1000, 1000, P.BANNER_RATIO)), JSON.stringify({ sx: 200, sy: 0, sw: 600, sh: 1000 }));
-  assert.equal(JSON.stringify(P.coverRect(600, 2000, P.BANNER_RATIO)), JSON.stringify({ sx: 0, sy: 500, sw: 600, sh: 1000 }));
+  assert.equal(UI.LIMITS.banner, 40 * 1024);
+  assert.equal(P.BANNER_PLAN[0][0], 480, 'starts sharp');
+  assert.equal(JSON.stringify(P.coverRect(1000, 1000, P.BANNER_RATIO)), JSON.stringify({ sx: 0, sy: 0, sw: 1000, sh: 1000 }));
+  assert.equal(JSON.stringify(P.coverRect(600, 2000, P.BANNER_RATIO)), JSON.stringify({ sx: 0, sy: 700, sw: 600, sh: 600 }));
+  assert.equal(JSON.stringify(P.coverRect(1000, 1000, 3 / 5)), JSON.stringify({ sx: 200, sy: 0, sw: 600, sh: 1000 }));
   const url = P.compress((size, q) => dataUrl(Math.round(size * size * q * 0.5)), P.BANNER_PLAN, P.LIMITS.banner);
   assert.ok(url && url.length <= P.LIMITS.banner);
   const L = { profiles: { a: { id: 'a', displayName: 'A', active: true } } };
-  assert.match(P.checkEdit(L, 'a', { displayName: 'A', banner: dataUrl(30000) }).error, /ใหญ่/);
+  assert.match(P.checkEdit(L, 'a', { displayName: 'A', banner: dataUrl(50000) }).error, /ใหญ่/);
   const ok = P.checkEdit(L, 'a', { displayName: 'A', banner: dataUrl(500) });
   assert.ok(ok.clean.banner);
   const person = { id: 'a', displayName: 'A' };
