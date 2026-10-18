@@ -151,3 +151,26 @@ test('uploadMedia posts the file to the media bucket and returns its public URL'
   assert.match(requests[0].url, /\/storage\/v1\/object\/media\/banners\/u0-1\.webp$/);
   assert.equal(requests[0].options.method, 'POST');
 });
+
+test('clubMutate re-applies the change on the newest copy after a lost race', async () => {
+  const { shared, context } = loadShared();
+  context.structuredClone = v => JSON.parse(JSON.stringify(v));
+  let row = { league: { club: { v: 1, matches: [{ id: 'old' }] } }, updated_at: 't1' }, patches = 0, first = true;
+  context.fetch = async (url, options) => {
+    if (options.method === 'GET') return { ok: true, json: async () => [row] };
+    patches++;
+    if (first) { first = false; row = { league: { club: { v: 1, matches: [{ id: 'old' }, { id: 'other' }] } }, updated_at: 't2' }; return { ok: true, json: async () => [] }; }
+    const body = JSON.parse(options.body); row = { ...body }; return { ok: true, json: async () => [row] };
+  };
+  context.setTimeout = fn => fn();
+  const club = await shared.clubMutate(c => { c.matches.push({ id: 'mine' }); });
+  assert.deepEqual(club.matches.map(m => m.id), ['old', 'other', 'mine']);
+  assert.equal(patches, 2);
+  assert.deepEqual(row.league.club.social, { reactions: {}, comments: [] });
+});
+
+test('clubRead returns null before the club row exists', async () => {
+  const { shared, context } = loadShared();
+  context.fetch = async () => ({ ok: true, json: async () => [] });
+  assert.equal(await shared.clubRead(), null);
+});
