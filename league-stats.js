@@ -58,11 +58,15 @@ const LeagueStats = (() => {
   }
 
   // Head to head between a and b: their record from a's side, points, and every meeting (latest first).
-  function h2h(l, a, b) {
-    const games = matches(l).filter(m => m.pair.includes(a) && m.pair.includes(b));
+  // Optional club: also count singles friendlies from club.matches (challenges, tournaments), after the league games,
+  // by time; those games carry club: true and the match kind instead of a season/round.
+  function h2h(l, a, b, club) {
+    const friendly = (Array.isArray(club?.matches) ? club.matches : []).filter(m => typeof m?.a === "string" && typeof m?.b === "string" && valid(m.s))
+      .slice().sort((x, y) => String(x.at || "").localeCompare(String(y.at || ""))).map(m => ({ club: true, kind: m.kind || "", at: m.at || "", pair: [m.a, m.b], s: m.s }));
+    const games = matches(l).concat(friendly).filter(m => m.pair.includes(a) && m.pair.includes(b));
     const rs = games.map(m => result(m, a)), t = tally(rs);
     let pf = 0, pa = 0; games.forEach(m => { const [f, x] = scoreFor(m, a); pf += f; pa += x; });
-    return { ...t, pf, pa, streak: currentRun(rs), games: games.slice().reverse().map(m => ({ season: m.season, round: m.round, score: scoreFor(m, a), r: result(m, a) })) };
+    return { ...t, pf, pa, streak: currentRun(rs), games: games.slice().reverse().map(m => ({ ...(m.club ? { club: true, kind: m.kind, at: m.at } : { season: m.season, round: m.round }), score: scoreFor(m, a), r: result(m, a) })) };
   }
   // The current run from the latest result back: { r: "W", n: 3 } means three wins in a row so far.
   function currentRun(rs) { if (!rs.length) return null; const r = rs[rs.length - 1]; let n = 0; for (let i = rs.length - 1; i >= 0 && rs[i] === r; i--) n++; return { r, n }; }

@@ -50,12 +50,13 @@
  <h2 id="pcName" class="pc-name">${esc(name)}</h2>
  ${tagline ? `<p class="pc-tagline">“${esc(tagline)}”</p>` : ""}
  <div class="pc-chips">${chips.join("")}</div>
+ ${window.LeagueEloView?.cardHtml?.(l, id) || ""}
  <div class="pc-stats"><div><b>${s.played}</b><small>แข่ง</small></div><div class="w"><b>${s.w}</b><small>ชนะ</small></div><div><b>${s.d}</b><small>เสมอ</small></div><div class="l"><b>${s.l}</b><small>แพ้</small></div><div class="rate"><b>${s.rate}%</b><small>อัตราชนะ</small></div></div>
  <div class="pc-form"><span>ฟอร์ม 5 นัดล่าสุด</span><div class="form-strip">${form}</div></div>
  ${s.best ? `<div class="pc-line"><span>อันดับดีสุด</span><b>#${s.best} • ${s.seasons} ซีซั่น</b></div>` : ""}
  ${vs}
  ${badgeHtml(l, id)}
- <div class="pc-actions">${pay ? `<button type="button" class="primary" data-pc-pay="${esc(id)}">โอนให้ ${esc(name)}</button>` : ""}${viewer === id && window.LeagueProfile?.openMine ? '<button type="button" class="primary" data-pc-edit>แก้โปรไฟล์ของฉัน</button>' : ""}${viewer && viewer !== id ? `<a class="btn secondary" href="stats.html?a=${encodeURIComponent(viewer)}&b=${encodeURIComponent(id)}#h2h">เทียบกับฉัน</a>` : ""}<a class="btn secondary" href="stats.html?a=${encodeURIComponent(id)}">ดูสถิติเต็ม</a></div>
+ <div class="pc-actions">${window.LeagueChallenge?.cardButton?.(l, id, viewer) || ""}${pay ? `<button type="button" class="primary" data-pc-pay="${esc(id)}">โอนให้ ${esc(name)}</button>` : ""}${viewer === id && window.LeagueProfile?.openMine ? '<button type="button" class="primary" data-pc-edit>แก้โปรไฟล์ของฉัน</button>' : ""}${viewer && viewer !== id ? `<a class="btn secondary" href="stats.html?a=${encodeURIComponent(viewer)}&b=${encodeURIComponent(id)}#h2h">เทียบกับฉัน</a>` : ""}<a class="btn secondary" href="stats.html?a=${encodeURIComponent(id)}">ดูสถิติเต็ม</a></div>
 </div>`;
   }
 

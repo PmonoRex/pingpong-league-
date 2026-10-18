@@ -87,6 +87,8 @@
       const [, ri, mi] = /r(\d+)m(\d+)/.exec(key) || [], p = l.rounds?.[ri]?.m?.[mi];
       if (p && !valid(l.results?.[`r${ri}m${mi}`])) out.push({ key: `mkt:${key}`, title: "เปิดทายผลแล้ว", body: `${nm(p[0])} vs ${nm(p[1])} • เข้าไปทายได้เลย`, tag: `pp-mkt-${key}` });
     });
+    // ท้าดวล (challenge.js): an open challenge waiting for my answer, from the club copy in localStorage.
+    try { if (me) (S.readLocalClub?.()?.challenges || []).forEach(c => { if (c?.status === "open" && (c.format === "doubles" ? (c.teamB || []).includes(me) : c.to === me)) out.push({ key: `ch:${c.id}`, title: "มีคนท้าดวล!", body: `${nm(c.from)} ท้าคุณ${c.note ? ` • ${String(c.note).slice(0, 60)}` : ""}`, tag: `pp-ch-${c.id}` }); }); } catch {}
     return out;
   }
   function baseline() { store(SEEN, events().map(e => e.key)); }
@@ -100,7 +102,7 @@
   }
   // The pages refresh the league copy in localStorage as the cloud row changes; look at it every few seconds.
   setInterval(check, 5000);
-  addEventListener("storage", e => { if (e.key && (e.key === LS()?.LEAGUE_KEY || e.key === LS()?.PRED_KEY)) check(); });
+  addEventListener("storage", e => { if (e.key && (e.key === LS()?.LEAGUE_KEY || e.key === LS()?.PRED_KEY || e.key === LS()?.CLUB_KEY)) check(); });
 
   if (document.readyState === "complete") setTimeout(offerInstall, 2500); else addEventListener("load", () => setTimeout(offerInstall, 2500), { once: true });
   window.LeaguePWA = Object.freeze({ canInstall, install, standalone, supported, enabled, toggleNotify, events });
