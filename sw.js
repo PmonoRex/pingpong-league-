@@ -2,7 +2,7 @@
    - Pages (navigations): network first, cached copy when offline or the network stalls.
    - Same-origin assets and Google Fonts: stale-while-revalidate, keyed by full URL so a new ?v= is a new entry.
    - Supabase, video (Range requests) and every non-GET request go straight to the network and are never cached. */
-const CACHE = 'pp-shell-20261018-33';
+const CACHE = 'pp-shell-20261018-34';
 const PAGES = ['index.html', 'predictions.html', 'dashboard.html', 'stats.html', 'archive.html', 'backup.html', 'admin.html', 'dummy.html'];
 const EXTRA = ['manifest.webmanifest', 'vendor/qrcode-generator/qrcode.js?v=1.4.4', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 const FONT_HOSTS = new Set(['fonts.googleapis.com', 'fonts.gstatic.com']);
