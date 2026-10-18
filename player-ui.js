@@ -76,6 +76,8 @@
     // Match cards: each corner gets its player's background picture (--bg-a red corner, --bg-b blue corner).
     root.querySelectorAll?.(".match").forEach(m => {
       const names = m.querySelectorAll(":scope > .pair > b"); if (names.length < 2) return;
+      // The two corners and the seam between them are drawn as three clipped layers, so a picture stops exactly at the line.
+      if (!m.querySelector(":scope > .mbg")) m.insertAdjacentHTML("afterbegin", '<span class="mbg mbg-a" aria-hidden="true"></span><span class="mbg mbg-b" aria-hidden="true"></span><span class="mbg mbg-seam" aria-hidden="true"></span>');
       map = map || idByName();
       ["a", "b"].forEach((side, i) => {
         const id = map.get(nameText(names[i])), pic = id ? bannerOf(id) : "", value = pic ? `url("${pic}")` : "";
