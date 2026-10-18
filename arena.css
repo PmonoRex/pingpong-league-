@@ -803,3 +803,5 @@ body.sport-redesign .lv-side:disabled{cursor:default;opacity:1;color:#fff}
 .lv-begin{width:100%;margin-top:4px;min-height:52px;font-size:17px}
 .lv-note{margin:12px 0 0;font-size:12.5px;color:var(--text-3,#8b919c);text-align:center}
 @media (prefers-reduced-motion:reduce){.lv-dot,.lv-chip i,.lv-tag i{animation:none}.lv-court.won-a .lv-side.a,.lv-court.won-b .lv-side.b{animation:none}}
+/* The face-off (with its meeting chips) replaces the old meetings table and its empty state */
+.h2h-card:has(.h2h-face) .wrap{display:none}
