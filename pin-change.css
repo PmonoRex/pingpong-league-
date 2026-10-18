@@ -1,0 +1,10 @@
+.pin-overlay{position:fixed;inset:0;z-index:120;background:rgba(3,9,18,.84);display:flex;align-items:center;justify-content:center;padding:18px}
+.pin-card{width:min(420px,100%);padding:18px;max-height:calc(100dvh - 36px);overflow:auto}
+.pin-card h2{margin:0 0 5px}
+.pin-card .field{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.pin-card .field label{font-size:11px}
+.pin-card .field input{width:100%;box-sizing:border-box}
+.pin-card .pin-note,.pin-card .pin-name{font-size:12.5px;margin:4px 0}
+.pin-card .pin-error{min-height:18px;color:#ff5a5f;font-size:12.5px;margin-top:4px}
+.pin-card .pin-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.pin-card .pin-actions button{flex:1}

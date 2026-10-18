@@ -22,7 +22,7 @@ function migrateLegacy(){
  let legacy=null;
  for(const k of LEGACY_KEYS){try{const x=JSON.parse(localStorage.getItem(k)||"null");if(x&&x.players){legacy=x;break}}catch(e){}}
  const names=legacy?.players?.length?legacy.players:["พี่โช็ค","กิฟท์","กอล์ฟ","มังกร","พฤษ","เฟิร์น","มอส"];
- names.forEach((name,i)=>{const id=deterministicId(name,i);state.profiles[id]={id,displayName:name,pin:"1234",role:name===ADMIN_NAME?"admin":"player",active:true,createdAt:new Date().toISOString()}});
+ names.forEach((name,i)=>{const id=deterministicId(name,i);state.profiles[id]={id,displayName:name,pin:LeagueShared.DEFAULT_PIN,mustChangePin:true,role:name===ADMIN_NAME?"admin":"player",active:true,createdAt:new Date().toISOString()}});
  state.seasonPlayerIds=names.map((n,i)=>deterministicId(n,i));
  state.rounds=legacy?.rounds||makeRoundRobin(state.seasonPlayerIds);
  state.results=legacy?.results||{};
@@ -72,12 +72,15 @@ async function pushCloud(){
  }catch(e){setSync("ออฟไลน์ • เก็บในเครื่อง","offline")}finally{cloudSaving=false;if(saved&&dirty)saveTimer=setTimeout(pushCloud,400)}
 }
 function reconcileSession(){currentUserId=LeagueShared.sessionUserId(state);document.getElementById("auth").classList.toggle("hidden",Boolean(currentUserId))}
-async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal()}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");setInterval(pullCloud,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
+async function initCloud(){try{const rows=await cloudRequest(),row=rows[0];cloudReady=true;const remote=row?.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal()}lastCloudUpdate=row?.updated_at||"";reconcileSession();renderLogin();render();setSync("ออนไลน์ • ซิงก์แล้ว","online");askPinChange();setInterval(pullCloud,3000)}catch(e){setSync("ออฟไลน์ • ใช้ข้อมูลในเครื่อง","offline")}}
 // Each poll asks only for updated_at; the whole league (with everyone's pictures) is fetched only when it changed.
 async function pullCloud(){if(!cloudReady||dirty||cloudSaving||document.hidden)return;try{const stamp=(await LeagueShared.cloudRequest("updated_at"))[0];if(!stamp||stamp.updated_at===lastCloudUpdate)return;const rows=await cloudRequest(),row=rows[0];if(!row||row.updated_at===lastCloudUpdate)return;lastCloudUpdate=row.updated_at||"";const remote=row.league?.uidLeague;if(remote?.profiles){state=remote;saveLocal();reconcileSession();renderLogin();render()}}catch(e){}}
 
 function renderLogin(){LeagueShared.renderLoginOptions(document.getElementById("loginUser"),state,currentUserId)}
-function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!LeagueShared.login(state,id,pin)){alert("PIN ไม่ถูกต้องหรือบัญชีถูกปิดใช้งาน");return}document.getElementById("loginPin").value="";reconcileSession();render()}
+async function login(){const id=document.getElementById("loginUser").value,pin=document.getElementById("loginPin").value;if(!(await LeagueShared.login(state,id,pin))){alert(loginFailMessage(id));return}document.getElementById("loginPin").value="";reconcileSession();render();askPinChange(pin)}
+function loginFailMessage(id){const g=LeagueShared.loginGuardStatus(id);return g.locked?`ใส่ PIN ผิดหลายครั้ง • ลองใหม่ใน ${Math.ceil(g.remainingMs/1000)} วินาที`:"PIN ไม่ถูกต้องหรือบัญชีถูกปิดใช้งาน"}
+// Forced PIN change after logging in with the default 1234 (or on session restore while still on it). knownPin is the PIN just typed.
+function askPinChange(knownPin=""){if(typeof PinChange!=="undefined")PinChange.enforce(state,currentUserId,{knownPin,onSaved:()=>pullCloud(),onCancel:logout})}
 function logout(){LeagueShared.logout();reconcileSession();renderLogin();render()}
 function renderHeader(){const p=profile(currentUserId);document.getElementById("whoami").textContent=p?.displayName||"-";document.getElementById("adminBadge").style.display=isAdmin()?"inline-flex":"none";document.getElementById("adminLink").style.display=isAdmin()?"inline-flex":"none";document.getElementById("leagueInfo").textContent=`ซีซั่น ${state.currentSeason} • ${state.seasonPlayerIds.length} คน • ${totalMatches()} แมตช์`}
 function renderRoster(){
