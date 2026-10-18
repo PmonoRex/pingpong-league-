@@ -25,7 +25,10 @@
 
   // ---------- Number ticker ----------
   // Counts the first number in the text from 0 to its value, keeping everything around it (+, ฿, RP, %).
-  // If any other script rewrites the element mid-count, the ticker lets go at once.
+  // The digits run inside a child <span>, and the element's own text never changes: suite.js has its own count-up
+  // that watches these same elements for value changes, and writing "0 RP" onto the element itself made it count the
+  // real value back down to 0 (the RP column showed 0 for everyone). If any script rewrites the element mid-count,
+  // the ticker lets go at once.
   const NUM = /([+-]?)(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?/;
   const TICK_SEL = ".stat b,.rank-rp,.d-cash-amt,.pod strong,.ring b";
   const ticked = new WeakSet();
@@ -38,15 +41,20 @@
     const dec = m[3] ? m[3].length - 1 : 0, grouped = m[2].includes(","), dur = Math.min(1400, 500 + target * 6);
     const fmt = v => { const s = dec ? v.toFixed(dec) : String(Math.round(v)); return grouped ? Number(s).toLocaleString("en-US", { minimumFractionDigits: dec }) : s; };
     const at = v => text.slice(0, m.index) + m[1] + fmt(v) + text.slice(m.index + m[0].length);
-    let last = at(0), t0 = 0;
-    el.textContent = last; el.classList.add("fx-ticking");
+    const span = document.createElement("span");
+    // Same text, and the first digit change waits for the next frame: suite.js's watcher (a microtask) then sees the
+    // element unchanged and leaves it alone.
+    span.textContent = text; el.replaceChildren(span);
+    let last = text, t0 = 0;
+    el.classList.add("fx-ticking");
+    const done = () => { el.classList.remove("fx-ticking"); if (el.firstChild === span && el.childNodes.length === 1) el.textContent = text; };
     const step = now => {
-      if (el.textContent !== last) { el.classList.remove("fx-ticking"); return; }
+      if (el.firstChild !== span || span.textContent !== last) { el.classList.remove("fx-ticking"); return; }
       t0 ||= now;
       const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
       last = p < 1 ? at(target * e) : text;
-      el.textContent = last;
-      if (p < 1) requestAnimationFrame(step); else el.classList.remove("fx-ticking");
+      span.textContent = last;
+      if (p < 1) requestAnimationFrame(step); else done();
     };
     requestAnimationFrame(step);
   }
