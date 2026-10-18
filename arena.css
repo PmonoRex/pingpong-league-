@@ -601,3 +601,17 @@ body.pc-open{overflow:hidden}
 .me-head-actions{display:flex;align-items:center;gap:8px}
 body.sport-redesign .me-view{min-height:44px;padding:6px 12px;font-size:13px}
 @media (prefers-reduced-motion:reduce){.pc-sheet,.pc-backdrop{transition:none}}
+
+/* ---------- Player card: achievement badges (LeagueStats.badges) ---------- */
+.pc-badges{margin-top:6px;padding:12px 2px 2px;border-top:1px solid rgba(255,255,255,.08);text-align:left}
+.pc-badges-head{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--text-2,#c9cdd5);margin-bottom:9px}
+.pc-badges-head b{font-family:var(--display);font-style:italic;color:#fff}
+.pc-badges ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.pc-badges li{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 3px 8px;border-radius:12px;text-align:center;border:1px dashed rgba(255,255,255,.12);background:rgba(255,255,255,.02);opacity:.55}
+.pc-badges li i{font-style:normal;font-size:22px;line-height:1.1;filter:grayscale(1)}
+.pc-badges li b{font-size:12px;color:#fff}
+.pc-badges li small{font-size:10.5px;line-height:1.25;color:var(--text-3,#8b919c)}
+.pc-badges li.on{opacity:1;border:1px solid rgba(245,184,11,.5);background:radial-gradient(120% 90% at 50% 0,rgba(245,184,11,.2),rgba(229,36,47,.08) 70%);box-shadow:0 0 16px rgba(245,184,11,.12)}
+.pc-badges li.on i{filter:none;text-shadow:0 0 12px rgba(245,184,11,.6)}
+.pc-badges li.on small{color:#ffe28a;font-weight:700}
+@media (max-width:360px){.pc-badges ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
