@@ -20,7 +20,8 @@ if (BIN && isRoot) { try { execFileSync('id', ['postgres'], { stdio: 'ignore' })
 const skip = !BIN || asUser === null ? 'Postgres server binaries not available' : false;
 
 const MIGRATIONS = ['20260919163000_create_shared_state.sql', '20261017120000_add_dummy_state.sql',
-  '20261018130000_harden_shared_state.sql', '20261019120000_club_row.sql', '20261019130000_push.sql', '20261019140000_server_auth.sql']
+  '20261018130000_harden_shared_state.sql', '20261019120000_club_row.sql', '20261019130000_push.sql', '20261019140000_server_auth.sql',
+  '20261020120000_push_session.sql']
   .map(f => path.join(__dirname, '..', 'supabase', 'migrations', f));
 
 const BOOTSTRAP = `
@@ -90,6 +91,9 @@ test('phase 2 server auth on Postgres', { skip, timeout: 240000 }, async t => {
   q(`update public.app_state set league = jsonb_build_object('uidLeague', ${lit(fixture())}::jsonb), predictions = jsonb_build_object('uidPredictions', ${lit(predFixture())}::jsonb) where id = 'main';`);
   q(fs.readFileSync(MIGRATIONS[5], 'utf8'));
   q(fs.readFileSync(MIGRATIONS[5], 'utf8')); // idempotent
+  q(fs.readFileSync(MIGRATIONS[6], 'utf8'));
+  q(fs.readFileSync(MIGRATIONS[6], 'utf8')); // idempotent
+  q(fs.readFileSync(MIGRATIONS[4], 'utf8')); // re-running push.sql keeps the token version
 
   await t.test('probe, import and login', () => {
     assert.deepEqual(rpc('pp_auth_version', []), { version: 1, enforce: false });
@@ -106,6 +110,46 @@ test('phase 2 server auth on Postgres', { skip, timeout: 240000 }, async t => {
     assert.equal(rpc('pp_whoami', [r.token]).user_id, 'alice');
     assert.equal(rpc('pp_whoami', ['bogus']), '');
     assert.equal(q(`select count(*) from private.sessions where token_hash = '${r.token}';`), '0', 'only the hash is stored');
+  });
+
+  await t.test('push: subscribe takes the player from a valid session token', () => {
+    const P256 = 'B'.repeat(87), AUTH = 'A'.repeat(22), ep = n => `https://fcm.googleapis.com/fcm/send/dev${n}`;
+    const owner = ep => q(`select user_id from public.push_subscriptions where endpoint = '${ep}';`);
+    const alice = tok('alice', '4826');
+    assert.equal(rpc('pp_push_subscribe', [alice, ep(1), P256, AUTH]), 't');
+    assert.equal(owner(ep(1)), 'alice');
+    // only one pp_push_subscribe exists, and it has no user id argument
+    assert.equal(q(`select string_agg(pg_get_function_identity_arguments(p.oid), ' | ') from pg_proc p where p.proname = 'pp_push_subscribe';`),
+      'p_token text, p_endpoint text, p_p256dh text, p_auth text');
+    assert.equal(q(`select has_function_privilege('anon', 'public.pp_push_subscribe(text, text, text, text)', 'execute');`), 't');
+    // the old call shape (named p_user_id, as PostgREST sends it) does not resolve any more
+    assert.throws(() => api(`select public.pp_push_subscribe(p_endpoint => '${ep(2)}', p_p256dh => '${P256}', p_auth => '${AUTH}', p_user_id => 'bob');`), /does not exist/);
+    // positional old order: the endpoint is now read as the token -> refused
+    assert.throws(() => rpc('pp_push_subscribe', [ep(2), P256, AUTH, 'bob']), /endpoint not allowed|session expired/);
+    // invalid, missing, logged-out and expired tokens are refused; nothing is stored
+    assert.throws(() => rpc('pp_push_subscribe', ['bogus', ep(3), P256, AUTH]), /session expired/);
+    assert.throws(() => rpc('pp_push_subscribe', [null, ep(3), P256, AUTH]), /session expired/);
+    const gone = tok('bob', '7391'); rpc('pp_logout', [gone]);
+    assert.throws(() => rpc('pp_push_subscribe', [gone, ep(3), P256, AUTH]), /session expired/);
+    const old = tok('bob', '7391');
+    q(`update private.sessions set expires_at = now() - interval '1 second' where token_hash = encode(extensions.digest('${old}', 'sha256'), 'hex');`);
+    assert.throws(() => rpc('pp_push_subscribe', [old, ep(3), P256, AUTH]), /session expired/);
+    assert.equal(owner(ep(3)), '');
+    // allowlist and key checks still apply
+    assert.throws(() => rpc('pp_push_subscribe', [alice, 'https://evil.example/x', P256, AUTH]), /endpoint not allowed/);
+    assert.throws(() => rpc('pp_push_subscribe', [alice, ep(4), 'short', AUTH]), /bad keys/);
+    // the same device signing in as someone else moves to that account
+    const bob = tok('bob', '7391');
+    assert.equal(rpc('pp_push_subscribe', [bob, ep(1), P256, AUTH]), 't');
+    assert.equal(owner(ep(1)), 'bob');
+    // at most 10 devices per player
+    for (let i = 10; i < 22; i++) rpc('pp_push_subscribe', [alice, ep(i), P256, AUTH]);
+    assert.equal(q(`select count(*) from public.push_subscriptions where user_id = 'alice';`), '10');
+    // unsubscribe by endpoint (the endpoint is the capability)
+    assert.equal(rpc('pp_push_unsubscribe', [ep(1)]), 't');
+    assert.equal(rpc('pp_push_unsubscribe', [ep(1)]), 'f');
+    assert.throws(() => api('select * from public.push_subscriptions;'), /permission denied/);
+    q('delete from public.push_subscriptions;');
   });
 
   await t.test('server-side lockout', () => {
@@ -319,9 +363,9 @@ test('phase 2 server auth on Postgres', { skip, timeout: 240000 }, async t => {
     assert.throws(() => api(`update public.app_state set league = league where id = 'main';`), /direct writes are disabled/);
     q(fs.readFileSync(MIGRATIONS[5], 'utf8'));
     assert.throws(() => api(`update public.app_state set league = league where id = 'main';`), /permission denied/);
-    // Web Push (20261019130000_push.sql) does not write app_state and keeps working.
+    // Web Push (20261019130000_push.sql + 20261020120000_push_session.sql) does not write app_state and keeps working.
     const ep = 'https://fcm.googleapis.com/fcm/send/abc123';
-    rpc('pp_push_subscribe', [ep, 'B'.repeat(87), 'A'.repeat(22), 'alice']);
+    rpc('pp_push_subscribe', [alice, ep, 'B'.repeat(87), 'A'.repeat(22)]);
     assert.equal(q(`select user_id from public.push_subscriptions where endpoint = '${ep}';`), 'alice');
     rpc('pp_push_unsubscribe', [ep]);
     assert.equal(q(`select count(*) from public.push_subscriptions;`), '0');

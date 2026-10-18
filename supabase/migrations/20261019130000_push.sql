@@ -1,5 +1,8 @@
 -- Web Push subscriptions (docs/push-notifications.md).
 --
+-- NOTE: pp_push_subscribe below trusts p_user_id. 20261020120000_push_session.sql replaces it with a version that takes
+-- a session token; run that file after this one. Re-running this file afterwards keeps the token version.
+--
 -- One row per browser/phone that turned on แจ้งเตือน: the push service URL (endpoint) and its encryption keys, and the
 -- league player id it belongs to. The Edge Function supabase/functions/push-notify reads these with the service key
 -- when public.app_state changes and sends the notifications.
@@ -61,46 +64,58 @@ begin
 end;
 $$;
 
-create or replace function public.pp_push_subscribe(p_endpoint text, p_p256dh text, p_auth text, p_user_id text)
-returns boolean
-language plpgsql
-security definer
-set search_path = ''
-as $$
+-- Skipped once 20261020120000_push_session.sql has replaced it with the session-token version, so re-running this file
+-- never brings the trusting p_user_id version back.
+do $do$
 begin
-  if p_endpoint is null or length(p_endpoint) > 1000
-     or p_endpoint !~ '^https://(fcm\.googleapis\.com|android\.googleapis\.com|updates\.push\.services\.mozilla\.com|[a-z0-9.-]+\.push\.apple\.com|[a-z0-9.-]+\.notify\.windows\.com)/[!-~]+$' then
-    raise exception 'push: endpoint not allowed' using errcode = 'check_violation';
+  if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and p.proname = 'pp_push_subscribe' and 'p_token' = any(coalesce(p.proargnames, '{}'))) then
+    return;
   end if;
-  if p_p256dh is null or p_p256dh !~ '^[A-Za-z0-9_-]{86,88}=?$' or p_auth is null or p_auth !~ '^[A-Za-z0-9_-]{21,24}={0,2}$' then
-    raise exception 'push: bad keys' using errcode = 'check_violation';
-  end if;
-  if p_user_id is null or p_user_id !~ '^[A-Za-z0-9_-]{1,64}$' or not exists (
-       select 1 from public.app_state s
-       where s.id = 'main'
-         and jsonb_typeof(s.league -> 'uidLeague' -> 'profiles' -> p_user_id) = 'object'
-         and coalesce(s.league -> 'uidLeague' -> 'profiles' -> p_user_id ->> 'active', 'true') <> 'false') then
-    raise exception 'push: unknown player' using errcode = 'check_violation';
-  end if;
-  perform private.push_rate_check();
-  if (select count(*) from public.push_subscriptions) >= 5000
-     and not exists (select 1 from public.push_subscriptions where endpoint = p_endpoint) then
-    raise exception 'push: subscription table full' using errcode = 'check_violation';
-  end if;
+  execute $create$
+  create or replace function public.pp_push_subscribe(p_endpoint text, p_p256dh text, p_auth text, p_user_id text)
+  returns boolean
+  language plpgsql
+  security definer
+  set search_path = ''
+  as $fn$
+  begin
+    if p_endpoint is null or length(p_endpoint) > 1000
+       or p_endpoint !~ '^https://(fcm\.googleapis\.com|android\.googleapis\.com|updates\.push\.services\.mozilla\.com|[a-z0-9.-]+\.push\.apple\.com|[a-z0-9.-]+\.notify\.windows\.com)/[!-~]+$' then
+      raise exception 'push: endpoint not allowed' using errcode = 'check_violation';
+    end if;
+    if p_p256dh is null or p_p256dh !~ '^[A-Za-z0-9_-]{86,88}=?$' or p_auth is null or p_auth !~ '^[A-Za-z0-9_-]{21,24}={0,2}$' then
+      raise exception 'push: bad keys' using errcode = 'check_violation';
+    end if;
+    if p_user_id is null or p_user_id !~ '^[A-Za-z0-9_-]{1,64}$' or not exists (
+         select 1 from public.app_state s
+         where s.id = 'main'
+           and jsonb_typeof(s.league -> 'uidLeague' -> 'profiles' -> p_user_id) = 'object'
+           and coalesce(s.league -> 'uidLeague' -> 'profiles' -> p_user_id ->> 'active', 'true') <> 'false') then
+      raise exception 'push: unknown player' using errcode = 'check_violation';
+    end if;
+    perform private.push_rate_check();
+    if (select count(*) from public.push_subscriptions) >= 5000
+       and not exists (select 1 from public.push_subscriptions where endpoint = p_endpoint) then
+      raise exception 'push: subscription table full' using errcode = 'check_violation';
+    end if;
 
-  insert into public.push_subscriptions (endpoint, user_id, p256dh, auth)
-  values (p_endpoint, p_user_id, p_p256dh, p_auth)
-  on conflict (endpoint) do update
-    set user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth, fail_count = 0, created_at = clock_timestamp();
+    insert into public.push_subscriptions (endpoint, user_id, p256dh, auth)
+    values (p_endpoint, p_user_id, p_p256dh, p_auth)
+    on conflict (endpoint) do update
+      set user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth, fail_count = 0, created_at = clock_timestamp();
 
-  -- At most 10 devices per player: drop the oldest.
-  delete from public.push_subscriptions d
-  where d.user_id = p_user_id
-    and d.endpoint not in (select x.endpoint from public.push_subscriptions x
-                           where x.user_id = p_user_id order by x.created_at desc limit 10);
-  return true;
+    -- At most 10 devices per player: drop the oldest.
+    delete from public.push_subscriptions d
+    where d.user_id = p_user_id
+      and d.endpoint not in (select x.endpoint from public.push_subscriptions x
+                             where x.user_id = p_user_id order by x.created_at desc limit 10);
+    return true;
+  end;
+  $fn$;
+  $create$;
 end;
-$$;
+$do$;
 
 create or replace function public.pp_push_unsubscribe(p_endpoint text)
 returns boolean
