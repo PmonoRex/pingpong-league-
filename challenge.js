@@ -294,7 +294,7 @@ ${rest.length ? `<section class="ch-sec"><h3>คำท้าในก๊วน<s
   }
   function ensureLive() {
     if (window.LeagueLive?.scoreClub) return Promise.resolve(window.LeagueLive);
-    return new Promise((ok, no) => { const s = document.createElement("script"); s.src = "live.js?v=20261019-elo"; s.onload = () => window.LeagueLive?.scoreClub ? ok(window.LeagueLive) : no(new Error("live")); s.onerror = () => no(new Error("โหลดกระดานนับแต้มไม่ได้")); document.head.appendChild(s); });
+    return new Promise((ok, no) => { const s = document.createElement("script"); s.src = "live.js?v=20261019-tourney"; s.onload = () => window.LeagueLive?.scoreClub ? ok(window.LeagueLive) : no(new Error("live")); s.onerror = () => no(new Error("โหลดกระดานนับแต้มไม่ได้")); document.head.appendChild(s); });
   }
   async function saveScore(id, score, liveKey = "") {
     const l = league(), me = meId(l), admin = isAdmin(l, me);

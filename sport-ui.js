@@ -58,6 +58,7 @@
   const MENU_ICONS={
     dashboard:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="4" rx="1.5"/><rect x="13" y="10" width="7" height="10" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/>',
     archive:'<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/>',
+    tourney:'<path d="M3 4h5v6H3M8 7h4M3 14h5v6H3M8 17h4M12 7v10M12 12h4"/><circle cx="19" cy="12" r="2.5"/>',
     profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
     pin:'<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2"/>',
     wrapped:'<rect x="6" y="3" width="12" height="18" rx="2.5"/><path d="M9 7h6M9 11l2 2 4-4"/><path d="M9 17h6"/>',
@@ -76,7 +77,7 @@
   function signedIn(){const l=league();try{const id=l&&LS()?.sessionUserId?.(l);return id?{id,name:l.profiles?.[id]?.displayName||'',admin:!!LS()?.isAdmin?.(l,id)}:null}catch{return null}}
   function menuItems(){
     const me=signedIn(),item=(ico,label,attrs)=>`<${attrs.href?'a':'button type="button"'} class="menu-item" ${Object.entries(attrs).map(([k,v])=>`${k}="${v}"`).join(' ')}${attrs.href&&attrs.href===page?' aria-current="page"':''}><i class="mi">${svg(MENU_ICONS[ico])}</i><span>${label}</span></${attrs.href?'a':'button'}>`;
-    let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'});
+    let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'})+item('tourney','ทัวร์นาเมนต์',{href:'tournament.html'});
     // ท้าดวล (challenge.js): the count is open challenges waiting for this player's answer.
     const CH=window.LeagueChallenge;if(CH){const n=CH.badge();html+=item('swords',`ท้าดวล${n?` <em class="menu-badge">${n}</em>`:''}`,{'data-act':'challenge'})}
     const account=[];
