@@ -8,7 +8,7 @@
   function ensureStyles(){
     const required=[
       ['theme.css?v=20261018-thai','theme.css'],
-      ['motion.css?v=20261018-pt','motion.css'],
+      ['motion.css?v=20261018-wipe','motion.css'],
       ['arena.css?v=20261018-nav2','arena.css']
     ];
     required.forEach(([href,file])=>{
@@ -174,21 +174,29 @@
   function markEmptyStats(){document.querySelectorAll('.stat').forEach(s=>{const v=(s.querySelector('b')?.textContent||'').trim();s.classList.toggle('stat-empty',v==='-'||v==='–'||v==='')})}
   let statTimer=0;
   new MutationObserver(()=>{clearTimeout(statTimer);statTimer=setTimeout(markEmptyStats,60)}).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
-  // Page-change fallback for browsers without cross-page view transitions: fade the page out on an internal link tap,
-  // then go. (Where view transitions exist, motion.css and the inline head script handle it and this stays out of the way.)
-  function fadeOutLinks(){
-    if(window.CSS?.supports?.('view-transition-name','none')||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  // Page transition, leaving half: an internal link tap sweeps the red wipe across (motion.css html.pt-out), then goes.
+  // The next page's inline head script picks the direction up from sessionStorage and sweeps the cover away.
+  const TAB_ORDER=['index.html','predictions.html','dummy.html','stats.html'];
+  const tabAt=path=>{const i=TAB_ORDER.indexOf((path.split('/').pop()||'index.html').toLowerCase());return i<0?TAB_ORDER.length:i};
+  function wipeLinks(){
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     document.addEventListener('click',e=>{
       if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
       const a=e.target.closest?.('a[href]');if(!a||a.target||a.hasAttribute('download'))return;
       const url=new URL(a.href,location.href);
       if(url.origin!==location.origin||!/\.html$|\/$/.test(url.pathname)||(url.pathname===location.pathname&&url.search===location.search))return;
-      e.preventDefault();document.documentElement.classList.add('page-out');setTimeout(()=>{location.href=url.href},150);
+      e.preventDefault();
+      const dir=tabAt(url.pathname)<tabAt(location.pathname)?'back':'fwd',h=document.documentElement;
+      try{sessionStorage.setItem('pp_pt',JSON.stringify({dir,at:Date.now()}))}catch{}
+      h.classList.remove('pt-in','pt-fwd','pt-back');h.classList.add('pt-out','pt-'+dir);
+      setTimeout(()=>{location.href=url.href},400);
+      // If the next page never comes (offline, a stalled request) the cover lifts again instead of trapping the screen.
+      setTimeout(()=>h.classList.remove('pt-out','pt-fwd','pt-back'),5000);
     });
-    // Coming back through the back/forward cache must not leave the page faded out.
-    addEventListener('pageshow',()=>document.documentElement.classList.remove('page-out'));
+    // Coming back through the back/forward cache must not leave the page covered.
+    addEventListener('pageshow',e=>{if(e.persisted)document.documentElement.classList.remove('pt-out','pt-fwd','pt-back')});
   }
-  fadeOutLinks();
+  wipeLinks();
   function boot(){setupMenu();markEmptyStats();elevateImportantCards();document.body.classList.add('sport-ready')}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,40));else setTimeout(boot,40);
   // Installable app: sw.js keeps the shell (pages, css, js, fonts) on the phone; league data still comes live from Supabase.
