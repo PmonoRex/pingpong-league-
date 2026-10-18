@@ -16,7 +16,7 @@
 --            generous rate limit, no shape checks and NO history (it would push real league versions out of history).
 --
 -- It does NOT stop someone with the anon key from editing the row in small, well-formed steps (e.g. making
--- themselves admin, changing a score). That needs phase 2 (supabase/proposed/phase2_server_side_auth.sql),
+-- themselves admin, changing a score). That needs phase 2 (supabase/migrations/20261019140000_server_auth.sql),
 -- which moves writes behind PIN-checked RPC functions and needs a matching client change.
 --
 -- Requires 20260919163000_create_shared_state.sql. Re-running this file is safe.
