@@ -74,6 +74,7 @@ if (typeof module !== "undefined") module.exports = LiveScore;
       if (row.updated_at === stamp) return;
       stamp = row.updated_at; remote = row.league?.matches || {};
       paint();
+      if (cur?.club && board && !board.hidden && board.dataset.mode === "watch") renderBoard();
     } catch { if (cloud === null) cloud = false; }
   }
   function queue(m, key = m.key) { dirty.set(key, m); remote = { ...remote, [key]: m }; if (!m) delete remote[key]; clearTimeout(pushTimer); pushTimer = setTimeout(push, 700); paint(); }
@@ -162,19 +163,19 @@ if (typeof module !== "undefined") module.exports = LiveScore;
   function closeBoard() { if (!board) return; board.hidden = true; document.body.classList.remove("lv-open"); wake?.release?.().catch?.(() => {}); wake = null; if (board.dataset.mode === "score") push(); }
   function pairOf(l, id) { const [, ri, mi] = /^r(\d+)m(\d+)$/.exec(id) || []; return l?.rounds?.[ri]?.m?.[mi] || null; }
 
-  function setup(id) {
-    const l = league(), pair = pairOf(l, id); if (!pair) return;
-    const existing = liveFor(l, id);
+  function setup(id, spec = null) {
+    const l = league(), pair = spec ? spec.ids || [null, null] : pairOf(l, id); if (!pair) return;
+    const existing = spec ? clubLive(spec.key) : liveFor(l, id);
     if (existing && !existing.done) { cur = existing; openBoard("score"); return renderBoard(); }
-    let fmt = L.guessFormat(l.results); try { fmt = { ...fmt, ...JSON.parse(localStorage.getItem(FORMAT_KEY) || "{}") }; } catch {}
-    cur = { id, pair, setup: true };
+    let fmt = L.guessFormat(l?.results); try { fmt = { ...fmt, ...JSON.parse(localStorage.getItem(FORMAT_KEY) || "{}") }; } catch {}
+    cur = { id, pair, setup: true, ...(spec ? { club: true, key: spec.key, names: spec.names } : {}) };
     openBoard("setup");
     const opt = (name, v, label, on) => `<label class="lv-opt"><input type="radio" name="${name}" value="${v}"${on ? " checked" : ""}><span>${label}</span></label>`;
     board.innerHTML = `<div class="lv-setup"><button type="button" class="lv-x" data-lv="close" aria-label="ปิด">×</button>
-      <p class="lv-kicker">นับแต้มสด</p><h2>${esc(nm(l, pair[0]))} <span>vs</span> ${esc(nm(l, pair[1]))}</h2>
+      <p class="lv-kicker">นับแต้มสด</p><h2>${esc(label(l, cur, 0))} <span>vs</span> ${esc(label(l, cur, 1))}</h2>
       <fieldset><legend>แข่งกี่เกม</legend><div class="lv-opts">${opt("bo", 1, "เกมเดียว", fmt.bestOf === 1)}${opt("bo", 3, "2 ใน 3", fmt.bestOf === 3)}${opt("bo", 5, "3 ใน 5", fmt.bestOf === 5)}</div></fieldset>
       <fieldset class="lv-rec"><legend>ลงตารางเป็น</legend><div class="lv-opts">${opt("rec", "points", "แต้มของเกม (เช่น 11–7)", fmt.record === "points")}${opt("rec", "games", "จำนวนเกมที่ชนะ (เช่น 1–0)", fmt.record === "games")}</div></fieldset>
-      <fieldset><legend>ใครเสิร์ฟก่อน</legend><div class="lv-opts">${opt("first", "a", esc(nm(l, pair[0])), true)}${opt("first", "b", esc(nm(l, pair[1])), false)}</div></fieldset>
+      <fieldset><legend>ใครเสิร์ฟก่อน</legend><div class="lv-opts">${opt("first", "a", esc(label(l, cur, 0)), true)}${opt("first", "b", esc(label(l, cur, 1)), false)}</div></fieldset>
       <button type="button" class="primary lv-begin" data-lv="start">เริ่มนับ</button>
       <p class="lv-note">${cloud ? "คนอื่นจะเห็นคะแนนสดบนการ์ดคู่นี้" : "ยังไม่ได้เปิดระบบถ่ายทอดสด • นับได้ในเครื่องนี้ แล้วบันทึกผลตอนจบ"}</p></div>`;
     const sync = () => { const bo = Number(board.querySelector("[name=bo]:checked")?.value || 1); board.querySelector(".lv-rec").hidden = bo > 1; };
@@ -184,8 +185,9 @@ if (typeof module !== "undefined") module.exports = LiveScore;
     const l = league(), bestOf = Number(board.querySelector("[name=bo]:checked")?.value || 1), record = board.querySelector("[name=rec]:checked")?.value || "points";
     const first = board.querySelector("[name=first]:checked")?.value || "a";
     try { localStorage.setItem(FORMAT_KEY, JSON.stringify({ bestOf, record })); } catch {}
-    const season = Number(l.currentSeason) || 1;
-    cur = L.fresh({ key: keyOf(season, cur.id), season, id: cur.id, pair: cur.pair, bestOf, record, first, by: meId(l) });
+    const season = Number(l?.currentSeason) || 1, was = cur;
+    cur = L.fresh({ key: was.club ? was.key : keyOf(season, was.id), season, id: was.id, pair: was.pair, bestOf, record, first, by: meId(l) });
+    if (was.club) Object.assign(cur, { club: true, names: was.names });
     board.dataset.mode = "score";
     if (navigator.wakeLock?.request) navigator.wakeLock.request("screen").then(w => { wake = w; }).catch(() => {});
     queue(cur); renderBoard();
@@ -201,21 +203,22 @@ if (typeof module !== "undefined") module.exports = LiveScore;
   function renderBoard(gameTo = "") {
     if (!board || !cur || cur.setup) return;
     const l = league(), mode = board.dataset.mode, watching = mode === "watch";
-    if (watching) { const m = liveFor(l, cur.id); if (m) cur = m; }
-    const m = cur, w = L.wins(m.games), srv = m.done ? "" : L.server(m), me = meId(l), admin = isAdmin(l, me);
-    const side = s => { const i = s === "a" ? 0 : 1, id = m.pair[i];
-      return `<button type="button" class="lv-side ${s}${srv === s ? " serving" : ""}" ${watching || m.done ? "disabled" : ""} data-lv="${s}" aria-label="แต้มให้ ${esc(nm(l, id))}">
-        <span class="lv-who">${window.LeagueUI?.avatar ? window.LeagueUI.avatar(id, nm(l, id), "lg") : ""}<b>${esc(nm(l, id))}</b></span>
+    if (watching) { const m = cur.club ? clubLive(cur.key) : liveFor(l, cur.id); if (m) cur = m; }
+    const m = cur, w = L.wins(m.games), srv = m.done ? "" : L.server(m), me = meId(l), admin = m.club ? !!clubSpecs.get(m.key)?.onDone : isAdmin(l, me);
+    const side = s => { const i = s === "a" ? 0 : 1, id = m.pair?.[i], who = label(l, m, i);
+      return `<button type="button" class="lv-side ${s}${srv === s ? " serving" : ""}" ${watching || m.done ? "disabled" : ""} data-lv="${s}" aria-label="แต้มให้ ${esc(who)}">
+        <span class="lv-who">${window.LeagueUI?.avatar && typeof id === "string" ? window.LeagueUI.avatar(id, who, "lg") : ""}<b>${esc(who)}</b></span>
         <span class="lv-pts">${m.done ? (m.bestOf === 1 ? m.games[0][i] : w[i]) : m.cur[i]}</span>
         <span class="lv-games">${m.bestOf > 1 ? `เกม ${w[i]}` : ""}${srv === s ? '<i class="lv-serve">เสิร์ฟ</i>' : ""}</span></button>`; };
-    const res = L.result(m), done = m.done ? `<div class="lv-end"><p>${esc(nm(l, res.a > res.b ? m.pair[0] : m.pair[1]))} ชนะ</p><b>${res.a}–${res.b}</b>${m.games.length > 1 || m.record === "games" ? `<small>${m.games.map(g => g.join("–")).join(" • ")}</small>` : ""}
-      ${watching ? "" : admin ? `<button type="button" class="primary" data-lv="save">บันทึกผลลงตาราง</button>` : `<button type="button" class="primary" data-lv="send">เสร็จแล้ว ส่งให้แอดมิน</button>`}${watching ? "" : '<button type="button" class="secondary" data-lv="undo">แก้แต้มล่าสุด</button>'}</div>` : "";
+    const res = L.result(m), done = m.done ? `<div class="lv-end"><p>${esc(label(l, m, res.a > res.b ? 0 : 1))} ชนะ</p><b>${res.a}–${res.b}</b>${m.games.length > 1 || m.record === "games" ? `<small>${m.games.map(g => g.join("–")).join(" • ")}</small>` : ""}
+      ${watching ? "" : admin ? `<button type="button" class="primary" data-lv="save">${m.club ? "บันทึกผล" : "บันทึกผลลงตาราง"}</button>` : `<button type="button" class="primary" data-lv="send">เสร็จแล้ว ส่งให้แอดมิน</button>`}${watching ? "" : '<button type="button" class="secondary" data-lv="undo">แก้แต้มล่าสุด</button>'}</div>` : "";
     board.innerHTML = `<div class="lv-top"><button type="button" class="lv-x" data-lv="close" aria-label="ปิด">×</button><span class="lv-tag"><i aria-hidden="true"></i>${watching ? "ดูสด" : "LIVE"}</span><span class="lv-fmt">${m.bestOf === 1 ? "เกมเดียว" : `${Math.ceil(m.bestOf / 2)} ใน ${m.bestOf}`} • ${m.to} แต้ม</span>${!watching && !m.done ? '<button type="button" class="lv-cancel" data-lv="cancel">ยกเลิก</button>' : ""}</div>
       <div class="lv-court${gameTo ? ` won-${gameTo}` : ""}">${side("a")}<div class="lv-mid">${m.games.map(g => `<span>${g[0]}–${g[1]}</span>`).join("")}</div>${side("b")}</div>
       ${watching || m.done ? "" : `<div class="lv-bottom"><button type="button" class="secondary" data-lv="undo" ${m.hist.length ? "" : "disabled"}>↶ ย้อนแต้ม</button><small>แตะฝั่งของคนที่ได้แต้ม</small></div>`}${done}`;
   }
 
   async function saveResult(id, btn) {
+    if (cur?.club && cur.key === id) return saveClub(btn);
     const l = league(), m = liveFor(l, id) || (cur?.id === id ? cur : null), r = m && L.result(m);
     if (!r) return;
     const a = document.getElementById(`${id}a`), b = document.getElementById(`${id}b`);
@@ -223,6 +226,28 @@ if (typeof module !== "undefined") module.exports = LiveScore;
     btn?.setAttribute("aria-busy", "true");
     a.value = r.a; b.value = r.b; updateFromInputs(id);
     queue(null, m.key); closeBoard(); toast(`บันทึกผล ${r.a}–${r.b} แล้ว`, "good");
+  }
+
+  // ---------- Club matches (tournament games, challenges): not in the league schedule ----------
+  // The caller gives { key: "t:<tournamentId>:<matchId>", names: [left, right], ids?: [leftId, rightId], onDone(result, live) }.
+  // Same scoreboard and live row; at the end บันทึกผล hands the result to onDone (may return a promise) instead of the
+  // league inputs. Specs (with their callbacks) stay on this phone only; the live row carries the names for watchers.
+  const clubSpecs = new Map();
+  function clubLive(key) { const m = remote[key]; return m && Date.now() - Date.parse(m.at || 0) < STALE_MS ? m : null; }
+  function label(l, m, i) { return m?.names?.[i] || nm(l, m?.pair?.[i]); }
+  function scoreClub(spec) {
+    if (!spec?.key || !Array.isArray(spec.names) || spec.names.length !== 2) return;
+    clubSpecs.set(spec.key, spec);
+    pull().finally(() => setup(spec.key, spec));
+  }
+  function watchClub(key) { const m = clubLive(key); if (!m) return; cur = m; openBoard("watch"); renderBoard(); }
+  async function saveClub(btn) {
+    const m = clubLive(cur.key) || cur, r = L.result(m), spec = clubSpecs.get(m.key);
+    if (!r || !spec?.onDone) return;
+    btn?.setAttribute("aria-busy", "true");
+    try { await spec.onDone(r, m); queue(null, m.key); closeBoard(); }
+    catch (e) { toast(e?.message || "บันทึกไม่สำเร็จ", "bad"); }
+    finally { btn?.removeAttribute("aria-busy"); }
   }
 
   document.addEventListener("click", e => {
@@ -243,5 +268,5 @@ if (typeof module !== "undefined") module.exports = LiveScore;
     paint();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
-  window.LeagueLive = Object.freeze({ setup, watch, pull, state: () => ({ cloud, remote }) });
+  window.LeagueLive = Object.freeze({ setup, watch, pull, state: () => ({ cloud, remote }), scoreClub, watchClub, liveClub: clubLive });
 })();
