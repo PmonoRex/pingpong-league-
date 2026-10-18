@@ -335,8 +335,6 @@ body.sport-redesign .form-row{border-bottom:1px solid var(--line)}
  body.sport-page-index-html .grid>section:not(.card){position:sticky;top:12px}
  body.sport-page-index-html .grid>#competition{grid-row:span 2}
  body.sport-page-index-html .grid>.workflow-card{grid-column:2;margin:0}
- body.sport-page-index-html .bottom-nav{display:none}
- body.sport-page-index-html main{padding-bottom:24px}
 }
 @media (max-width:600px){
  body.sport-redesign td.champ:after{display:block;width:max-content;margin:3px 0 0;font-size:10px}
@@ -450,3 +448,24 @@ body.tools-open{overflow:hidden}
   body.sport-redesign .sport-tools-actions:not(.open){opacity:0}
   body.sport-redesign .sport-tools-actions.open:after{display:none}
 }
+
+/* ---------- One navigation: five tabs everywhere + the เมนู drawer (sport-ui.js buildTabs / setupMenu) ---------- */
+body.sport-redesign .sport-tabbar .tab-menu{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:50px;padding:0;margin:0;
+  background:transparent!important;border:0!important;box-shadow:none!important;color:rgba(244,245,247,.62);font:inherit;font-size:var(--fs-xs,12px);font-weight:600;border-radius:12px;cursor:pointer;touch-action:manipulation}
+body.sport-redesign .sport-tabbar .tab-menu span{display:flex;line-height:0}
+body.sport-redesign .sport-tabbar .tab-menu span svg{width:22px;height:22px}
+body.sport-redesign .sport-tabbar .tab-menu[aria-expanded=true]{color:var(--red-hi)}
+/* Retired: account-bar button rows, hero link rows and the ภาพรวม shortcut on the assistant card (the drawer has them). */
+body.sport-redesign .account-bar>.actions,body.sport-redesign .hero .actions:not(:has(button)),body.sport-redesign .workflow-title .btn,body.sport-redesign .sport-tools-toggle{display:none!important}
+body.sport-redesign .hero .actions a[href]{display:none!important}
+/* Drawer contents */
+body.sport-redesign .site-menu .menu-item:before{content:none!important;display:none!important}
+body.sport-redesign .site-menu .menu-sec{margin:10px 4px 2px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--text-soft)}
+body.sport-redesign .site-menu .mi{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:11px;color:#fff;background:linear-gradient(160deg,rgba(229,36,47,.38),rgba(229,36,47,.08));box-shadow:inset 0 0 0 1px rgba(255,71,82,.35)}
+body.sport-redesign .site-menu .menu-item[aria-current=page]{border-color:rgba(255,71,82,.6)!important;background:rgba(229,36,47,.14)!important}
+body.sport-redesign .site-menu .menu-item[aria-current=page]:after{content:"อยู่หน้านี้";margin-left:auto;font-size:12px;color:var(--red-hi);font-weight:700}
+body.sport-redesign .site-menu .menu-item[data-act=logout]{margin-top:auto!important;color:#ffb0b5!important;border-color:rgba(255,92,104,.45)!important}
+body.sport-redesign .site-menu .menu-item[data-act=logout] .mi{background:rgba(255,92,104,.12);box-shadow:inset 0 0 0 1px rgba(255,92,104,.4)}
+body.sport-redesign .site-menu .menu-item[data-act=sound][aria-pressed=false] .mi{opacity:.5}
+body.sport-redesign .sport-tools-actions,body.sport-redesign .sport-tools-actions *{box-sizing:border-box}
+body.sport-redesign .site-menu a.menu-item{text-decoration:none}
