@@ -8,6 +8,8 @@ const LeagueProfile = (() => {
   const PP = () => (typeof window !== "undefined" && window.PromptPay) || (typeof PromptPay !== "undefined" ? PromptPay : null);
   const LIMITS = Object.freeze({ name: 30, tagline: 40, avatarSide: 96, bannerW: 240, ...(UI()?.LIMITS || { avatar: 12 * 1024, payQr: 20 * 1024, banner: 40 * 1024 }) });
   const imageOk = (url, max) => UI()?.imageOk ? UI().imageOk(url, max) : false;
+  const mediaOk = url => UI()?.mediaOk ? UI().mediaOk(url) : false;
+  const bannerOk = url => imageOk(url, LIMITS.banner) || mediaOk(url);
 
   // ---- pure rules (tests/profile.test.cjs) ----
   const cleanText = (value, max) => String(value ?? "").replace(/[\u0000-\u001f\u007f\u200b-\u200f\u2028-\u202e]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
@@ -21,7 +23,7 @@ const LeagueProfile = (() => {
     if (Object.values(league.profiles).some(p => p && p.id !== id && String(p.displayName || "").toLowerCase() === name.toLowerCase())) return { error: "มีชื่อนี้แล้ว" };
     const clean = { displayName: name, tagline: cleanText(edit.tagline, LIMITS.tagline), avatar: "", banner: "", promptpay: "", payQr: "" };
     if (edit.avatar) { if (!imageOk(edit.avatar, LIMITS.avatar)) return { error: "รูปโปรไฟล์ใหญ่เกินไป ลองเลือกรูปใหม่" }; clean.avatar = edit.avatar; }
-    if (edit.banner) { if (!imageOk(edit.banner, LIMITS.banner)) return { error: "ภาพพื้นหลังใหญ่เกินไป ลองเลือกรูปใหม่" }; clean.banner = edit.banner; }
+    if (edit.banner) { if (!bannerOk(edit.banner)) return { error: "ภาพพื้นหลังใหญ่เกินไป ลองเลือกรูปใหม่" }; clean.banner = edit.banner; }
     if (edit.payMethod === "promptpay") {
       const problem = PP().problem(edit.promptpay);
       if (problem) return { error: problem };
@@ -59,6 +61,8 @@ const LeagueProfile = (() => {
   // Phones draw a corner about 250 CSS px wide at 2-3x, so the plan starts at 480px and steps down only when needed.
   const BANNER_RATIO = 1;
   const BANNER_PLAN = [480, 420, 360, 300].flatMap(s => [.8, .7, .6, .5].map(q => [s, q]));
+  // Full resolution for the media bucket: 1080px square, about 120-250KB. Used whenever the upload works.
+  const BANNER_HD = [1080, .86];
   const QR_PLAN = [480, 400, 340, 280, 240].flatMap(s => [.8, .62, .45].map(q => [s, q]));
   function payeeByName(league, name) {
     const key = String(name ?? "").trim().toLowerCase();
@@ -149,7 +153,7 @@ const LeagueProfile = (() => {
     if (!id) return alert("เข้าสู่ระบบก่อน แล้วค่อยแก้โปรไฟล์");
     const draw = person => {
       const method = payMethod(person);
-      draft = { displayName: person.displayName || "", tagline: person.tagline || "", avatar: imageOk(person.avatar, LIMITS.avatar) ? person.avatar : "", banner: imageOk(person.banner, LIMITS.banner) ? person.banner : "", payMethod: method?.type || "", promptpay: method?.type === "promptpay" ? PP().format(method.id) : "", payQr: method?.type === "qr" ? method.url : "" };
+      draft = { displayName: person.displayName || "", tagline: person.tagline || "", avatar: imageOk(person.avatar, LIMITS.avatar) ? person.avatar : "", banner: bannerOk(person.banner) ? person.banner : "", payMethod: method?.type || "", promptpay: method?.type === "promptpay" ? PP().format(method.id) : "", payQr: method?.type === "qr" ? method.url : "" };
       show(sheetHtml(person, draft), "meTitle");
     };
     draw(league.profiles[id]);
@@ -214,9 +218,16 @@ const LeagueProfile = (() => {
     const kind = picking; status("กำลังย่อรูป…");
     try {
       const source = await decode(file);
-      const url = kind === "avatar" ? compress(encoder(source, "square"), AVATAR_PLAN, LIMITS.avatar)
-        : kind === "banner" ? compress(encoder(source, "banner"), BANNER_PLAN, LIMITS.banner)
-        : compress(encoder(source, "fit"), QR_PLAN, LIMITS.payQr);
+      let url = "", hd = false;
+      if (kind === "banner") {
+        // Sharp copy to the media bucket first; if the bucket is not set up (or offline), the small in-row copy instead.
+        try {
+          const id = LeagueShared.sessionUserId(LeagueShared.readLocalLeague());
+          const blob = await (await fetch(encoder(source, "banner")(...BANNER_HD))).blob();
+          url = await LeagueShared.uploadMedia(`banners/${String(id).replace(/[^A-Za-z0-9_-]/g, "") || "player"}-${Date.now()}.${blob.type === "image/jpeg" ? "jpg" : "webp"}`, blob);
+          hd = true;
+        } catch { url = compress(encoder(source, "banner"), BANNER_PLAN, LIMITS.banner); }
+      } else url = kind === "avatar" ? compress(encoder(source, "square"), AVATAR_PLAN, LIMITS.avatar) : compress(encoder(source, "fit"), QR_PLAN, LIMITS.payQr);
       source.close?.();
       if (!url || !draft) return status("ย่อรูปให้เล็กพอไม่ได้ ลองรูปอื่น", "bad");
       readForm(); draft.touched = true;
@@ -224,7 +235,7 @@ const LeagueProfile = (() => {
       const person = LeagueShared.readLocalLeague()?.profiles?.[LeagueShared.sessionUserId(LeagueShared.readLocalLeague())];
       if (!person) return;
       show(sheetHtml(person, draft), "meTitle");
-      status(`ย่อรูปแล้ว (${Math.ceil(url.length / 1024)} KB) • กดบันทึกเพื่อใช้รูปนี้`);
+      status(hd ? "อัปโหลดภาพคมชัดแล้ว • กดบันทึกเพื่อใช้รูปนี้" : `ย่อรูปแล้ว (${Math.ceil(url.length / 1024)} KB) • กดบันทึกเพื่อใช้รูปนี้`);
     } catch (error) { status(error.message || "เปิดรูปนี้ไม่ได้", "bad"); }
   }
   function onClick(e) {

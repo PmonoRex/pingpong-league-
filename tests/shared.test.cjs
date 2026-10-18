@@ -134,3 +134,20 @@ test('Next up is empty once every match has a result, and tolerates missing data
   assert.equal(shared.nextUpMatches([{ rest: 'x' }, null], {}).length, 0);
   assert.equal(shared.nextUpMatches(rounds, { r0m0: { a: -1, b: 2 } }).length, 1);
 });
+
+test('media URLs: only plain files in the public media bucket are accepted as pictures', () => {
+  const { shared } = loadShared();
+  const base = shared.MEDIA_BASE;
+  assert.match(base, /\/storage\/v1\/object\/public\/media\/$/);
+  assert.ok(shared.mediaUrlOk(base + 'banners/u0-1760000000000.webp'));
+  for (const bad of [base + 'banners/../x.webp', base + 'x.webp', 'https://evil.example/storage/v1/object/public/media/banners/a.webp', base + 'banners/a b.webp', base + 'banners/a.webp"),url(x', 42, ''])
+    assert.ok(!shared.mediaUrlOk(bad), String(bad));
+});
+
+test('uploadMedia posts the file to the media bucket and returns its public URL', async () => {
+  const { shared, requests } = loadShared();
+  const url = await shared.uploadMedia('banners/u0-1.webp', { type: 'image/webp' });
+  assert.equal(url, shared.MEDIA_BASE + 'banners/u0-1.webp');
+  assert.match(requests[0].url, /\/storage\/v1\/object\/media\/banners\/u0-1\.webp$/);
+  assert.equal(requests[0].options.method, 'POST');
+});
