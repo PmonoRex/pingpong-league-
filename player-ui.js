@@ -30,9 +30,11 @@
   }
   const nameOf = id => league()?.profiles?.[id]?.displayName || id;
   // Pictures live in the shared row as data URLs (profile-me.js compresses them); anything else is never used as a src.
-  const LIMITS = Object.freeze({ avatar: 12 * 1024, payQr: 20 * 1024 });
+  const LIMITS = Object.freeze({ avatar: 12 * 1024, payQr: 20 * 1024, banner: 16 * 1024 });
   function imageOk(url, max) { return typeof url === "string" && url.length <= max && /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/]+={0,2}$/.test(url); }
   const pictureOf = id => { const url = league()?.profiles?.[id]?.avatar; return imageOk(url, LIMITS.avatar) ? url : ""; };
+  // A player's own background picture (portrait 3:5), shown behind their corner of every match card.
+  const bannerOf = id => { const url = league()?.profiles?.[id]?.banner; return imageOk(url, LIMITS.banner) ? url : ""; };
   const IMG_STYLE = "width:100%;height:100%;border-radius:50%;object-fit:cover;display:block";
   function avatar(id, name = nameOf(id), size = "") {
     const pic = pictureOf(id);
@@ -56,6 +58,8 @@
     [".profile-link[data-profile]", "data"], ["#dealerCurrentPublic", "text"], ["#whoami", "text"]
   ];
   // A name cell may also carry banter stamps (banter.js); they are not part of the name.
+  // The name alone, without the avatar initials decorate() put in front of it.
+  function nameText(el) { let t = ""; el.childNodes.forEach(n => { if (!n.classList?.contains("banter-stamp") && !n.classList?.contains("pa")) t += n.textContent; }); return t.trim(); }
   function ownName(el) { let t = ""; el.childNodes.forEach(n => { if (!n.classList?.contains("banter-stamp")) t += n.textContent; }); return t.replace(/^👑\s*/, "").trim(); }
   const taglineOf = id => { const t = id ? league()?.profiles?.[id]?.tagline : ""; return typeof t === "string" && t.trim() ? `“${t.trim().slice(0, 40)}”` : ""; };
   function idByName() { const m = new Map(); Object.values(league()?.profiles || {}).forEach(p => p?.displayName && m.set(p.displayName.trim(), p.id)); return m; }
@@ -69,6 +73,16 @@
       const known = league()?.profiles?.[id]?.displayName;
       el.classList.add("has-pa"); el.insertAdjacentHTML("afterbegin", avatar(id, known || ownName(el) || id, "sm"));
     }));
+    // Match cards: each corner gets its player's background picture (--bg-a red corner, --bg-b blue corner).
+    root.querySelectorAll?.(".match").forEach(m => {
+      const names = m.querySelectorAll(":scope > .pair > b"); if (names.length < 2) return;
+      map = map || idByName();
+      ["a", "b"].forEach((side, i) => {
+        const id = map.get(nameText(names[i])), pic = id ? bannerOf(id) : "", value = pic ? `url("${pic}")` : "";
+        if (m.style.getPropertyValue(`--bg-${side}`) !== value) { if (value) m.style.setProperty(`--bg-${side}`, value); else m.style.removeProperty(`--bg-${side}`); }
+        m.classList.toggle(`has-bg-${side}`, !!pic);
+      });
+    });
     const sheetName = document.getElementById("profileName"), sheetAvatar = document.querySelector(".profile-avatar");
     if (sheetName && sheetAvatar) { const id = (map || idByName()).get(sheetName.textContent.trim()), pic = id ? pictureOf(id) : ""; if (id && sheetAvatar.dataset.pid !== id + pic.length) { sheetAvatar.dataset.pid = id + pic.length; sheetAvatar.style.background = color(id); if (pic) sheetAvatar.innerHTML = `<img src="${esc(pic)}" alt="" style="${IMG_STYLE.replace("50%", "inherit")}">`; else sheetAvatar.textContent = initials(nameOf(id)); } }
     // A player's catchphrase rides under their name in the roster and the predictions profile sheet.
@@ -86,5 +100,5 @@
   function boot() { decorate(); new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 
-  window.LeagueUI = Object.freeze({ color, inkOn, initials, avatar, chip, empty, decorate, imageOk, pictureOf, LIMITS });
+  window.LeagueUI = Object.freeze({ color, inkOn, initials, avatar, chip, empty, decorate, imageOk, pictureOf, bannerOf, LIMITS });
 })();
