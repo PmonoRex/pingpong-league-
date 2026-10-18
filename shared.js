@@ -219,6 +219,42 @@ const LeagueShared = (() => {
     if (!response.ok) throw new Error(`Live request failed: ${response.status}`);
     return response.json();
   }
+  // The "club" row (challenges, tournaments, votes, reactions, check-in; docs/club-data.md). Missing until the owner runs
+  // 20261019120000_club_row.sql: clubRead() then returns null and the club features stay read-only.
+  const CLUB_ENDPOINT = `${SUPABASE_URL}/rest/v1/app_state?id=eq.club`;
+  async function clubRequest(method = "GET", body = null, extraQuery = "") {
+    const options = { method, headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } };
+    if (body !== null) { options.headers["Content-Type"] = "application/json"; options.headers.Prefer = "return=representation"; options.body = JSON.stringify(body); }
+    const response = await fetch(`${CLUB_ENDPOINT}${extraQuery ? `&${extraQuery}` : ""}&select=league,updated_at`, options);
+    if (!response.ok) throw new Error(`Club request failed: ${response.status}`);
+    return response.json();
+  }
+  const CLUB_KEY = "pp_club_v1";
+  const emptyClub = () => ({ v: 1, matches: [], challenges: [], tournaments: [], social: { reactions: {}, comments: [] }, mvp: {}, checkin: {} });
+  const normalizeClub = c => { const e = emptyClub(), x = c && typeof c === "object" ? c : {}; return { ...e, ...x, social: { ...e.social, ...(x.social || {}) } }; };
+  function readLocalClub() { try { return normalizeClub(JSON.parse(localStorage.getItem(CLUB_KEY) || "null")); } catch { return emptyClub(); } }
+  async function clubRead() {
+    const row = (await clubRequest())[0];
+    if (!row) return null;
+    const club = normalizeClub(row.league?.club);
+    try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {}
+    return { club, updatedAt: row.updated_at };
+  }
+  // Apply change(club) to the newest copy and save it; change may return false to cancel. Returns the saved club.
+  async function clubMutate(change) {
+    for (let attempt = 0; attempt < LOCK_TRIES; attempt++) {
+      const row = (await clubRequest())[0];
+      if (!row) throw new Error("ยังไม่ได้เปิดระบบคลับ (ต้องรัน SQL)");
+      const club = normalizeClub(structuredClone(row.league?.club || {}));
+      if (change(club) === false) return null;
+      if (club.social.comments.length > 300) club.social.comments = club.social.comments.slice(-300);
+      const filter = row.updated_at ? `updated_at=eq.${encodeURIComponent(row.updated_at)}` : "";
+      const saved = await clubRequest("PATCH", { league: { ...(row.league || {}), club }, updated_at: new Date().toISOString() }, filter);
+      if (saved?.length) { try { localStorage.setItem(CLUB_KEY, JSON.stringify(club)); } catch {} return club; }
+      await lockBackoff(attempt);
+    }
+    throw new Error("มีคนบันทึกพร้อมกันหลายครั้ง กรุณาลองใหม่");
+  }
   // Self-service PIN change: re-read the cloud row, check the current PIN against it, and write back only this profile's
   // new credentials (optimistic lock on updated_at like every other writer; a lost race re-reads and retries).
   async function changePin(id, currentPin, newPin) {
@@ -273,5 +309,5 @@ const LeagueShared = (() => {
   return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
     sessionUserId, login, loginGuardStatus, logout, DEFAULT_PIN, pinPolicyError, hashPin, verifyPin, needsPinChange, setPin, resetPin,
-    keepCredentials, changePin, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff, liveRequest, MEDIA_BASE, mediaUrlOk, uploadMedia });
+    keepCredentials, changePin, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff, liveRequest, CLUB_KEY, emptyClub, normalizeClub, readLocalClub, clubRead, clubMutate, MEDIA_BASE, mediaUrlOk, uploadMedia });
 })();
