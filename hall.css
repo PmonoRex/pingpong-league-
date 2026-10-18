@@ -1,0 +1,76 @@
+/* หอเกียรติยศ (hall.html): record plaques and the champions roll. Night-arena tokens from arena.css; gold for the
+   three headline records, silver for the rest, Kanit italic for the big numbers. Motion is transform/opacity only. */
+body{margin:0}
+main{margin:auto}
+.hero{margin-bottom:16px}
+h1,h2,h3{margin:0 0 7px}
+.hall-loading{padding:24px 4px;text-align:center}
+
+/* Hero: the shared arena masthead (effects.js sky); this page keeps its summary line visible. */
+.hall-hero-kicker{margin:0 0 2px;font-family:var(--display);font-style:italic;font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)!important}
+body.hero-compact .hero.hall-hero .sub{display:block;margin-top:2px}
+
+.hall-sec{margin:0 0 22px}
+.hall-h{display:flex;align-items:center;gap:10px;margin:4px 2px 12px;font-family:var(--display);font-weight:600;font-size:clamp(20px,5.4vw,25px);line-height:1.25}
+.hall-h:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(245,184,11,.45),transparent)}
+
+/* ---------- Record plaques ---------- */
+.hall-grid{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+@media (min-width:700px){.hall-grid{grid-template-columns:1fr 1fr;gap:12px}}
+@media (min-width:1080px){.hall-grid{grid-template-columns:repeat(3,1fr)}}
+.hall-plaque{--tone:var(--silver);--tone-a:rgba(195,202,213,.16);position:relative;overflow:hidden;display:flex;flex-direction:column;gap:6px;min-width:0;padding:14px 14px 12px;border-radius:var(--r);
+  background:radial-gradient(260px 120px at 100% 0,var(--tone-a),transparent 72%),linear-gradient(180deg,rgba(255,255,255,.035),transparent 90px),var(--panel);
+  border:1px solid color-mix(in srgb,var(--tone) 32%,transparent);box-shadow:0 12px 28px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.05)}
+.hall-plaque:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,var(--tone),transparent)}
+.hall-plaque.gold{--tone:var(--gold);--tone-a:rgba(245,184,11,.2);border-color:rgba(245,184,11,.48)}
+.hall-plaque.is-empty{--tone:var(--line-2);opacity:.7}
+.hall-kicker{display:flex;align-items:center;gap:7px;margin:0;font-size:13.5px;font-weight:700;color:var(--text-2)}
+.hall-kicker i{font-style:normal;font-size:16px;line-height:1}
+.hall-plaque.gold .hall-kicker{color:#ffe08a}
+.hall-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hall-main{display:grid;grid-template-columns:minmax(76px,auto) minmax(0,1fr);align-items:center;gap:4px 12px}
+.hall-num{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin:0;line-height:1}
+.hall-num b{font-family:var(--display);font-style:italic;font-weight:800;font-size:clamp(46px,13vw,58px);letter-spacing:-.01em;color:var(--tone);padding-right:.08em}
+.hall-plaque.gold .hall-num b{background:linear-gradient(180deg,#fff2bf,var(--gold) 60%,#c98a00);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(245,184,11,.28))}
+.hall-num small{font-size:14px;font-weight:700;color:var(--text-soft)}
+.hall-tie{flex:none;padding:2px 9px;border-radius:999px;font-style:normal;font-size:12px;font-weight:700;background:rgba(255,255,255,.06);border:1px solid var(--line-2);color:var(--text-2)}
+.hall-holders{list-style:none;margin:0;padding:0;display:grid;gap:6px;min-width:0}
+.hall-holders>li{display:grid;gap:1px;min-width:0}
+.hall-who{display:inline-flex;align-items:center;gap:9px;min-height:44px;max-width:100%;margin:0;padding:4px 10px 4px 4px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);font:inherit;text-align:left;cursor:pointer;justify-self:start;transition:border-color .15s,background-color .15s,transform .15s}
+.hall-who:hover{border-color:color-mix(in srgb,var(--tone,var(--gold)) 60%,transparent);background:rgba(255,255,255,.07)}
+.hall-who:active{transform:scale(.98)}
+.hall-avs{display:inline-flex;flex:none}
+.hall-avs .pa{--s:34px;font-size:14px;box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--tone)}
+.hall-avs .pa+.pa{margin-left:-8px}
+.hall-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--display);font-style:italic;font-weight:800;font-size:17px}
+.hall-ctx{padding-left:4px;font-size:12.5px;line-height:1.45;color:var(--text-soft);overflow-wrap:anywhere}
+.hall-more{font-size:12.5px;color:var(--text-soft);padding-left:6px}
+.hall-prev{margin:auto 0 0;padding-top:7px;border-top:1px dashed var(--line-2);font-size:12px;color:#ffc2c6}
+.hall-none{margin:6px 0 2px;color:var(--text-soft);font-size:14px}
+
+/* ---------- Champions roll ---------- */
+.hall-champs{list-style:none;margin:0;padding:0;display:grid;gap:8px;position:relative}
+@media (min-width:700px){.hall-champs{grid-template-columns:1fr 1fr;gap:10px}}
+@media (min-width:1080px){.hall-champs{grid-template-columns:repeat(3,1fr)}}
+.hall-champ{display:flex;gap:12px;align-items:flex-start;min-width:0;padding:12px;border-radius:var(--r-sm);background:linear-gradient(90deg,rgba(245,184,11,.08),transparent 55%),var(--panel-2);border:1px solid var(--line)}
+.hall-champ.tournament{background:linear-gradient(90deg,rgba(229,36,47,.1),transparent 55%),var(--panel-2)}
+.hall-champ-ico{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;font-size:19px;background:rgba(245,184,11,.1);border:1px solid rgba(245,184,11,.4)}
+.hall-champ.tournament .hall-champ-ico{background:rgba(229,36,47,.12);border-color:rgba(255,71,82,.45)}
+.hall-champ-body{min-width:0;flex:1}
+.hall-champ-name{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:0 0 4px;font-weight:700;color:var(--text)}
+.hall-champ-name small{font-size:12px;font-weight:700;color:var(--gold)}
+.hall-champ.tournament .hall-champ-name small{color:#ffc2c6}
+.hall-champ-who{display:flex;flex-wrap:wrap;gap:6px}
+.hall-who.sm{min-height:40px;padding:3px 10px 3px 3px}
+.hall-who.sm .pa{--s:30px;font-size:13px}
+.hall-who.sm .hall-name{font-size:15.5px}
+.hall-champ-meta{margin:4px 0 0;font-size:12.5px;color:var(--text-soft)}
+.hall-champ-meta:empty{display:none}
+
+/* Entrance: plaques rise in a short stagger (first screen only); nothing moves for reduced motion. */
+@media (prefers-reduced-motion:no-preference){
+  .hall-plaque{animation:hallIn .42s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(min(var(--i,0),8) * 40ms)}
+  .hall-plaque.gold:after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,236,170,.14) 50%,transparent 60%);transform:translateX(-100%);animation:hallShine 1.1s .35s ease-out both;pointer-events:none}
+}
+@keyframes hallIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes hallShine{to{transform:translateX(100%)}}

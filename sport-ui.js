@@ -69,6 +69,7 @@
     backup:'<path d="M7 18a5 5 0 0 1-.6-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/><path d="M12 11v6M9.5 13.5 12 11l2.5 2.5"/>',
     logout:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
     menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+    hall:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 3.5M17 6h2.5a2.5 2.5 0 0 1-3 3.5M12 14v3M8 21h8l-1-4H9z"/>',
     swords:'<path d="M4 4l9.5 9.5M4 4v3.5M4 4h3.5M20 4l-9.5 9.5M20 4v3.5M20 4h-3.5"/><path d="M7.5 14.5 5 17l2 2 2.5-2.5M16.5 14.5 19 17l-2 2-2.5-2.5"/>'
   };
   const svg=(d,w=20)=>`<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -77,7 +78,7 @@
   function signedIn(){const l=league();try{const id=l&&LS()?.sessionUserId?.(l);return id?{id,name:l.profiles?.[id]?.displayName||'',admin:!!LS()?.isAdmin?.(l,id)}:null}catch{return null}}
   function menuItems(){
     const me=signedIn(),item=(ico,label,attrs)=>`<${attrs.href?'a':'button type="button"'} class="menu-item" ${Object.entries(attrs).map(([k,v])=>`${k}="${v}"`).join(' ')}${attrs.href&&attrs.href===page?' aria-current="page"':''}><i class="mi">${svg(MENU_ICONS[ico])}</i><span>${label}</span></${attrs.href?'a':'button'}>`;
-    let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'})+item('tourney','ทัวร์นาเมนต์',{href:'tournament.html'});
+    let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'})+item('tourney','ทัวร์นาเมนต์',{href:'tournament.html'})+item('hall','หอเกียรติยศ',{href:'hall.html'});
     // ท้าดวล (challenge.js): the count is open challenges waiting for this player's answer.
     const CH=window.LeagueChallenge;if(CH){const n=CH.badge();html+=item('swords',`ท้าดวล${n?` <em class="menu-badge">${n}</em>`:''}`,{'data-act':'challenge'})}
     const account=[];

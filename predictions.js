@@ -254,7 +254,7 @@ function renderSettlement(){
 function statusText(s){return esc({pending:"รอผล",won:"ชนะ",lost:"แพ้",push:"คืนยอด",void:"ยกเลิก • คืนยอด"}[s]||s)}
 function renderHistory(){const list=isAdmin()||isDealer()?pred.bets:pred.bets.filter(b=>b.userId===currentUserId);document.getElementById("history").innerHTML=list.slice().reverse().map(b=>{const e=BetSettle.effective(league,pred,b),net=e.net;return `<tr><td>${esc(b.id)}</td><td><button type="button" class="profile-link" data-profile="${esc(b.userId)}">${esc(profile(b.userId)?.displayName||b.userId)}</button></td><td>${esc(`S${b.season??"เดิม"} • ${betPairText(b)}`)}</td><td>${esc(profile(b.sideId)?.displayName||b.sideId)}</td><td>${credits(b.stake)}</td><td>${statusText(e.status)}${e.stale?' <span title="คะแนนถูกแก้หลังคำนวณ รอเจ้ามือยืนยัน">⚠️</span>':""}</td><td class="${net>0?"positive":net<0?"negative":""}">${e.status==="pending"?"–":`${net>0?"+":""}${credits(net)}`}</td></tr>`}).join("")||'<tr><td colspan="7" class="empty">ยังไม่มีประวัติ</td></tr>'}
 function render(){
- renderHeader();renderSummary();renderDealerSelect();renderDealer();renderBetting();renderSettled();renderSettlement();renderHistory();bindProfileLinks();
+ renderHeader();renderSummary();renderDealerSelect();renderDealer();renderBetting();renderSettled();renderSettlement();renderHistory();window.PredRankUI?.render(league,pred,currentUserId);bindProfileLinks();
 }
 document.getElementById("loginBtn").onclick=login;document.getElementById("loginPin").onkeydown=e=>{if(e.key==="Enter")login()};document.getElementById("logout").onclick=logout;
 document.getElementById("settleAll").onclick=settleAll;
