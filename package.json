@@ -4,7 +4,8 @@
   "private": true,
   "description": "Ping Pong League — no-build static site (HTML/CSS/JS) backed by Supabase",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "e2e": "node tests/e2e/run.mjs"
   },
   "engines": {
     "node": ">=20"
