@@ -124,9 +124,17 @@
     const top = 420, h = 540, mid = W / 2, xa = 48 + (mid - 48) / 2, xb = mid + (W - 48 - mid) / 2;
     rrect(c, 48, top, W - 96, h, 12); c.save(); c.clip();
     c.fillStyle = C.redField; c.fillRect(48, top, mid - 48, h); c.fillStyle = C.blueField; c.fillRect(mid, top, mid - 48, h); c.restore();
+    // Each player's own background picture fills their half (darkened so the score stays loud), and their photo sits on top.
+    const cover = (img, x, w) => { if (!img) return; c.save(); c.beginPath(); c.rect(x, top, w, h); c.clip();
+      const s = Math.max(w / img.width, h / img.height); c.globalAlpha = .5; c.drawImage(img, x + (w - img.width * s) / 2, top + (h - img.height * s) / 2, img.width * s, img.height * s);
+      c.globalAlpha = 1; const g = c.createLinearGradient(0, top, 0, top + h); g.addColorStop(0, "rgba(10,11,14,.2)"); g.addColorStop(1, "rgba(10,11,14,.85)"); c.fillStyle = g; c.fillRect(x, top, w, h); c.restore(); };
+    rrect(c, 48, top, W - 96, h, 12); c.save(); c.clip(); cover(m.aBanner, 48, mid - 48); cover(m.bBanner, mid, mid - 48); c.restore();
     rrect(c, 48, top, W - 96, h, 18); c.lineWidth = 3; c.strokeStyle = C.line; c.stroke();
-    text(c, "มุมแดง", xa, top + 120, { size: 30, family: UI, weight: 700, color: C.red });
-    text(c, "มุมน้ำเงิน", xb, top + 120, { size: 30, family: UI, weight: 700, color: C.blue });
+    const face = (img, x, ring) => { c.save(); c.beginPath(); c.arc(x, top + 100, 62, 0, Math.PI * 2); c.closePath(); c.fillStyle = C.night; c.fill(); c.clip();
+      const s = Math.max(124 / img.width, 124 / img.height); c.drawImage(img, x - img.width * s / 2, top + 100 - img.height * s / 2, img.width * s, img.height * s); c.restore();
+      c.beginPath(); c.arc(x, top + 100, 62, 0, Math.PI * 2); c.lineWidth = 6; c.strokeStyle = ring; c.stroke(); };
+    if (m.aFace) face(m.aFace, xa, C.red); else text(c, "มุมแดง", xa, top + 120, { size: 30, family: UI, weight: 700, color: C.red });
+    if (m.bFace) face(m.bFace, xb, C.blue); else text(c, "มุมน้ำเงิน", xb, top + 120, { size: 30, family: UI, weight: 700, color: C.blue });
     const fade = side => (win === "a" && side === "b") || (win === "b" && side === "a") ? .42 : 1;
     c.globalAlpha = fade("a"); text(c, a, xa, top + 210, { size: 74, min: 34, color: C.red, maxWidth: 400 });
     text(c, String(m.a), xa, top + 470, { size: 240, color: C.red, maxWidth: 400 });
@@ -199,7 +207,12 @@
       await loadFonts();
       const canvas = document.createElement("canvas"); canvas.width = W; canvas.height = H;
       draw(canvas.getContext("2d"), data);
-      const blob = await new Promise(ok => canvas.toBlob(ok, "image/png"));
+      let blob = null;
+      try { blob = await new Promise(ok => canvas.toBlob(ok, "image/png")); }
+      catch { // a picture without CORS taints the canvas: draw the poster again without pictures
+        draw(canvas.getContext("2d"), { ...data, aFace: null, bFace: null, aBanner: null, bBanner: null });
+        blob = await new Promise(ok => canvas.toBlob(ok, "image/png"));
+      }
       if (!blob) throw new Error("no image");
       const file = typeof File === "function" ? new File([blob], name, { type: "image/png" }) : null;
       if (file && navigator.canShare?.({ files: [file] })) {
@@ -210,8 +223,25 @@
     } catch { say("ทำโปสเตอร์ไม่สำเร็จ", "bad") }
     finally { button?.removeAttribute("aria-busy") }
   }
-  function shareMatch(m, button) {
+  // Pictures for the poster: a data URL, or a link in the league's public media bucket (served with CORS, so the canvas
+  // stays exportable). They are already in the browser cache from the page; anything that fails to load within 1.2 s is left out and the poster draws without it.
+  function loadImage(src) {
+    return !src ? Promise.resolve(null) : new Promise(done => {
+      const img = new Image(), t = setTimeout(() => done(null), 1200);
+      if (!src.startsWith("data:")) img.crossOrigin = "anonymous";
+      img.onload = () => { clearTimeout(t); done(img); }; img.onerror = () => { clearTimeout(t); done(null); }; img.src = src;
+    });
+  }
+  async function withPictures(m) {
+    const ui = window.LeagueUI, prof = id => { try { return LeagueShared.readLocalLeague()?.profiles?.[id]; } catch { return null; } };
+    if (!ui || !m.aId || !m.bId) return m;
+    const face = id => { const hd = prof(id)?.avatarHd; return ui.mediaOk?.(hd) ? hd : ui.pictureOf?.(id) || ""; };
+    const [aFace, bFace, aBanner, bBanner] = await Promise.all([face(m.aId), face(m.bId), ui.bannerOf?.(m.aId), ui.bannerOf?.(m.bId)].map(loadImage));
+    return { ...m, aFace, bFace, aBanner, bBanner };
+  }
+  async function shareMatch(m, button) {
     const win = matchOutcome(m.a, m.b); if (!win) return say("คู่นี้ยังไม่มีผล", "bad");
+    m = await withPictures(m);
     const a = cleanName(m.aName), b = cleanName(m.bName);
     const line = win === "d" ? `${a} เสมอ ${b} ${m.a}-${m.b}` : win === "a" ? `${a} ชนะ ${b} ${m.a}-${m.b}` : `${b} ชนะ ${a} ${m.b}-${m.a}`;
     return render(drawMatch, m, posterFileName(`match-${m.id || ""}`, m.season), LEAGUE, `${LEAGUE} • ซีซั่น ${m.season}: ${line}`, button);

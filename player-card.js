@@ -9,6 +9,7 @@
   const league = () => { try { return typeof LeagueShared !== "undefined" ? LeagueShared.readLocalLeague() : null; } catch { return null; } };
   const me = l => { try { return l ? LeagueShared.sessionUserId(l) : ""; } catch { return ""; } };
   const valid = x => Number.isInteger(x?.a) && x.a >= 0 && Number.isInteger(x?.b) && x.b >= 0;
+  const pred = () => { try { return JSON.parse(localStorage.getItem(LeagueShared.PRED_KEY) || "null"); } catch { return null; } };
   const tier = rp => rp >= 1000 ? "มาสเตอร์" : rp >= 700 ? "เพชร" : rp >= 450 ? "แพลทินัม" : rp >= 250 ? "ทอง" : rp >= 100 ? "เงิน" : "ทองแดง";
 
   // Every finished match the league still has (archived seasons, then the current one), in schedule order.
@@ -53,8 +54,16 @@
  <div class="pc-form"><span>ฟอร์ม 5 นัดล่าสุด</span><div class="form-strip">${form}</div></div>
  ${s.best ? `<div class="pc-line"><span>อันดับดีสุด</span><b>#${s.best} • ${s.seasons} ซีซั่น</b></div>` : ""}
  ${vs}
- <div class="pc-actions">${pay ? `<button type="button" class="primary" data-pc-pay="${esc(id)}">โอนให้ ${esc(name)}</button>` : ""}${viewer === id && window.LeagueProfile?.openMine ? '<button type="button" class="primary" data-pc-edit>แก้โปรไฟล์ของฉัน</button>' : ""}<a class="btn secondary" href="stats.html">ดูสถิติเต็ม</a></div>
+ ${badgeHtml(l, id)}
+ <div class="pc-actions">${pay ? `<button type="button" class="primary" data-pc-pay="${esc(id)}">โอนให้ ${esc(name)}</button>` : ""}${viewer === id && window.LeagueProfile?.openMine ? '<button type="button" class="primary" data-pc-edit>แก้โปรไฟล์ของฉัน</button>' : ""}${viewer && viewer !== id ? `<a class="btn secondary" href="stats.html?a=${encodeURIComponent(viewer)}&b=${encodeURIComponent(id)}#h2h">เทียบกับฉัน</a>` : ""}<a class="btn secondary" href="stats.html?a=${encodeURIComponent(id)}">ดูสถิติเต็ม</a></div>
 </div>`;
+  }
+
+  function badgeHtml(l, id) {
+    if (typeof LeagueStats === "undefined") return "";
+    const list = LeagueStats.badges(l, id, pred()), got = list.filter(b => b.have).length;
+    return `<div class="pc-badges"><div class="pc-badges-head"><span>ตราความสำเร็จ</span><b>${got}/${list.length}</b></div><ul>${list.map(b =>
+      `<li class="${b.have ? "on" : ""}" title="${esc(b.how)}"><i aria-hidden="true">${b.icon}</i><b>${esc(b.name)}</b><small>${esc(b.have ? b.value || "ได้แล้ว" : b.how)}</small></li>`).join("")}</ul></div>`;
   }
 
   let wrap = null, lastFocus = null;

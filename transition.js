@@ -75,6 +75,8 @@
   });
   // Coming back through the back/forward cache must not leave the page covered.
   addEventListener("pageshow", e => { if (e.persisted) { html.classList.remove("pt-out", "pt-cards"); if (leaving) { leaving.remove(); leaving = null; } } });
-  // Warm both clips in the HTTP cache a moment after load, so the first tap already has them.
-  addEventListener("load", () => setTimeout(() => [SMASH, CARDS].forEach(src => fetch(src).catch(() => {})), 1500), { once: true });
+  // Warm both clips in the HTTP cache a moment after load, so the first tap already has them; skipped on Data Saver and
+  // slow (2G/3G) connections, where the clip simply streams on the first tap instead.
+  const thrifty = () => { const c = navigator.connection; return !!c && (c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || "")); };
+  addEventListener("load", () => setTimeout(() => { if (!thrifty()) [SMASH, CARDS].forEach(src => fetch(src).catch(() => {})); }, 1500), { once: true });
 })();
