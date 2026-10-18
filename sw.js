@@ -2,7 +2,7 @@
    - Pages (navigations): network first, cached copy when offline or the network stalls.
    - Same-origin assets and Google Fonts: stale-while-revalidate, keyed by full URL so a new ?v= is a new entry.
    - Supabase, video (Range requests) and every non-GET request go straight to the network and are never cached. */
-const CACHE = 'pp-shell-20261018-30';
+const CACHE = 'pp-shell-20261018-31';
 const PAGES = ['index.html', 'predictions.html', 'dashboard.html', 'stats.html', 'archive.html', 'backup.html', 'admin.html', 'dummy.html'];
 const EXTRA = ['manifest.webmanifest', 'vendor/qrcode-generator/qrcode.js?v=1.4.4', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 const FONT_HOSTS = new Set(['fonts.googleapis.com', 'fonts.gstatic.com']);
@@ -104,4 +104,16 @@ self.addEventListener('fetch', event => {
     return;
   }
   if (url.origin === self.location.origin || FONT_HOSTS.has(url.hostname)) event.respondWith(assetResponse(event));
+});
+
+// Tapping a notification (pwa.js) brings an open league tab forward, or opens the home page.
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = scopeUrl(event.notification.data?.url || 'index.html');
+  event.waitUntil((async () => {
+    const tabs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const tab = tabs.find(c => c.url.startsWith(self.registration.scope));
+    if (tab) { await tab.focus(); return; }
+    await self.clients.openWindow(target);
+  })());
 });
