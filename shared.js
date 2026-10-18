@@ -306,7 +306,7 @@ const LeagueShared = (() => {
     return rows?.[0]?.dummy || null;
   }
 
-  return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, escapeHtml, newAccountId, profile,
+  return Object.freeze({ LEAGUE_KEY, PRED_KEY, SESSION_KEY, SCHEMA_VERSION, SUPABASE_URL, SUPABASE_KEY, escapeHtml, newAccountId, profile,
     activeProfile, activeProfiles, isAdmin, isDealer, canManageMarket, marketKey, predictionOutcome, settlementOutcome, betEligibility,
     sessionUserId, login, loginGuardStatus, logout, DEFAULT_PIN, pinPolicyError, hashPin, verifyPin, needsPinChange, setPin, resetPin,
     keepCredentials, changePin, renderLoginOptions, readLocalLeague, saveLocalLeague, normalizeLeague, validateLeague, audit, smoothScrollTo, nextUpMatches, cloudRequest, loadDummyCloud, saveDummyCloud, LOCK_TRIES, lockBackoff, liveRequest, CLUB_KEY, emptyClub, normalizeClub, readLocalClub, clubRead, clubMutate, MEDIA_BASE, mediaUrlOk, uploadMedia });

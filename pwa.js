@@ -1,7 +1,9 @@
 // App-like extras: "ติดตั้งเป็นแอป" (the browser's install prompt, or Add to Home Screen steps on iPhone) and
 // แจ้งเตือน (a system notification when your match comes up, when your result is entered, and when a prediction
-// market opens). There is no push server: notifications come from this app while it is open or in the background,
-// from the league copy the pages keep in localStorage. Read-only; nothing here writes league data.
+// market opens). With a VAPID key in push-config.js and the push server set up (docs/push-notifications.md), this
+// device is registered for Web Push and the server sends them even when the app is closed; otherwise they come from
+// this app while it is open or in the background, from the league copy the pages keep in localStorage.
+// Nothing here writes league data.
 (() => {
   if (typeof document === "undefined") return;
   const LS = () => typeof LeagueShared !== "undefined" ? LeagueShared : null;
@@ -52,18 +54,76 @@
   const NOTIFY = "pp_notify", SEEN = "pp_notify_seen";
   const supported = () => "Notification" in window && "serviceWorker" in navigator;
   const enabled = () => supported() && Notification.permission === "granted" && read(NOTIFY) === true;
-  async function show(title, body, tag) {
+  // When this device is registered for Web Push, the server (supabase/functions/push-notify) sends the system
+  // notification, even with the app closed; here we then only show the in-page toast, so nothing arrives twice.
+  async function show(title, body, tag, force = false) {
     if (!document.hidden) toast(`${title} • ${body}`, "good");
-    if (!enabled()) return;
+    if (!enabled() || (pushActive() && !force)) return;
     try { const reg = await navigator.serviceWorker.ready; await reg.showNotification(title, { body, tag, icon: "icons/icon-192.png", badge: "icons/icon-192.png", data: { url: "index.html" } }); } catch {}
   }
   async function toggleNotify() {
     if (!supported()) return toast(ios() && !standalone() ? "บน iPhone ต้องติดตั้งเป็นแอปก่อน ถึงจะรับแจ้งเตือนได้" : "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน", "bad");
-    if (enabled()) { store(NOTIFY, false); return toast("ปิดแจ้งเตือนแล้ว", "good"); }
+    if (enabled()) { store(NOTIFY, false); pushOff(); return toast("ปิดแจ้งเตือนแล้ว", "good"); }
     if (Notification.permission === "denied") return toast("แจ้งเตือนถูกบล็อกไว้ เปิดได้ในการตั้งค่าของเบราว์เซอร์", "bad");
     const p = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
     if (p !== "granted") return toast("ยังไม่ได้อนุญาตการแจ้งเตือน", "bad");
-    store(NOTIFY, true); baseline(); show("เปิดแจ้งเตือนแล้ว", "จะเตือนเมื่อถึงคิวแข่ง ผลออก และเปิดทายผลคู่ใหม่", "pp-on");
+    store(NOTIFY, true); baseline();
+    const viaPush = pushCapable() && await syncPush(true);
+    show("เปิดแจ้งเตือนแล้ว", viaPush ? "จะเตือนเมื่อถึงคิวแข่ง ผลออก และเปิดทายผลคู่ใหม่ แม้ปิดแอปอยู่" : "จะเตือนเมื่อถึงคิวแข่ง ผลออก และเปิดทายผลคู่ใหม่", "pp-on", true);
+  }
+
+  // ---------- Web Push ----------
+  // Needs a VAPID public key in push-config.js and a browser with PushManager (Android Chrome; iPhone only as an
+  // installed app, iOS 16.4+). Without either, the in-app notifications above are all there is.
+  const PUSH = "pp_push_sub";   // { endpoint, userId } as last registered with pp_push_subscribe
+  const vapidKey = () => typeof window.PUSH_VAPID_PUBLIC_KEY === "string" ? window.PUSH_VAPID_PUBLIC_KEY.trim() : "";
+  const pushCapable = () => supported() && "PushManager" in window && !!vapidKey() && !!LS()?.SUPABASE_URL;
+  const pushActive = () => enabled() && pushCapable() && !!read(PUSH)?.endpoint;
+  const keyBytes = s => { const t = s.replace(/-/g, "+").replace(/_/g, "/"); return Uint8Array.from(atob(t + "===".slice((t.length + 3) % 4)), c => c.charCodeAt(0)); };
+  const sameKey = sub => {
+    const have = sub.options?.applicationServerKey; if (!have) return true;
+    const a = new Uint8Array(have), b = keyBytes(vapidKey());
+    return a.length === b.length && a.every((v, i) => v === b[i]);
+  };
+  const signedIn = () => { const S = LS(); try { return S?.sessionUserId(S.readLocalLeague()) || ""; } catch { return ""; } };
+  async function rpc(name, args) {
+    const S = LS();
+    const res = await fetch(`${S.SUPABASE_URL}/rest/v1/rpc/${name}`, { method: "POST", body: JSON.stringify(args),
+      headers: { apikey: S.SUPABASE_KEY, Authorization: `Bearer ${S.SUPABASE_KEY}`, "Content-Type": "application/json" } });
+    if (!res.ok) throw new Error(`${name} ${res.status}`);
+  }
+  // Keeps the server's record of this device in step with the signed-in player. Resolves true when push is set up.
+  let syncing = null, retryAt = 0, lastSync = 0;
+  function syncPush(force = false) {
+    if (syncing) return syncing;
+    if (!enabled() || !pushCapable() || (!force && Date.now() < retryAt)) return Promise.resolve(false);
+    lastSync = Date.now();
+    syncing = (async () => {
+      const stored = read(PUSH), me = signedIn();
+      try {
+        if (!me) { if (stored?.endpoint) { await rpc("pp_push_unsubscribe", { p_endpoint: stored.endpoint }); store(PUSH, null); } return false; }
+        const reg = await navigator.serviceWorker.ready;
+        let sub = await reg.pushManager.getSubscription();
+        if (sub && !sameKey(sub)) { await sub.unsubscribe().catch(() => {}); sub = null; }
+        if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(vapidKey()) });
+        if (stored?.endpoint === sub.endpoint && stored.userId === me) return true;
+        if (stored?.endpoint && stored.endpoint !== sub.endpoint) await rpc("pp_push_unsubscribe", { p_endpoint: stored.endpoint }).catch(() => {});
+        const keys = sub.toJSON().keys || {};
+        await rpc("pp_push_subscribe", { p_endpoint: sub.endpoint, p_p256dh: keys.p256dh, p_auth: keys.auth, p_user_id: me });
+        store(PUSH, { endpoint: sub.endpoint, userId: me }); retryAt = 0;
+        return true;
+      } catch {
+        // Server not set up yet (SQL not run), offline, or the browser refused: stay on in-app notifications, retry later.
+        store(PUSH, null); retryAt = Date.now() + 60000;
+        return false;
+      } finally { syncing = null; }
+    })();
+    return syncing;
+  }
+  async function pushOff() {
+    const stored = read(PUSH); store(PUSH, null);
+    try { if (stored?.endpoint) await rpc("pp_push_unsubscribe", { p_endpoint: stored.endpoint }); } catch {}
+    try { const sub = await (await navigator.serviceWorker.ready).pushManager?.getSubscription(); await sub?.unsubscribe(); } catch {}
   }
 
   // What is worth telling the signed-in player right now, each item keyed so it is told once.
@@ -94,6 +154,8 @@
   function baseline() { store(SEEN, events().map(e => e.key)); }
   function check() {
     if (!enabled()) return;
+    // Re-register when the signed-in player changed (or signed out), and once a minute in case the browser rotated it.
+    if (pushCapable() && ((read(PUSH)?.userId || "") !== signedIn() || Date.now() - lastSync > 60000)) syncPush();
     const seenList = read(SEEN); if (!Array.isArray(seenList)) return baseline();
     const seen = new Set(seenList), now = events(), fresh = now.filter(e => !seen.has(e.key));
     if (!fresh.length) return;
@@ -102,8 +164,8 @@
   }
   // The pages refresh the league copy in localStorage as the cloud row changes; look at it every few seconds.
   setInterval(check, 5000);
-  addEventListener("storage", e => { if (e.key && (e.key === LS()?.LEAGUE_KEY || e.key === LS()?.PRED_KEY || e.key === LS()?.CLUB_KEY)) check(); });
+  addEventListener("storage", e => { if (e.key && (e.key === LS()?.LEAGUE_KEY || e.key === LS()?.PRED_KEY || e.key === LS()?.CLUB_KEY || e.key === LS()?.SESSION_KEY)) check(); });
 
   if (document.readyState === "complete") setTimeout(offerInstall, 2500); else addEventListener("load", () => setTimeout(offerInstall, 2500), { once: true });
-  window.LeaguePWA = Object.freeze({ canInstall, install, standalone, supported, enabled, toggleNotify, events });
+  window.LeaguePWA = Object.freeze({ canInstall, install, standalone, supported, enabled, toggleNotify, events, pushActive, syncPush });
 })();
