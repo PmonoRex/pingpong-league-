@@ -26,6 +26,7 @@
       err.textContent = "";
       const { error } = await sb.auth.signInWithPassword({ email: form.email.value, password: form.password.value });
       if (error) { err.textContent = "เข้าสู่ระบบไม่สำเร็จ: " + error.message; return; }
+      document.dispatchEvent(new Event("dopdep-signed-in"));
       onDone();
     });
   }
