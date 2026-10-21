@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Automation</title>
+  <meta name="theme-color" content="#0a0b0e">
+  <script>try{var t=+sessionStorage.getItem("dopdep-pt");sessionStorage.removeItem("dopdep-pt");if(Date.now()-t<4000&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("pt-in");setTimeout(function(){document.documentElement.classList.remove("pt-in")},900)}}catch(e){}</script>
+  <link rel="stylesheet" href="../fonts.css?v=20261018-arena">
+  <link rel="stylesheet" href="../trade/style.css?v=3">
+  <style>
+    .bars { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: 5px; height: 170px; padding-top: 18px; }
+    .bars .b { position: relative; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+    .bars .b i { display: block; min-height: 2px; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, var(--red-hi), var(--red-deep));
+      box-shadow: 0 0 12px var(--red-glow); transform-origin: bottom; }
+    .bars .b.zero i { background: var(--panel3); box-shadow: none; }
+    .bars .b span { position: absolute; top: -17px; left: 0; right: 0; text-align: center; font: italic 800 11px/1 var(--display); color: var(--text2); }
+    .bars .b small { display: block; margin-top: 5px; text-align: center; font-size: 10px; color: var(--muted); white-space: nowrap; }
+    .intro .bars .b i { animation: grow .7s var(--ease) both; animation-delay: calc(400ms + var(--i, 0) * 40ms); }
+    @keyframes grow { from { transform: scaleY(0); } to { transform: none; } }
+    .chan { display: flex; gap: 12px; align-items: center; padding: 11px 10px; margin: 0 -10px; border-radius: var(--r-sm); border-bottom: 1px solid var(--line); color: var(--text); }
+    .chan:last-child { border-bottom: 0; }
+    .chan:hover { background: rgba(255,255,255,.03); }
+    .chan .ico { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 19px; flex: none;
+      background: radial-gradient(circle at 30% 25%, var(--panel3), var(--field)); border: 1px solid rgba(255,71,82,.45); box-shadow: 0 0 14px var(--red-glow); }
+    .chan .t { font: 600 15px/1.25 var(--display); color: #fff; }
+    .chan .d { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+    .chan .go { margin-left: auto; color: var(--red-hi); font-weight: 700; font-size: 13px; white-space: nowrap; }
+    .hbar { display: grid; grid-template-columns: minmax(0, 9rem) 1fr auto; gap: 10px; align-items: center; padding: 5px 0; font-size: 13px; }
+    .hbar .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
+    .hbar .track { height: 8px; border-radius: 999px; background: var(--field); overflow: hidden; }
+    .hbar .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--red-deep), var(--red-hi)); transform-origin: left; }
+    .intro .hbar .fill { animation: growX .8s var(--ease) both .5s; }
+    @keyframes growX { from { transform: scaleX(0); } to { transform: none; } }
+    .hbar .c { font: italic 800 13px/1 var(--display); color: #fff; font-feature-settings: "tnum"; }
+    .queue li { padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .queue li:last-child { border-bottom: 0; }
+    .queue { list-style: none; margin: 0; padding: 0; counter-reset: q; }
+    .queue li::before { counter-increment: q; content: counter(q); display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px;
+      border-radius: 50%; background: var(--panel3); font: italic 800 11px/1 var(--display); color: var(--red-hi); }
+    td.prod { white-space: normal; min-width: 240px; max-width: 420px; }
+    td.prod a { color: var(--text); }
+    td.prod a:hover { color: var(--red-hi); }
+    @media (max-width: 600px) { .bars { gap: 3px; } .bars .b:nth-child(even) small { visibility: hidden; } .bars .b span { font-size: 10px; } }
+    .warn-card { border-color: rgba(245,184,11,.4); background: linear-gradient(180deg, rgba(245,184,11,.08), transparent 120px), var(--panel); }
+  </style>
+</head>
+<body>
+  <div id="root" class="wrap"><p class="muted">กำลังโหลด…</p></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="../trade/config.js?v=1"></script>
+  <script src="../trade/app.js?v=4"></script>
+  <script src="../portal/switcher.js?v=2"></script>
+  <script src="automation.js?v=1"></script>
+</body>
+</html>

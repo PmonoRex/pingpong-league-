@@ -18,6 +18,15 @@
     return `บอท ${alive}/${enabled} · Balance ${plain(acc.balance)} · <span class="${cls(net)}">${money(net)}</span> · อัปเดต ${age} นาทีที่แล้ว`;
   }
 
+  async function autoLine() {
+    const { data, error } = await sb.from("trade_state").select("summary, updated_at").eq("id", "automation").single();
+    if (error || !data || !data.summary || !data.summary.totals) return "ยังไม่มีข้อมูลจากคอม";
+    const t = data.summary.totals, st = data.summary.status || {};
+    const age = Math.round((Date.now() - new Date(data.updated_at).getTime()) / 60000);
+    const flag = st.token && st.token.valid === false ? ' · <span class="neg">token ใช้ไม่ได้</span>' : "";
+    return `โพสต์ ${t.posts} · 7 วัน ${t.posts_7d} · ❤ ${t.reactions} · 💬 ${t.comments}${flag} · อัปเดต ${age} นาทีที่แล้ว`;
+  }
+
   function render(user, live) {
     root.innerHTML = `
       <header class="top">
@@ -29,7 +38,7 @@
           <div class="card app">
             <div class="head"><div class="icon">${a.icon}</div>
               <div><h3>${esc(a.title)}</h3><p>${esc(a.desc)}</p></div></div>
-            ${a.id === "trade" ? `<div class="live">${live}</div>` : ""}
+            ${a.id in live ? `<div class="live" data-app="${a.id}">${live[a.id]}</div>` : ""}
             <div class="links">${a.links.map((l) => `<a href="${l.href}" class="${l.primary ? "primary" : ""}">${esc(l.label)}</a>`).join("")}</div>
           </div>`).join("")}
       </section>
@@ -39,11 +48,15 @@
 
   (async () => {
     const user = await requireAdmin(root);
-    render(user, "กำลังโหลด…");
+    render(user, { trade: "กำลังโหลด…", automation: "กำลังโหลด…" });
     intro(root);
-    const live = await tradeLine();
-    const el = root.querySelector(".live");
-    el.innerHTML = live;
-    el.classList.add("loaded");
+    const lines = { trade: tradeLine(), automation: autoLine() };
+    for (const [id, p] of Object.entries(lines)) {
+      p.catch(() => "โหลดไม่สำเร็จ").then((html) => {
+        const el = root.querySelector(`.live[data-app="${id}"]`);
+        el.innerHTML = html;
+        el.classList.add("loaded");
+      });
+    }
   })();
 })();

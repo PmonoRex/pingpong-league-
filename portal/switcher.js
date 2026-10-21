@@ -8,9 +8,11 @@
     { id: "trade", icon: "📈", title: "Dopdep Trade", desc: "บอทเทรดทองบนบัญชี Demo — ดูผล และเลือกกลยุทธ์ที่จะรัน", match: /\/trade\//,
       links: [{ href: base + "trade/", label: "แดชบอร์ด", primary: true }, { href: base + "trade/admin.html", label: "เลือกกลยุทธ์" }] },
     { id: "pingpong", icon: "🏓", title: "Pingpong League", desc: "ลีกปิงปอง — ตารางแข่ง สถิติ ทายผล และหน้าจัดการลีก",
-      match: /\/pingpong-league-\/(?!trade\/|portal\/)/,
+      match: /\/pingpong-league-\/(?!trade\/|portal\/|automation\/)/,
       links: [{ href: base + "admin.html", label: "จัดการลีก", primary: true }, { href: base + "index.html", label: "หน้าหลัก" },
               { href: base + "stats.html", label: "สถิติ" }, { href: base + "predictions.html", label: "ทายผล" }] },
+    { id: "automation", icon: "🤖", title: "Automation", desc: "โพสต์สินค้า Affiliate ลงเพจ Facebook และช่อง YouTube อัตโนมัติ", match: /\/automation\//,
+      links: [{ href: base + "automation/", label: "รายงาน", primary: true }, { href: "https://www.facebook.com/376271472246385", label: "เพจ Facebook" }] },
     { id: "finance", icon: "💰", title: "เงินชัด", desc: "เว็บบันทึกการเงินส่วนตัว", match: /\/ngenchad-finance\//,
       links: [{ href: "https://pmonorex.github.io/ngenchad-finance/", label: "เปิด", primary: true }] },
   ];
