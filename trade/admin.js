@@ -1,7 +1,7 @@
 // Admin: choose which demo strategies run. Saves trade_config.enabled; the PC agent picks it up
 // within ~5 minutes, restarts MT5 with the new chart set and reports the applied version back.
 (function () {
-  const { sb, esc, money, cls, requireAdmin, signOut } = window.Trade;
+  const { sb, esc, money, cls, requireAdmin, signOut, intro } = window.Trade;
   const root = document.getElementById("root");
   let summary = null, config = null;
 
@@ -63,6 +63,7 @@
     root.querySelector("#out").addEventListener("click", (e) => { e.preventDefault(); signOut(); });
     root.querySelector("#save").addEventListener("click", save);
     root.querySelectorAll("input[data-name]").forEach((el) => el.addEventListener("change", () => { dirty = true; }));
+    intro(root);
   }
   let dirty = false;   // unsaved toggles: don't let the auto-refresh wipe them
 
@@ -77,6 +78,9 @@
     if (error) { msg.textContent = "บันทึกไม่สำเร็จ: " + error.message; return; }
     dirty = false;
     if (await load()) render();
+    const done = root.querySelector("#save");
+    done.classList.add("saved"); done.textContent = "บันทึกแล้ว ✓";
+    setTimeout(() => { done.classList.remove("saved"); done.textContent = "บันทึก"; }, 1800);
   }
 
   (async () => {

@@ -1,6 +1,6 @@
 // Dashboard: reads the summary the PC agent writes to trade_state and renders it.
 (function () {
-  const { sb, esc, money, plain, cls, requireAdmin, signOut } = window.Trade;
+  const { sb, esc, money, plain, cls, requireAdmin, signOut, intro, countUp } = window.Trade;
   const root = document.getElementById("root");
 
   function minutesAgo(iso) {
@@ -50,11 +50,16 @@
     const yv = (v) => h - pad - ((v - lo) / span) * (h - 2 * pad);
     const line = pts.map((v, i) => `${x(i).toFixed(1)},${yv(v).toFixed(1)}`).join(" ");
     const base = yv(start);
+    const col = pts[pts.length - 1] >= start ? "var(--win)" : "var(--lose)";
+    const area = `${x(0).toFixed(1)},${h - pad} ${line} ${x(pts.length - 1).toFixed(1)},${h - pad}`;
     return `<svg class="eq" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Equity curve">
-      <line x1="${pad}" x2="${w - pad}" y1="${base}" y2="${base}" stroke="#2a323d" stroke-dasharray="4 4"/>
-      <polyline points="${line}" fill="none" stroke="${pts[pts.length - 1] >= start ? "#3fb950" : "#f85149"}" stroke-width="2"/>
-      <text x="${pad}" y="14" fill="#8b949e" font-size="11">${plain(hi)}</text>
-      <text x="${pad}" y="${h - 6}" fill="#8b949e" font-size="11">${plain(lo)}</text>
+      <defs><linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style="stop-color:${col};stop-opacity:.28"/><stop offset="1" style="stop-color:${col};stop-opacity:0"/></linearGradient></defs>
+      <polygon points="${area}" fill="url(#eqfill)"/>
+      <line x1="${pad}" x2="${w - pad}" y1="${base}" y2="${base}" style="stroke:rgba(255,255,255,.16)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+      <polyline points="${line}" fill="none" style="stroke:${col}" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <text x="${pad}" y="14" style="fill:var(--muted)" font-size="11">${plain(hi)}</text>
+      <text x="${pad}" y="${h - 6}" style="fill:var(--muted)" font-size="11">${plain(lo)}</text>
     </svg>`;
   }
 
@@ -102,12 +107,12 @@
       </header>
 
       <section class="grid kpis">
-        <div class="card kpi"><h2>Balance</h2><div class="v">${plain(acc.balance)}</div><div class="s">เริ่ม ${plain(start)}</div></div>
-        <div class="card kpi"><h2>Equity</h2><div class="v">${plain(acc.equity)}</div><div class="s">floating ${money((acc.equity ?? 0) - (acc.balance ?? 0))}</div></div>
-        <div class="card kpi"><h2>กำไร/ขาดทุนรวม</h2><div class="v ${cls(net)}">${money(net)}</div><div class="s">${((net / start) * 100).toFixed(2)}%</div></div>
-        <div class="card kpi"><h2>วันนี้</h2><div class="v ${cls(todayPl)}">${money(todayPl)}</div><div class="s">วันตาม server</div></div>
-        <div class="card kpi"><h2>ไม้ที่ปิด</h2><div class="v">${trades.length}</div><div class="s">ชนะ ${trades.length ? Math.round((wins / trades.length) * 100) : 0}% · ${totalR >= 0 ? "+" : ""}${totalR.toFixed(2)}R</div></div>
-        <div class="card kpi"><h2>เปิดอยู่</h2><div class="v">${open.length}</div><div class="s">${open.map((s) => esc(s.name)).join(", ") || "—"}</div></div>
+        <div class="card kpi"><h2>Balance</h2><div class="v" data-key="bal" data-fmt="plain" data-count="${acc.balance ?? 0}">${plain(acc.balance)}</div><div class="s">เริ่ม ${plain(start)}</div></div>
+        <div class="card kpi"><h2>Equity</h2><div class="v" data-key="eq" data-fmt="plain" data-count="${acc.equity ?? 0}">${plain(acc.equity)}</div><div class="s">floating ${money((acc.equity ?? 0) - (acc.balance ?? 0))}</div></div>
+        <div class="card kpi"><h2>กำไร/ขาดทุนรวม</h2><div class="v ${cls(net)}" data-key="net" data-fmt="money" data-count="${net}">${money(net)}</div><div class="s">${((net / start) * 100).toFixed(2)}%</div></div>
+        <div class="card kpi"><h2>วันนี้</h2><div class="v ${cls(todayPl)}" data-key="today" data-fmt="money" data-count="${todayPl}">${money(todayPl)}</div><div class="s">วันตาม server</div></div>
+        <div class="card kpi"><h2>ไม้ที่ปิด</h2><div class="v" data-key="n" data-count="${trades.length}">${trades.length}</div><div class="s">ชนะ ${trades.length ? Math.round((wins / trades.length) * 100) : 0}% · ${totalR >= 0 ? "+" : ""}${totalR.toFixed(2)}R</div></div>
+        <div class="card kpi"><h2>เปิดอยู่</h2><div class="v" data-key="open" data-count="${open.length}">${open.length}</div><div class="s">${open.map((s) => esc(s.name)).join(", ") || "—"}</div></div>
       </section>
 
       <section class="grid two">
@@ -128,6 +133,8 @@
       </section>
       <p class="muted" style="font-size:12px">บัญชี Demo · ข้อมูลอัปเดตจากคอมทุก ~5 นาที · R = กำไรเทียบความเสี่ยงต่อไม้</p>`;
     root.querySelector("#out").addEventListener("click", (e) => { e.preventDefault(); signOut(); });
+    intro(root);
+    countUp(root);
   }
 
   async function load() {

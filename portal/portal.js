@@ -1,23 +1,23 @@
 // Admin portal: one login (Supabase Auth, trade_admins), then pick which program to open.
 // Pingpong and เงินชัด keep their own sign-in inside their pages; this portal only links to them.
 (function () {
-  const { sb, esc, plain, money, cls, requireAdmin, signOut } = window.Trade;
+  const { sb, esc, plain, money, cls, requireAdmin, signOut, intro } = window.Trade;
   const root = document.getElementById("root");
 
   const APPS = [
     {
-      id: "trade", icon: "📈", color: "#1f6feb33", title: "Dopdep Trade",
+      id: "trade", icon: "📈", title: "Dopdep Trade",
       desc: "บอทเทรดทองบนบัญชี Demo — ดูผล และเลือกกลยุทธ์ที่จะรัน",
       links: [{ href: "../trade/", label: "แดชบอร์ด", primary: true }, { href: "../trade/admin.html", label: "เลือกกลยุทธ์" }],
     },
     {
-      id: "pingpong", icon: "🏓", color: "#2ea04333", title: "Pingpong League",
+      id: "pingpong", icon: "🏓", title: "Pingpong League",
       desc: "ลีกปิงปอง — ตารางแข่ง สถิติ ทายผล และหน้าจัดการลีก",
       links: [{ href: "../admin.html", label: "จัดการลีก", primary: true }, { href: "../index.html", label: "หน้าหลัก" },
               { href: "../stats.html", label: "สถิติ" }, { href: "../predictions.html", label: "ทายผล" }],
     },
     {
-      id: "finance", icon: "💰", color: "#d2992233", title: "เงินชัด",
+      id: "finance", icon: "💰", title: "เงินชัด",
       desc: "เว็บบันทึกการเงินส่วนตัว",
       links: [{ href: "https://pmonorex.github.io/ngenchad-finance/", label: "เปิด", primary: true }],
     },
@@ -44,19 +44,23 @@
       <section class="apps">
         ${APPS.map((a) => `
           <div class="card app">
-            <div class="head"><div class="icon" style="background:${a.color}">${a.icon}</div>
+            <div class="head"><div class="icon">${a.icon}</div>
               <div><h3>${esc(a.title)}</h3><p>${esc(a.desc)}</p></div></div>
             ${a.id === "trade" ? `<div class="live">${live}</div>` : ""}
             <div class="links">${a.links.map((l) => `<a href="${l.href}" class="${l.primary ? "primary" : ""}">${esc(l.label)}</a>`).join("")}</div>
           </div>`).join("")}
       </section>
-      <p class="muted" style="font-size:12px;margin-top:14px">Pingpong และ เงินชัด ใช้ระบบเข้าสู่ระบบของตัวเองภายในหน้านั้น</p>`;
+      <p class="muted note">Pingpong และ เงินชัด ใช้ระบบเข้าสู่ระบบของตัวเองภายในหน้านั้น</p>`;
     root.querySelector("#out").addEventListener("click", (e) => { e.preventDefault(); signOut(); });
   }
 
   (async () => {
     const user = await requireAdmin(root);
     render(user, "กำลังโหลด…");
-    render(user, await tradeLine());
+    intro(root);
+    const live = await tradeLine();
+    const el = root.querySelector(".live");
+    el.innerHTML = live;
+    el.classList.add("loaded");
   })();
 })();
