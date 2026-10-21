@@ -46,5 +46,57 @@
 
   async function signOut() { await sb.auth.signOut(); location.reload(); }
 
-  window.Trade = { sb, esc, money, plain, cls, requireAdmin, signOut };
+  // ---------------------------------------------------------------- motion
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let introDone = false;
+
+  // First render only: panels rise in one after another, table rows and calendar cells follow.
+  function intro(root) {
+    if (introDone) return;   // with reduced motion the CSS turns this into plain fades
+    introDone = true;
+    root.querySelectorAll("header.top, .card").forEach((el, i) => el.style.setProperty("--i", i));
+    root.querySelectorAll("tbody tr, .srow").forEach((el, i) => el.style.setProperty("--i", Math.min(i, 18)));
+    root.querySelectorAll(".cal > div").forEach((el, i) => el.style.setProperty("--i", i));
+    root.classList.add("intro");
+    setTimeout(() => root.classList.remove("intro"), 2400);
+  }
+
+  // Figures tick from their previous value (0 on first load) to the new one; a changed figure flashes once.
+  const lastValue = new Map();
+  const formats = { plain, money, int: (v) => String(Math.round(v)) };
+  function countUp(root) {
+    root.querySelectorAll("[data-count]").forEach((el) => {
+      const key = el.dataset.key, to = Number(el.dataset.count), fmt = formats[el.dataset.fmt] || formats.int;
+      const had = lastValue.has(key), from = had ? lastValue.get(key) : 0;
+      lastValue.set(key, to);
+      if (from === to || !isFinite(to)) { el.textContent = fmt(to); return; }
+      if (had) { el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
+      const t0 = performance.now(), dur = 900;
+      let finished = false;
+      const step = (t) => {
+        if (finished) return;
+        const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = fmt(from + (to - from) * e);
+        if (k < 1) requestAnimationFrame(step); else finished = true;
+      };
+      requestAnimationFrame(step);
+      // background tabs may never run animation frames: always land on the real value
+      setTimeout(() => { if (!finished) { finished = true; el.textContent = fmt(to); } }, dur + 150);
+    });
+  }
+
+  // Page to page: a red blade sweeps across (same idea as the league's wipe); the next page opens under it.
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href]");
+    if (calm || !a || a.target || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || a.getAttribute("href").startsWith("#")) return;
+    e.preventDefault();
+    try { sessionStorage.setItem("dopdep-pt", String(Date.now())); } catch (_) {}
+    document.documentElement.classList.add("pt-out");
+    setTimeout(() => { location.href = url.href; }, 300);
+  });
+  addEventListener("pageshow", () => document.documentElement.classList.remove("pt-out"));
+
+  window.Trade = { sb, esc, money, plain, cls, requireAdmin, signOut, intro, countUp };
 })();

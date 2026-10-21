@@ -46,7 +46,7 @@ nav a:hover { background: rgba(255,255,255,.12); }
 /* Panels */
 .grid { display: grid; gap: 12px; margin-top: 12px; }
 .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-@media (max-width: 1000px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1200px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .two { grid-template-columns: 2fr 1fr; }
 @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
 .card { position: relative; min-width: 0; padding: 16px; border-radius: var(--r); border: 1px solid var(--line);
@@ -56,7 +56,7 @@ nav a:hover { background: rgba(255,255,255,.12); }
   background: linear-gradient(180deg, var(--red-hi), var(--red-deep)); box-shadow: 0 0 12px var(--red-glow); }
 .kpi h2 { font: 700 12px/1.2 var(--body); color: var(--muted); margin-bottom: 8px; }
 .kpi h2::before { width: 7px; height: 7px; }
-.kpi .v { font: italic 800 clamp(22px, 5.6vw, 28px)/1.1 var(--display); font-feature-settings: "tnum", "lnum"; color: #fff; }
+.kpi .v { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: italic 800 clamp(20px, 5.6vw, 28px)/1.1 var(--display); font-feature-settings: "tnum", "lnum"; color: #fff; }
 .kpi .v.pos { color: var(--win); } .kpi .v.neg { color: var(--lose); }
 .kpi .s { color: var(--muted); font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
 
@@ -137,4 +137,62 @@ button:disabled { opacity: .5; cursor: not-allowed; }
   header.top { padding: 14px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
   .cal { gap: 3px; } .cal div { min-height: 42px; padding: 4px; }
+}
+
+/* ---------------------------------------------------------------- motion
+   First render: masthead and panels rise in turn, rows and calendar cells follow, the equity line is drawn left to right.
+   Live: the "running" dot breathes, the masthead's red light drifts, figures tick to new values and flash once.
+   Page to page: a red blade sweeps across (app.js adds html.pt-out on leave, the head script html.pt-in on arrival). */
+:root { --ease: cubic-bezier(.16,1,.3,1); --exit: cubic-bezier(.4,0,1,1); }
+@keyframes rise { from { opacity: 0; transform: translateY(16px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: none; } }
+@keyframes draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes breathe { 0% { box-shadow: 0 0 0 0 currentColor; } 70%, 100% { box-shadow: 0 0 0 6px transparent; } }
+@keyframes drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(-50px, 26px) scale(1.18); } }
+@keyframes bump { 0% { text-shadow: 0 0 0 transparent; } 30% { text-shadow: 0 0 18px currentColor; transform: scale(1.04); } 100% { text-shadow: 0 0 0 transparent; } }
+@keyframes shine { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+@keyframes bladeIn { from { transform: translateX(100%) skewX(-12deg); } to { transform: translateX(0) skewX(-12deg); } }
+@keyframes bladeOut { from { transform: translateX(0) skewX(-12deg); } to { transform: translateX(-115%) skewX(-12deg); } }
+@keyframes saved { 0% { transform: scale(1); } 35% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+.intro header.top, .intro .card { animation: rise .6s var(--ease) both; animation-delay: calc(min(var(--i, 0), 12) * 60ms); }
+.intro tbody tr, .intro .srow { animation: fadeIn .4s var(--ease) both; animation-delay: calc(450ms + var(--i, 0) * 35ms); }
+.intro .cal > div:not(.hd) { animation: pop .35s var(--ease) both; animation-delay: calc(500ms + var(--i, 0) * 10ms); }
+.intro svg.eq { animation: draw 1.2s cubic-bezier(.65,0,.35,1) both .55s; }
+
+header.top::after { animation: drift 9s ease-in-out infinite alternate; }
+.pill.ok::before { animation: breathe 2s ease-out infinite; }
+.kpi .v.bump { animation: bump .9s ease-out; }
+.cal .win, .cal .loss { transition: transform .15s var(--ease); }
+.cal .win:hover, .cal .loss:hover { transform: scale(1.08); position: relative; z-index: 1; }
+
+.card { transition: border-color .2s, transform .2s var(--ease), box-shadow .2s; }
+.kpi:hover { transform: translateY(-2px); border-color: var(--line2); box-shadow: var(--shadow), 0 0 0 1px rgba(255,71,82,.10); }
+button, nav a, .app .links a { transition: transform 90ms, background-color .14s, filter .14s; }
+button:active:not(:disabled), nav a:active, .app .links a:active { transform: scale(.96); }
+button.primary { background-size: 200% 100%; }
+button.primary:hover:not(:disabled) { background-image: linear-gradient(110deg, #dc2530 30%, #ff5c66 50%, #dc2530 70%); animation: shine 1.2s linear infinite; }
+button.saved { animation: saved .5s var(--ease); background: linear-gradient(180deg, #2fbf6f, #1f8a4f) !important; border-color: #5be39a !important;
+  box-shadow: 0 8px 22px rgba(52,210,124,.35) !important; }
+.switch span::before { transition: transform .28s cubic-bezier(.34,1.56,.64,1), background-color .15s; }
+.center > .card, form.login { animation: rise .6s var(--ease) both; }
+
+/* Page to page blade */
+html.pt-out::before, html.pt-in::before { content: ""; position: fixed; top: 0; bottom: 0; left: -50vw; width: 200vw; z-index: 2147483000;
+  pointer-events: none; will-change: transform;
+  background: linear-gradient(90deg, transparent 0 6%, #fff 6% 6.4%, #ff4752 6.4%, #d81e29 9%, #0a0b0e 10.5% 89.5%, #d81e29 91%, #ff4752 93.6%, transparent 94%),
+              #0000; }
+html.pt-out::before { animation: bladeIn .3s var(--exit) both; }
+html.pt-in::before { animation: bladeOut .55s var(--ease) both .05s; }
+
+/* Reduced motion: keep the fades and ticking figures, drop everything that slides, drifts, scales or sweeps. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes rise { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pop { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes draw { from { opacity: 0; } to { opacity: 1; } }
+  header.top::after, .app:hover .icon, button.primary:hover:not(:disabled), .kpi .v.bump { animation: none !important; }
+  .kpi:hover, .cal .win:hover, .cal .loss:hover, .app:hover, button:active:not(:disabled), nav a:active, .app .links a:active { transform: none !important; }
+  html.pt-out::before, html.pt-in::before { display: none; }
 }

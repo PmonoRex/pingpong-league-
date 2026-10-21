@@ -1,7 +1,7 @@
 // Admin portal: one login (Supabase Auth, trade_admins), then pick which program to open.
 // Pingpong and เงินชัด keep their own sign-in inside their pages; this portal only links to them.
 (function () {
-  const { sb, esc, plain, money, cls, requireAdmin, signOut } = window.Trade;
+  const { sb, esc, plain, money, cls, requireAdmin, signOut, intro } = window.Trade;
   const root = document.getElementById("root");
 
   const APPS = [
@@ -57,6 +57,10 @@
   (async () => {
     const user = await requireAdmin(root);
     render(user, "กำลังโหลด…");
-    render(user, await tradeLine());
+    intro(root);
+    const live = await tradeLine();
+    const el = root.querySelector(".live");
+    el.innerHTML = live;
+    el.classList.add("loaded");
   })();
 })();
