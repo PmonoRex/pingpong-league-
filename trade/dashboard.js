@@ -50,11 +50,16 @@
     const yv = (v) => h - pad - ((v - lo) / span) * (h - 2 * pad);
     const line = pts.map((v, i) => `${x(i).toFixed(1)},${yv(v).toFixed(1)}`).join(" ");
     const base = yv(start);
+    const col = pts[pts.length - 1] >= start ? "var(--win)" : "var(--lose)";
+    const area = `${x(0).toFixed(1)},${h - pad} ${line} ${x(pts.length - 1).toFixed(1)},${h - pad}`;
     return `<svg class="eq" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Equity curve">
-      <line x1="${pad}" x2="${w - pad}" y1="${base}" y2="${base}" stroke="#2a323d" stroke-dasharray="4 4"/>
-      <polyline points="${line}" fill="none" stroke="${pts[pts.length - 1] >= start ? "#3fb950" : "#f85149"}" stroke-width="2"/>
-      <text x="${pad}" y="14" fill="#8b949e" font-size="11">${plain(hi)}</text>
-      <text x="${pad}" y="${h - 6}" fill="#8b949e" font-size="11">${plain(lo)}</text>
+      <defs><linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" style="stop-color:${col};stop-opacity:.28"/><stop offset="1" style="stop-color:${col};stop-opacity:0"/></linearGradient></defs>
+      <polygon points="${area}" fill="url(#eqfill)"/>
+      <line x1="${pad}" x2="${w - pad}" y1="${base}" y2="${base}" style="stroke:rgba(255,255,255,.16)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+      <polyline points="${line}" fill="none" style="stroke:${col}" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <text x="${pad}" y="14" style="fill:var(--muted)" font-size="11">${plain(hi)}</text>
+      <text x="${pad}" y="${h - 6}" style="fill:var(--muted)" font-size="11">${plain(lo)}</text>
     </svg>`;
   }
 
