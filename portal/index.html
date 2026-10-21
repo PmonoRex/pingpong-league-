@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Admin Portal</title>
+  <link rel="stylesheet" href="../trade/style.css?v=1">
+  <style>
+    .apps { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-top: 14px; }
+    .app { display: flex; flex-direction: column; gap: 10px; }
+    .app .head { display: flex; gap: 12px; align-items: center; }
+    .app .icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; flex: none; }
+    .app h3 { margin: 0; font-size: 16px; }
+    .app p { margin: 0; color: var(--muted); font-size: 13px; }
+    .app .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+    .app .links a { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); font-size: 13px; }
+    .app .links a.primary { background: #238636; border-color: #2ea043; }
+    .app .live { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div id="root" class="wrap"><p class="muted">กำลังโหลด…</p></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="../trade/config.js?v=1"></script>
+  <script src="../trade/app.js?v=1"></script>
+  <script src="portal.js?v=1"></script>
+</body>
+</html>

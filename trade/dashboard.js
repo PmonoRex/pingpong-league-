@@ -98,7 +98,7 @@
             <span>อัปเดตล่าสุด <b>${age} นาทีที่แล้ว</b> ${age > 15 ? '<span class="pill warn">ข้อมูลเก่า</span>' : ""}</span>
             <span>เวลา server <b>${esc(acc.server_time || "—")}</b></span>
           </div></div>
-        <nav><a href="admin.html">แอดมิน</a><a href="#" id="out">ออกจากระบบ</a></nav>
+        <nav><a href="../portal/">Portal</a><a href="admin.html">แอดมิน</a><a href="#" id="out">ออกจากระบบ</a></nav>
       </header>
 
       <section class="grid kpis">

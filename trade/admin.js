@@ -47,7 +47,7 @@
       <header class="top">
         <div><h1>Dopdep · แอดมิน</h1>
           <div class="meta"><span>เลือกกลยุทธ์ที่จะให้บอทรันบนบัญชี Demo</span></div></div>
-        <nav><a href="index.html">แดชบอร์ด</a><a href="#" id="out">ออกจากระบบ</a></nav>
+        <nav><a href="../portal/">Portal</a><a href="index.html">แดชบอร์ด</a><a href="#" id="out">ออกจากระบบ</a></nav>
       </header>
       <div class="bar card">
         <div>
