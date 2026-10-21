@@ -4,24 +4,7 @@
   const { sb, esc, plain, money, cls, requireAdmin, signOut, intro } = window.Trade;
   const root = document.getElementById("root");
 
-  const APPS = [
-    {
-      id: "trade", icon: "📈", title: "Dopdep Trade",
-      desc: "บอทเทรดทองบนบัญชี Demo — ดูผล และเลือกกลยุทธ์ที่จะรัน",
-      links: [{ href: "../trade/", label: "แดชบอร์ด", primary: true }, { href: "../trade/admin.html", label: "เลือกกลยุทธ์" }],
-    },
-    {
-      id: "pingpong", icon: "🏓", title: "Pingpong League",
-      desc: "ลีกปิงปอง — ตารางแข่ง สถิติ ทายผล และหน้าจัดการลีก",
-      links: [{ href: "../admin.html", label: "จัดการลีก", primary: true }, { href: "../index.html", label: "หน้าหลัก" },
-              { href: "../stats.html", label: "สถิติ" }, { href: "../predictions.html", label: "ทายผล" }],
-    },
-    {
-      id: "finance", icon: "💰", title: "เงินชัด",
-      desc: "เว็บบันทึกการเงินส่วนตัว",
-      links: [{ href: "https://pmonorex.github.io/ngenchad-finance/", label: "เปิด", primary: true }],
-    },
-  ];
+  const APPS = window.DopdepApps;   // defined once in switcher.js, which loads first
 
   async function tradeLine() {
     const { data, error } = await sb.from("trade_state").select("summary, updated_at").eq("id", "demo").single();
