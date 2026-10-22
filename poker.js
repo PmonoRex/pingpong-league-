@@ -5,8 +5,10 @@
 // rev lock and save function as the Dummy sheet; dummy.js carries `poker` along untouched). localStorage is the
 // offline copy.
 const PokerNight = (() => {
-  const MAX_NIGHTS = 20, MAX_EVENTS = 600, MAX_DEALS = 300, TYPES = ["join", "buy", "out", "undo", "board", "show", "fold", "deal"];
-  const MONEY = ["join", "buy", "out", "undo"], HAND = ["board", "show", "fold"];
+  // Deals are never trimmed below MAX_DEALS: each one carries the chip result of the hand before it.
+  const MAX_NIGHTS = 20, MAX_EVENTS = 600, MAX_DEALS = 1000, TYPES = ["join", "buy", "out", "undo", "board", "show", "fold", "deal", "act", "award"];
+  const MONEY = ["join", "buy", "out", "undo"], HAND = ["board", "show", "fold", "act", "award"], BET_ACTIONS = ["fold", "check", "call", "raise"];
+  const nameList = (v, max) => [...new Set((Array.isArray(v) ? v : []).map(cleanName).filter(Boolean))].slice(0, max);
   const cardOk = c => Number.isInteger(c) && c >= 0 && c < 52;
   const int = v => { const n = Math.round(Number(v)); return Number.isFinite(n) ? n : 0; };
   const money = v => { const n = Math.round(Number(v) * 100) / 100; return Number.isFinite(n) ? n : 0; };
@@ -19,7 +21,14 @@ const PokerNight = (() => {
     const out = { id: cleanId(e.id), at: Math.max(0, int(e.at)), t: e.t };
     if (!out.id) return null;
     if (e.t === "undo") { out.ref = cleanId(e.ref); return out.ref ? out : null; }
-    if (e.t === "deal") return out;
+    // A deal records who is dealt in, the dealer button and the chips won or lost in the hand before it.
+    if (e.t === "deal") {
+      const seats = nameList(e.seats, 10); if (seats.length) { out.seats = seats; out.button = seats.includes(cleanName(e.button)) ? cleanName(e.button) : seats[0]; }
+      const res = Object.entries(e.res && typeof e.res === "object" ? e.res : {}).map(([k, v]) => [cleanName(k), int(v)]).filter(([k, v]) => k && v);
+      if (res.length) out.res = Object.fromEntries(res.slice(0, 10));
+      return out;
+    }
+    if (e.t === "award") { out.pot = e.pot; out.names = nameList(e.names, 10); return Number.isInteger(out.pot) && out.pot >= 0 && out.pot < 20 && out.names.length ? out : null; }
     // A board slot (0-2 flop, 3 turn, 4 river) set to a card, or -1 to clear it. Anyone at the table can set it.
     if (e.t === "board") { out.i = e.i; out.card = e.card; return Number.isInteger(out.i) && out.i >= 0 && out.i < 5 && (out.card === -1 || cardOk(out.card)) ? out : null; }
     out.name = cleanName(e.name); if (!out.name) return null;
@@ -27,6 +36,7 @@ const PokerNight = (() => {
     // A join may carry the first buy-in (เข้าโต๊ะ from the player's own phone), so tapping it twice buys only once.
     if (e.t === "join" && money(e.amount) > 0) out.amount = money(e.amount);
     if (e.t === "out") { out.amount = Math.max(0, int(e.amount)); }
+    if (e.t === "act") { if (!BET_ACTIONS.includes(e.a)) return null; out.a = e.a; if (e.a === "raise") { out.to = Math.max(0, int(e.to)); if (!out.to) return null; } }
     // Hole cards reach the shared row only when their owner reveals them (เปิดไพ่); until then they stay on that phone.
     if (e.t === "show") { out.cards = Array.isArray(e.cards) ? e.cards.slice(0, 2) : []; if (out.cards.length !== 2 || !out.cards.every(cardOk) || out.cards[0] === out.cards[1]) return null; }
     return out;
@@ -34,6 +44,9 @@ const PokerNight = (() => {
   function normalizeNight(n) {
     if (!n || typeof n !== "object") return null;
     const night = { id: cleanId(n.id), startedAt: Math.max(0, int(n.startedAt)), buyIn: money(n.buyIn) > 0 ? money(n.buyIn) : 100, chips: int(n.chips) > 0 ? int(n.chips) : 100, closedAt: Math.max(0, int(n.closedAt)) };
+    // Blinds in chips; a night from before betting gets a big blind of about 1/50 of a buy-in.
+    night.bb = int(n.bb) > 0 ? int(n.bb) : Math.max(1, Math.round(night.chips / 50));
+    night.sb = int(n.sb) > 0 ? Math.min(int(n.sb), night.bb) : Math.max(1, Math.floor(night.bb / 2));
     if (!night.id) return null;
     const seen = new Set();
     const all = (Array.isArray(n.events) ? n.events : []).map(normalizeEvent).filter(e => e && !seen.has(e.id) && seen.add(e.id))
@@ -75,11 +88,15 @@ const PokerNight = (() => {
     const undone = new Set(night.events.filter(e => e.t === "undo").map(e => e.ref));
     const live = night.events.filter(e => e.t !== "undo" && !undone.has(e.id));
     // The hand being played: everything after the latest deal.
-    const lastDeal = live.map(e => e.t).lastIndexOf("deal"), hand = { no: live.filter(e => e.t === "deal").length + 1, key: lastDeal >= 0 ? live[lastDeal].id : "first", board: [null, null, null, null, null], shown: {}, folded: [] };
+    const lastDeal = live.map(e => e.t).lastIndexOf("deal"), dealEvent = lastDeal >= 0 ? live[lastDeal] : null;
+    const hand = { no: Math.max(1, live.filter(e => e.t === "deal").length), deals: live.filter(e => e.t === "deal").length, key: dealEvent ? dealEvent.id : "first", board: [null, null, null, null, null], shown: {}, folded: [], button: dealEvent?.button || null, bet: null };
+    const acts = [], awards = [];
     live.slice(lastDeal + 1).forEach(e => {
       if (e.t === "board") hand.board[e.i] = e.card < 0 ? null : e.card;
       else if (e.t === "show") hand.shown[e.name] = e.cards;
-      else if (e.t === "fold" && !hand.folded.includes(e.name)) hand.folded.push(e.name);
+      else if (e.t === "fold" || (e.t === "act" && e.a === "fold")) { if (!hand.folded.includes(e.name)) hand.folded.push(e.name); if (e.t === "fold") acts.push({ name: e.name, a: "fold" }); else acts.push(e); }
+      else if (e.t === "act") acts.push(e);
+      else if (e.t === "award") awards.push(e);
     });
     const players = new Map();
     const player = name => { if (!players.has(name)) players.set(name, { name, buys: [], out: null }); return players.get(name); };
@@ -89,14 +106,29 @@ const PokerNight = (() => {
       else if (e.t === "out") player(e.name).out = e.amount;
     });
     const rate = night.chips / night.buyIn; // chips per baht
+    // Chips each player has at the table: everything bought, plus what every finished hand moved (recorded on the
+    // deal that followed it). `atDeal` is the same count at the moment the current hand was dealt.
+    const bank = {}, joined = new Set(); let atDeal = {};
+    live.forEach(e => {
+      // Same rule as the player list: a join's buy-in counts only for the first time that name sits down.
+      const first = e.t === "join" && !joined.has(e.name);
+      if (e.t === "join" || e.t === "buy") { if (e.t === "buy" || (first && e.amount)) bank[e.name] = (bank[e.name] || 0) + Math.round(e.amount * rate); joined.add(e.name); }
+      if (e.t === "deal") { Object.entries(e.res || {}).forEach(([k, v]) => { bank[k] = (bank[k] || 0) + v; }); if (e === dealEvent) atDeal = { ...bank }; }
+    });
+    if (dealEvent?.seats && typeof PokerBet !== "undefined") {
+      hand.bet = PokerBet.play({ seats: dealEvent.seats, stacks: atDeal, button: dealEvent.button, sb: night.sb, bb: night.bb, acts, board: hand.board, shown: hand.shown, awards }, typeof PokerCards !== "undefined" ? PokerCards : null);
+      if (!hand.bet.active) hand.bet = null;
+    }
     const list = [...players.values()].map(p => {
       const paid = money(p.buys.reduce((s, v) => s + v, 0));
       const outBaht = p.out === null ? null : money(p.out / rate);
-      return { ...p, paid, chipsIn: Math.round(paid * rate), outBaht, net: outBaht === null ? null : money(outBaht - paid) };
+      const inHand = hand.bet?.players.find(x => x.name === p.name);
+      const stack = (bank[p.name] || 0) + (inHand ? (hand.bet.done ? hand.bet.delta[p.name] || 0 : -inHand.committed) : 0);
+      return { ...p, paid, chipsIn: Math.round(paid * rate), outBaht, net: outBaht === null ? null : money(outBaht - paid), stack };
     });
     const chipsIn = list.reduce((s, p) => s + p.chipsIn, 0), chipsOut = list.reduce((s, p) => s + (p.out || 0), 0);
     const allOut = list.length > 0 && list.every(p => p.out !== null);
-    return { night, rate, players: list, paid: money(list.reduce((s, p) => s + p.paid, 0)), chipsIn, chipsOut, diffChips: chipsOut - chipsIn, allOut, balanced: allOut && chipsOut === chipsIn, lastAction: live.filter(e => MONEY.includes(e.t)).pop() || null, hand };
+    return { night, rate, players: list, paid: money(list.reduce((s, p) => s + p.paid, 0)), chipsIn, chipsOut, diffChips: chipsOut - chipsIn, allOut, balanced: allOut && chipsOut === chipsIn, lastAction: live.filter(e => MONEY.includes(e.t)).pop() || null, hand, bank };
   }
   // Fewest transfers: the biggest loser pays the biggest winner until everyone is square. Works in satang; the
   // rounding left over from chips → baht goes to the biggest winner so the transfers always add up.
@@ -125,10 +157,10 @@ const PokerNight = (() => {
     copy.nights[nightId] = normalizeNight(night);
     return copy;
   }
-  function startNight(p, { buyIn, chips, names }) {
+  function startNight(p, { buyIn, chips, names, sb, bb }) {
     const copy = normalize(p), id = newId("n"), at = Date.now();
     const unique = [...new Set(names.map(cleanName).filter(Boolean))];
-    copy.nights[id] = normalizeNight({ id, startedAt: at, buyIn, chips, events: unique.flatMap((name, i) => [{ id: newId(), at: at + i * 2, t: "join", name }, { id: newId(), at: at + i * 2 + 1, t: "buy", name, amount: money(buyIn) }]) });
+    copy.nights[id] = normalizeNight({ id, startedAt: at, buyIn, chips, sb, bb, events: unique.flatMap((name, i) => [{ id: newId(), at: at + i * 2, t: "join", name }, { id: newId(), at: at + i * 2 + 1, t: "buy", name, amount: money(buyIn) }]) });
     return { poker: { nights: trim(copy.nights) }, id };
   }
   // The player sits down at the open night with one buy-in; nothing happens if they are already at the table.
@@ -140,11 +172,23 @@ const PokerNight = (() => {
   // The shared hand: board cards, a player revealing or folding, and a new deal that clears it for everyone.
   const setBoard = (p, nightId, i, card) => addEvent(p, nightId, { t: "board", i, card: card === null ? -1 : card });
   const show = (p, nightId, name, cards) => addEvent(p, nightId, { t: "show", name, cards });
-  const fold = (p, nightId, name) => addEvent(p, nightId, { t: "fold", name });
-  const deal = (p, nightId) => addEvent(p, nightId, { t: "deal" });
+  const fold = (p, nightId, name) => addEvent(p, nightId, { t: "act", name, a: "fold" });
+  const act = (p, nightId, name, a, to) => addEvent(p, nightId, { t: "act", name, a, ...(a === "raise" ? { to } : {}) });
+  const award = (p, nightId, pot, names) => addEvent(p, nightId, { t: "award", pot, names });
+  // A new hand: closes the one being played (its chip result is recorded here; an unfinished hand is called off and
+  // everyone keeps what they had), deals in everyone seated with chips, and moves the button one seat left.
+  function deal(p, nightId) {
+    const copy = normalize(p), night = copy.nights[nightId]; if (!night) return copy;
+    const v = view(night), bet = v.hand.bet, res = bet?.done ? bet.delta : {};
+    const order = v.players.map(x => x.name), after = nm => (v.bank[nm] || 0) + (res[nm] || 0);
+    const seats = order.filter(nm => after(nm) > 0);
+    let button = seats[0] || null;
+    if (v.hand.button && seats.length) { const from = order.indexOf(v.hand.button); for (let k = 1; k <= order.length; k++) { const c = order[(from + k) % order.length]; if (seats.includes(c)) { button = c; break; } } }
+    return addEvent(copy, nightId, { t: "deal", seats, button, res: Object.fromEntries(Object.entries(res).filter(([, d]) => d)) });
+  }
   function closeNight(p, nightId) { const copy = normalize(p); if (copy.nights[nightId]) copy.nights[nightId].closedAt = Date.now(); return copy; }
 
-  return Object.freeze({ normalize, merge, same, current, history, view, transfers, addEvent, join, setBoard, show, fold, deal, startNight, closeNight, cleanName, MAX_NIGHTS });
+  return Object.freeze({ normalize, merge, same, current, history, view, transfers, addEvent, join, setBoard, show, fold, act, award, deal, startNight, closeNight, cleanName, MAX_NIGHTS });
 })();
 if (typeof window !== "undefined") window.PokerNight = PokerNight;
 
@@ -221,19 +265,21 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const buyIn = Number($("pBuyIn").value), chips = Math.round(Number($("pChips").value));
     if (!(buyIn > 0) || !(chips > 0)) return toast("ใส่ราคาซื้อชิปและจำนวนชิปให้ถูกก่อน");
     if (picked.size < 1) return toast("เลือกผู้เล่นอย่างน้อย 1 คน");
-    const { poker: next } = P.startNight(poker, { buyIn, chips, names: [...picked] });
+    const sb = Math.round(Number($("pSb").value)) || undefined, bb = Math.round(Number($("pBb").value)) || undefined;
+    if (sb && bb && sb > bb) return toast("บลายด์เล็กต้องไม่มากกว่าบลายด์ใหญ่");
+    const { poker: next } = P.startNight(poker, { buyIn, chips, names: [...picked], sb, bb });
     picked = new Set(); change(next); toast("เริ่มวงแล้ว • ทุกคนซื้อชิปคนละ 1 ไม้");
   });
 
   // ---- the night ----
   function renderNight(night) {
     const v = P.view(night), n = v.night;
-    const myName = me(); renderSeat(v, myName);
+    const myName = me(); renderSeat(v, myName); renderBet(v, myName);
     $("pMeta").textContent = `ซื้อ 1 ไม้ = ${baht(n.buyIn)} ได้ ${chipsText(n.chips)} • ${v.players.length} คน • ลงรวม ${baht(v.paid)}`;
     $("pPlayers").innerHTML = v.players.map((p, i) => {
       const tone = p.net > 0 ? "pos" : p.net < 0 ? "neg" : "";
       return `<div class="p-row${p.name === myName ? " p-row-me" : ""}">
-<div class="p-row-head">${avatarFor(p.name)}<div class="d-board-name"><b>${esc(p.name)}</b><small>ซื้อ ${p.buys.length} ไม้ • ลง ${baht(p.paid)}</small></div><button type="button" class="secondary p-rebuy" data-buy="${esc(p.name)}" aria-label="${esc(p.name)} ซื้อเพิ่ม 1 ไม้ (${baht(n.buyIn)})">+ ซื้อเพิ่ม</button></div>
+<div class="p-row-head">${avatarFor(p.name)}<div class="d-board-name"><b>${esc(p.name)}</b><small>ซื้อ ${p.buys.length} ไม้ • ลง ${baht(p.paid)} • บนโต๊ะ ${chipsText(p.stack)}</small></div><button type="button" class="secondary p-rebuy" data-buy="${esc(p.name)}" aria-label="${esc(p.name)} ซื้อเพิ่ม 1 ไม้ (${baht(n.buyIn)})">+ ซื้อเพิ่ม</button></div>
 <div class="p-row-out"><label for="pOut${i}">ชิปตอนเลิก</label><input id="pOut${i}" type="number" inputmode="numeric" min="0" data-out="${esc(p.name)}" placeholder="นับชิป" value="${p.out ?? ""}"><b class="p-net ${tone}">${p.net === null ? "" : baht(p.net, true)}</b></div></div>`;
     }).join("");
     const check = $("pCheck");
@@ -241,6 +287,8 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     else if (!v.allOut) check.innerHTML = `<span class="muted">นับแล้ว ${chipsText(v.chipsOut)} จาก ${chipsText(v.chipsIn)} • ยังไม่ได้ใส่ ${v.players.filter(p => p.out === null).map(p => esc(p.name)).join(", ")}</span>`;
     else if (!v.balanced) check.innerHTML = `<b class="neg">ชิป${v.diffChips > 0 ? "เกิน" : "ขาด"} ${chipsText(Math.abs(v.diffChips))}</b> <span class="muted">ชิปที่นับได้ต้องเท่ากับชิปที่ซื้อ (${chipsText(v.chipsIn)}) นับใหม่อีกรอบก่อนสรุปเงิน</span>`;
     else check.innerHTML = `<b class="pos">ชิปครบ ${chipsText(v.chipsIn)}</b>`;
+    const played = n.events.some(e => e.t === "deal" && e.seats), inPlay = v.hand.bet && !v.hand.bet.done;
+    if (played) check.insertAdjacentHTML("beforeend", `<div class="p-fill"><button type="button" class="secondary" id="pFill"${inPlay ? " disabled" : ""}>ใส่ชิปตามโต๊ะ</button><small class="muted">${inPlay ? "จบตาที่เล่นอยู่ก่อน" : "ใช้ชิปที่ระบบนับจากการเดิมพันเป็นชิปตอนเลิก"}</small></div>`);
     const lines = v.balanced ? P.transfers(v.players) : [];
     $("pPay").hidden = !v.balanced;
     $("pPayList").innerHTML = lines.length ? lines.map(payRow).join("") : '<div class="muted">ไม่มีใครต้องจ่าย (เท่าทุนกันหมด)</div>';
@@ -266,6 +314,69 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     if (P.view(night).players.some(p => p.name === name)) return render();
     change(P.join(poker, night.id, name)); toast(`เข้าโต๊ะแล้ว • ซื้อ ${baht(night.buyIn)}`);
   });
+  // ---- เดิมพัน: the hand being bet, replayed by PokerBet from the deal and every action ----
+  let raiseDraft = { key: "", value: "" };
+  const tag = (on, text, cls = "") => on ? `<span class="pb-tag ${cls}">${text}</span>` : "";
+  function renderBet(v, myName) {
+    const el = $("pBet"), bet = v.hand.bet, n = v.night, seated = v.players.some(p => p.name === myName);
+    el.hidden = false;
+    const canDeal = seated && v.players.filter(p => p.stack > 0).length >= 2;
+    const head = `<div class="pb-head"><h2 id="pbTitle">เดิมพัน</h2><span class="muted">บลายด์ ${n.sb}/${n.bb} ชิป</span></div>`;
+    if (!bet) {
+      el.innerHTML = `${head}<p class="muted">กดแจกไพ่เพื่อเริ่มตา ระบบวางบลายด์ บอกว่าใครถึงตา และจ่ายกองให้คนชนะ</p>${canDeal ? `<button type="button" class="primary pb-wide" data-bet="deal">แจกไพ่ • เริ่มตาที่ ${v.hand.deals + 1}</button>` : `<p class="muted">${seated ? "ต้องมีคนที่มีชิปอย่างน้อย 2 คน" : "กดเข้าโต๊ะก่อนถึงจะเล่นได้"}</p>`}`;
+      return;
+    }
+    const mine = bet.players.find(p => p.name === myName), myTurn = bet.toAct && bet.toAct === myName;
+    const rows = bet.players.map(p => `<div class="pb-seat${p.name === bet.toAct ? " pb-turn" : ""}${p.folded ? " pb-out" : ""}"><span class="pb-name">${avatarFor(p.name)}<b>${esc(p.name)}</b>${tag(p.name === bet.button, "D", "pb-d")}${tag(p.name === bet.sbName, "SB")}${tag(p.name === bet.bbName, "BB")}</span><span class="pb-stack">${p.stack.toLocaleString("th-TH")}</span><span class="pb-in">${p.folded ? "หมอบ" : p.allIn ? "ออลอิน" : p.streetBet ? `ลง ${p.streetBet.toLocaleString("th-TH")}` : p.name === bet.toAct ? "ถึงตา" : ""}</span></div>`).join("");
+    let body = "";
+    if (bet.street < 4) {
+      if (myTurn) {
+        const key = `${v.hand.key}:${bet.street}:${bet.currentBet}`, canRaise = bet.maxTo > bet.currentBet;
+        if (raiseDraft.key !== key) raiseDraft = { key, value: String(bet.minTo) };
+        const allInCall = bet.toCall >= mine.stack;
+        body = `<div class="pb-acts"><button type="button" class="secondary" data-bet="fold">หมอบ</button>${bet.toCall ? `<button type="button" class="primary" data-bet="call">${allInCall ? "คอล ออลอิน" : "คอล"} ${bet.toCall.toLocaleString("th-TH")}</button>` : '<button type="button" class="primary" data-bet="check">เช็ค</button>'}</div>`
+          + (canRaise ? `<div class="pb-raise"><label for="pbTo">${bet.currentBet ? "เรสเป็น" : "เบท"}</label><input id="pbTo" type="number" inputmode="numeric" min="${bet.minTo}" max="${bet.maxTo}" value="${esc(raiseDraft.value)}"><button type="button" class="primary" data-bet="raise">${bet.currentBet ? "เรส" : "เบท"}</button></div><div class="pb-quick"><button type="button" class="secondary" data-to="${bet.minTo}">ขั้นต่ำ</button><button type="button" class="secondary" data-to="${potTo(bet, .5)}">½ กอง</button><button type="button" class="secondary" data-to="${potTo(bet, 1)}">เต็มกอง</button><button type="button" class="secondary" data-to="${bet.maxTo}">ออลอิน ${bet.maxTo.toLocaleString("th-TH")}</button></div>` : "");
+      } else body = `<p class="pb-wait">${bet.toAct ? `รอ <b>${esc(bet.toAct)}</b> ตัดสินใจ${mine && !mine.folded ? " • ถึงตาคุณแล้วปุ่มจะขึ้นตรงนี้" : ""}` : ""}</p>`;
+      const boardIn = v.hand.board.filter(c => c !== null).length, need = [0, 3, 4, 5][bet.street];
+      if (bet.street > 0 && boardIn < need) body += `<p class="muted pb-hint">เปิดไพ่${bet.streetName}แล้วใส่ในส่องไพ่ได้ (ไม่บังคับ แต่ถ้าใส่ครบและทุกคนเปิดไพ่ ระบบตัดสินกองให้เอง)</p>`;
+    } else {
+      body = bet.pots.map((pot, k) => {
+        const label = bet.pots.length > 1 ? (k ? `กองข้าง ${k}` : "กองกลาง") : "กองกลาง";
+        if (pot.winners) return `<div class="pb-pot"><span>${label} <b>${pot.amount.toLocaleString("th-TH")}</b></span><span class="pos">${pot.winners.map(esc).join(", ")} ได้${pot.hand ? ` (${esc(pot.hand)})` : ""}</span></div>`;
+        return `<div class="pb-pot pb-pending"><span><span>${label} <b>${pot.amount.toLocaleString("th-TH")}</b></span><span>ใครชนะ?</span></span><span class="pb-pick">${pot.eligible.map(nm => `<button type="button" class="secondary" data-win="${k}" data-name="${esc(nm)}" aria-pressed="false">${esc(nm)}</button>`).join("")}${seated ? `<button type="button" class="primary" data-award="${k}">ให้กองนี้</button>` : ""}</span><small class="muted">เลือกได้หลายคนถ้าแบ่งกอง • หรือใส่ไพ่ครบในส่องไพ่ให้ระบบตัดสิน</small></div>`;
+      }).join("");
+      if (bet.done) body += `<div class="pb-result">${bet.players.map(p => { const d = bet.delta[p.name] || 0; return `<span class="${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${esc(p.name)} ${d > 0 ? "+" : ""}${d.toLocaleString("th-TH")}</span>`; }).join("")}</div>`;
+    }
+    const dealBtn = canDeal ? `<button type="button" class="${bet.done ? "primary" : "secondary"} pb-wide" data-bet="deal">${bet.done ? `แจกไพ่ตาใหม่ (ตาที่ ${v.hand.deals + 1})` : "ยกเลิกตานี้ แจกใหม่"}</button>` : "";
+    el.innerHTML = `${head}<div class="pb-street"><span>ตาที่ ${v.hand.no} • <b>${bet.streetName}</b></span><span class="pb-pot-total">กอง <b>${bet.pot.toLocaleString("th-TH")}</b></span></div><div class="pb-seats">${rows}</div>${body}${dealBtn}`;
+  }
+  // Raise-to for a fraction of the pot: call first, then raise by that share of the pot after the call.
+  function potTo(bet, share) { const to = bet.currentBet + Math.round((bet.pot + bet.toCall) * share); return Math.max(bet.minTo, Math.min(bet.maxTo, to)); }
+  $("pBet").addEventListener("input", e => { if (e.target.id === "pbTo") raiseDraft.value = e.target.value; });
+  $("pBet").addEventListener("click", e => {
+    const night = nightNow(), name = me(); if (!night || !name) return;
+    const quick = e.target.closest("[data-to]"); if (quick) { raiseDraft.value = quick.dataset.to; $("pbTo").value = quick.dataset.to; return; }
+    const pickBtn = e.target.closest("[data-win]"); if (pickBtn) { pickBtn.setAttribute("aria-pressed", String(pickBtn.getAttribute("aria-pressed") !== "true")); return; }
+    const awardBtn = e.target.closest("[data-award]");
+    if (awardBtn) {
+      const k = Number(awardBtn.dataset.award), names = [...$("pBet").querySelectorAll(`[data-win="${k}"][aria-pressed="true"]`)].map(b => b.dataset.name);
+      if (!names.length) return toast("แตะชื่อคนชนะก่อน");
+      change(P.award(poker, night.id, k, names)); return;
+    }
+    const b = e.target.closest("[data-bet]"); if (!b) return;
+    const v = P.view(night), bet = v.hand.bet, a = b.dataset.bet;
+    if (a === "deal") {
+      if (bet && !bet.done && !confirm("ตานี้ยังไม่จบ ยกเลิกแล้วแจกใหม่? ทุกคนได้ชิปที่ลงไปคืน")) return;
+      change(P.deal(poker, night.id)); toast(`แจกไพ่ตาที่ ${P.view(nightNow()).hand.no}`); return;
+    }
+    if (!bet || bet.toAct !== name) return toast("ยังไม่ถึงตาคุณ");
+    if (a === "raise") {
+      const to = Math.round(Number($("pbTo").value));
+      if (!(to >= bet.minTo && to <= bet.maxTo)) return toast(`ใส่ ${bet.minTo.toLocaleString("th-TH")}–${bet.maxTo.toLocaleString("th-TH")} ชิป`);
+      change(P.act(poker, night.id, name, "raise", to)); return;
+    }
+    change(P.act(poker, night.id, name, a));
+  });
   function payRow(l) {
     const go = window.LeagueProfile?.openPay ? `<button type="button" class="secondary pay-go" data-pay-to-name="${esc(l.to)}" data-pay-from="${esc(l.from)}" data-pay-amount="${esc(l.amount)}" aria-label="โอนให้ ${esc(l.to)} ${esc(baht(l.amount))}">โอน</button>` : "";
     return `<div class="d-pay-row"><b>${esc(l.from)}</b><span class="d-pay-arrow">จ่าย ➜</span><b>${esc(l.to)}</b><b class="d-pay-amt">${esc(baht(l.amount))}</b>${go}</div>`;
@@ -289,6 +400,13 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     e.preventDefault(); const names = [...document.querySelectorAll("[data-out]")].map(b => b.dataset.out), next = names[names.indexOf(e.target.dataset.out) + 1];
     // Leaving the box saves it and redraws the list, so look the next box up again by name.
     e.target.blur(); if (next) [...document.querySelectorAll("[data-out]")].find(b => b.dataset.out === next)?.focus();
+  });
+  $("pCheck").addEventListener("click", e => {
+    if (!e.target.closest("#pFill")) return;
+    const night = nightNow(); if (!night) return;
+    let next = poker;
+    P.view(night).players.forEach(p => { if (p.out !== p.stack) next = P.addEvent(next, night.id, { t: "out", name: p.name, amount: p.stack }); });
+    change(next); toast("ใส่ชิปตามโต๊ะแล้ว");
   });
   $("pLateAdd").addEventListener("click", () => addGuest($("pLate"), name => {
     const night = nightNow(); if (!night) return;
@@ -333,7 +451,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const night = nightNow();
     $("pSetup").hidden = Boolean(night); $("pNight").hidden = !night;
     const active = document.activeElement, typing = active?.matches?.("[data-out]") ? active.dataset.out : null;
-    if (night) renderNight(night); else { $("pSeat").innerHTML = ""; renderSetup(); }
+    if (night) renderNight(night); else { $("pSeat").innerHTML = ""; $("pBet").hidden = true; renderSetup(); }
     // A sync while someone is typing a chip count keeps their cursor in that box.
     if (typing) { const box = [...document.querySelectorAll("[data-out]")].find(x => x.dataset.out === typing); box?.focus(); }
     renderHistory();
@@ -355,7 +473,9 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   if (cloudOff) setSync("ออฟไลน์ • เก็บในเครื่อง", "offline");
   else {
     syncNow();
-    setInterval(() => { if (!document.hidden && !document.activeElement?.matches?.("[data-out]")) syncNow(); }, 4000);
+    // Every 2.5 s while a table is open (someone may be waiting on your bet), otherwise every 6 s.
+    let lastPoll = 0;
+    setInterval(() => { const gap = nightNow() ? 2500 : 6000; if (document.hidden || Date.now() - lastPoll < gap || document.activeElement?.matches?.("[data-out],#pbTo")) return; lastPoll = Date.now(); syncNow(); }, 500);
     addEventListener("online", syncNow);
     if (dirty) queueSync();
   }
