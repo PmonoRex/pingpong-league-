@@ -6,9 +6,24 @@
 
   const FB_PAGE = "https://www.facebook.com/376271472246385";
   const CHANNELS = [
-    { key: "sleep", icon: "🌙", title: "Deep Sleep Haven", url: "https://www.youtube.com/channel/UCk1SprHveCLj6pnuPuCdUuQ", what: "เสียงธรรมชาติช่วยนอน 10 ชม." },
-    { key: "freq", icon: "🎵", title: "Solfeggio Haven", url: "https://www.youtube.com/channel/UCXa9r-jEp0NPVC-CtgA6CvQ", what: "เพลงคลื่นความถี่ Solfeggio 10 ชม." },
+    { key: "sleep", icon: "🌙", title: "Deep Sleep Haven", url: "https://www.youtube.com/channel/UCk1SprHveCLj6pnuPuCdUuQ", what: "เสียงธรรมชาติช่วยนอน",
+      days: [0, 1, 3, 5], hour: 1, minute: 30, schedule: "อา. จ. พ. ศ. 01:30" },
+    { key: "freq", icon: "🎵", title: "Solfeggio Haven", url: "https://www.youtube.com/channel/UCXa9r-jEp0NPVC-CtgA6CvQ", what: "เพลงคลื่นความถี่ Solfeggio",
+      days: [2, 4, 6], hour: 3, minute: 0, schedule: "อ. พฤ. ส. 03:00" },
   ];
+  const TABS = [["fb", "🛍️ Facebook"], ["yt", "▶️ YouTube"]];
+  let tab = (location.hash || "").slice(1) === "yt" ? "yt" : "fb";
+  let last = null;
+
+  // รอบอัปถัดไปของช่อง (ตามตารางงานอัตโนมัติในคอม)
+  function nextUpload(c) {
+    const d = new Date();
+    for (let i = 0; i < 8; i++) {
+      const t = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i, c.hour, c.minute);
+      if (t > d && c.days.includes(t.getDay())) return t.toISOString();
+    }
+    return null;
+  }
 
   const baht = (v) => (v == null ? "—" : "฿" + Number(v).toLocaleString("th-TH", { maximumFractionDigits: 0 }));
   const when = (sec) => (sec ? new Date(sec * 1000).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—");
@@ -33,16 +48,36 @@
       <span class="track"><span class="fill" style="display:block;width:${(r.count / max) * 100}%"></span></span><span class="c">${r.count}</span></div>`).join("");
   }
 
-  function channels(yt) {
-    const fb = `<a class="chan" href="${FB_PAGE}" target="_blank" rel="noopener"><span class="ico">🛍️</span>
-      <span><span class="t">เรดาร์ของเด็ด</span><br><span class="d">เพจ Facebook · โพสต์สินค้า Shopee อัตโนมัติ</span></span><span class="go">เปิด ↗</span></a>`;
-    return fb + CHANNELS.map((c) => {
-      const list = (yt && yt[c.key]) || [];
-      const last = list[list.length - 1];
-      return `<a class="chan" href="${c.url}" target="_blank" rel="noopener"><span class="ico">${c.icon}</span>
-        <span><span class="t">${esc(c.title)}</span><br><span class="d">YouTube · ${esc(c.what)} · อัปแล้ว ${list.length} คลิป${last ? ` · ล่าสุด ${whenIso(last.at)}` : ""}</span></span>
-        <span class="go">เปิด ↗</span></a>`;
-    }).join("");
+  function ytChannel(c, list) {
+    const hours = list.reduce((a, u) => a + (Number(u.hours) || 0), 0);
+    const latest = list[list.length - 1];
+    const rows = list.slice().reverse().map((u) => `<tr>
+        <td>${whenIso(u.at)}</td>
+        <td class="prod">${u.url ? `<a href="${esc(u.url)}" target="_blank" rel="noopener">${esc(u.title || u.url)}</a>` : esc(u.title || "—")}</td>
+        <td class="num">${u.hours ?? "—"}</td></tr>`).join("");
+    return `<div class="card">
+      <a class="chan" href="${c.url}" target="_blank" rel="noopener"><span class="ico">${c.icon}</span>
+        <span><span class="t">${esc(c.title)}</span><br><span class="d">${esc(c.what)} · ลง ${esc(c.schedule)}</span></span><span class="go">เปิดช่อง ↗</span></a>
+      <div class="ytstats">
+        <div><b data-count="${list.length}">${list.length}</b><span>คลิป</span></div>
+        <div><b>${hours}</b><span>ชั่วโมงรวม</span></div>
+        <div><b class="sm">${latest ? whenIso(latest.at) : "—"}</b><span>อัปล่าสุด</span></div>
+        <div><b class="sm">${whenIso(nextUpload(c))}</b><span>รอบถัดไป</span></div>
+      </div>
+      <div class="tablewrap"><table><thead><tr><th>อัปเมื่อ</th><th>คลิป</th><th class="num">ชม.</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="3" class="muted">ยังไม่มีคลิป</td></tr>'}</tbody></table></div>
+    </div>`;
+  }
+
+  function youtube(yt) {
+    const total = CHANNELS.reduce((a, c) => a + ((yt[c.key] || []).length), 0);
+    return `
+      <section class="grid kpis">
+        <div class="card kpi"><h2>คลิปทั้งหมด</h2><div class="v" data-count="${total}">${total}</div><div class="s">${CHANNELS.length} ช่อง</div></div>
+        ${CHANNELS.map((c) => `<div class="card kpi"><h2>${c.icon} ${esc(c.title)}</h2><div class="v">${(yt[c.key] || []).length}</div><div class="s">ลง ${esc(c.schedule)}</div></div>`).join("")}
+      </section>
+      <section class="grid two">${CHANNELS.map((c) => ytChannel(c, yt[c.key] || [])).join("")}</section>
+      <p class="muted" style="font-size:12px">คลิปละ 7–11 ชม. · ชื่อ/คำอธิบาย 12 ภาษา · ยอดวิวดูได้ใน YouTube Studio ของแต่ละช่อง</p>`;
   }
 
   function warnings(s) {
@@ -57,10 +92,10 @@
   }
 
   function render(s, updatedAt) {
+    last = [s, updatedAt];
     const t = s.totals || {}, st = s.status || {}, cat = s.catalog || {};
     const age = minutesAgo(updatedAt);
     const yt = s.youtube || {};
-    const ytCount = (yt.sleep || []).length + (yt.freq || []).length;
     const posts = (s.posts || []).slice(0, 25).map((p) => `<tr>
         <td>${when(p.posted_at)}</td>
         <td class="prod">${p.post_url ? `<a href="${esc(p.post_url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name)}</td>
@@ -70,18 +105,7 @@
         <td class="num">${p.reactions ?? 0}</td><td class="num">${p.comments ?? 0}</td>
         <td>${p.published ? '<span class="pill ok">ขึ้นเพจ</span>' : '<span class="pill off">ทดสอบ</span>'}</td></tr>`).join("");
 
-    root.innerHTML = `
-      <header class="top">
-        <div><h1>Automation</h1>
-          <div class="meta">
-            <span>เพจ <b>${esc(s.page_name || "เรดาร์ของเด็ด")}</b></span>
-            <span>${st.publishing ? '<span class="pill ok">เผยแพร่จริง</span>' : '<span class="pill warn">โหมดทดสอบ</span>'}</span>
-            <span>Token ${st.token && st.token.valid ? '<span class="pill ok">ใช้ได้</span>' : '<span class="pill bad">ใช้ไม่ได้</span>'}</span>
-            <span>โพสต์รอบถัดไป <b>${when(st.next_run)}</b></span>
-            <span>อัปเดต <b>${age} นาทีที่แล้ว</b> ${age > 15 ? '<span class="pill warn">ข้อมูลเก่า</span>' : ""}</span>
-          </div></div>
-        <nav><a href="../portal/">Portal</a><a href="#" id="out">ออกจากระบบ</a></nav>
-      </header>
+    const fbSection = `
       ${warnings(s)}
       <section class="grid kpis">
         <div class="card kpi"><h2>โพสต์ทั้งหมด</h2><div class="v" data-key="posts" data-count="${t.posts ?? 0}">${t.posts ?? 0}</div><div class="s">กันโพสต์ซ้ำ ${st.dedup_days ?? "—"} วัน</div></div>
@@ -89,13 +113,14 @@
         <div class="card kpi"><h2>Reactions</h2><div class="v pos" data-key="re" data-count="${t.reactions ?? 0}">${t.reactions ?? 0}</div><div class="s">แชร์ ${t.shares ?? 0}</div></div>
         <div class="card kpi"><h2>Comments</h2><div class="v" data-key="co" data-count="${t.comments ?? 0}">${t.comments ?? 0}</div><div class="s">ทุกโพสต์รวมกัน</div></div>
         <div class="card kpi"><h2>สินค้าในคิว</h2><div class="v" data-key="cat" data-count="${cat.remaining ?? 0}">${cat.remaining ?? 0}</div><div class="s">จากคลัง ${cat.size ?? "—"} ชิ้น</div></div>
-        <div class="card kpi"><h2>คลิป YouTube</h2><div class="v" data-key="yt" data-count="${ytCount}">${ytCount}</div><div class="s">2 ช่อง · คลิปละ 10 ชม.</div></div>
+        <div class="card kpi"><h2>โพสต์รอบถัดไป</h2><div class="v sm">${when(st.next_run)}</div><div class="s">${st.publishing ? "เผยแพร่จริง" : "โหมดทดสอบ"} · Token ${st.token && st.token.valid ? "ใช้ได้" : "ใช้ไม่ได้"}</div></div>
       </section>
 
       <section class="grid two">
         <div class="card"><h2>โพสต์ต่อวัน (14 วัน)</h2>${perDayChart(s.posts_per_day)}
           <p class="muted" style="font-size:12px;margin:10px 0 0">โพสต์เวลา ${(st.post_hours || []).map((h) => `${h}:00`).join(", ") || "—"} น.</p></div>
-        <div class="card"><h2>ช่องทาง</h2>${channels(yt)}</div>
+        <div class="card"><h2>เพจ</h2><a class="chan" href="${FB_PAGE}" target="_blank" rel="noopener"><span class="ico">🛍️</span>
+          <span><span class="t">${esc(s.page_name || "เรดาร์ของเด็ด")}</span><br><span class="d">เพจ Facebook · โพสต์สินค้า Shopee อัตโนมัติ</span></span><span class="go">เปิด ↗</span></a></div>
       </section>
 
       <section class="grid two">
@@ -111,7 +136,24 @@
           <thead><tr><th>เวลา</th><th>สินค้า</th><th>หมวด</th><th class="num">ราคา</th><th class="num">ลด</th><th class="num">❤</th><th class="num">💬</th><th>สถานะ</th></tr></thead>
           <tbody>${posts || '<tr><td colspan="8" class="muted">ยังไม่มี</td></tr>'}</tbody></table></div></div>
       </section>
-      <p class="muted" style="font-size:12px">ข้อมูลจากคอม (โปรเจกต์ D:\\AFFI) อัปเดตทุก ~5 นาที · ยอด reactions/comments ดึงจาก Facebook เป็นระยะ</p>`;
+      <p class="muted" style="font-size:12px">ยอด reactions/comments ดึงจาก Facebook เป็นระยะ</p>`;
+
+    root.innerHTML = `
+      <header class="top">
+        <div><h1>Automation</h1>
+          <div class="meta">
+            <span>ข้อมูลจากคอม (D:\\AFFI) อัปเดต <b>${age} นาทีที่แล้ว</b> ${age > 15 ? '<span class="pill warn">ข้อมูลเก่า</span>' : ""}</span>
+          </div></div>
+        <nav><a href="../portal/">Portal</a><a href="#" id="out">ออกจากระบบ</a></nav>
+      </header>
+      <div class="tabs" role="tablist">${TABS.map(([k, label]) =>
+        `<button type="button" role="tab" data-tab="${k}" aria-selected="${tab === k}" class="${tab === k ? "on" : ""}">${label}${k === "fb" && s.failed_attempts ? " ⚠️" : ""}</button>`).join("")}</div>
+      ${tab === "fb" ? fbSection : youtube(yt)}`;
+    root.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+      tab = b.dataset.tab;
+      history.replaceState(null, "", "#" + tab);
+      render(...last);
+    }));
     root.querySelector("#out").addEventListener("click", (e) => { e.preventDefault(); signOut(); });
     intro(root);
     countUp(root);
