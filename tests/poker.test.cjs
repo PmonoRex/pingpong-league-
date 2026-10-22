@@ -121,7 +121,7 @@ test('the shared hand: board, reveal, fold and a new deal that clears it', () =>
   poker = P.deal(poker, id);
   h = P.view(poker.nights[id]).hand;
   assert.deepEqual(plain(h.board), [null, null, null, null, null]);
-  assert.deepEqual(plain(h.shown), {}); assert.equal(h.folded.length, 0); assert.equal(h.no, 2);
+  assert.deepEqual(plain(h.shown), {}); assert.equal(h.folded.length, 0); assert.equal(h.no, 1, 'the first deal starts hand 1');
   assert.equal(P.view(poker.nights[id]).paid, 300, 'money is untouched by a new deal');
 });
 
@@ -133,5 +133,5 @@ test('reveals must be two real, different cards; cards of old hands are dropped 
   const events = P.normalize(poker).nights[id].events;
   assert.ok(events.filter(e => e.t === 'board').length <= 5, 'only the current hand keeps board events');
   assert.equal(P.view(poker.nights[id]).paid, 200);
-  assert.equal(P.view(poker.nights[id]).hand.no, 81);
+  assert.equal(P.view(poker.nights[id]).hand.no, 80);
 });
