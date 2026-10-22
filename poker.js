@@ -302,10 +302,11 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     if (!name) { bar.innerHTML = '<span class="muted">เข้าสู่ระบบที่<a href="index.html">หน้าแรก</a>ก่อน แล้วกดเข้าโต๊ะเองได้</span>'; return; }
     const seated = v.players.find(p => p.name === name);
     bar.innerHTML = seated
-      ? `<span class="p-seat-on">${avatarFor(name)}<b>${esc(name)}</b> นั่งโต๊ะนี้แล้ว • ซื้อ ${seated.buys.length} ไม้</span>`
+      ? `<span class="p-seat-on">${avatarFor(name)}<b>${esc(name)}</b> นั่งโต๊ะนี้แล้ว • ซื้อ ${seated.buys.length} ไม้</span>${window.PokerTableView ? '<button type="button" class="primary p-tablemode" data-tablemode>เปิดโหมดโต๊ะ</button>' : ""}`
       : `<button type="button" class="primary p-join" id="pJoin">เข้าโต๊ะ • ซื้อ 1 ไม้ (${esc(baht(n.buyIn))})</button><span class="muted">ในวงตอนนี้ ${v.players.length} คน</span>`;
   }
   $("pSeat").addEventListener("click", async e => {
+    if (e.target.closest("[data-tablemode]")) return window.PokerTableView?.open();
     if (!e.target.closest("#pJoin")) return;
     const name = me(); if (!name) return;
     // Pick up the latest table first, so a night someone just opened on another phone is the one we sit at.
@@ -313,6 +314,8 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const night = nightNow(); if (!night) return toast("ยังไม่มีวงเปิดอยู่");
     if (P.view(night).players.some(p => p.name === name)) return render();
     change(P.join(poker, night.id, name)); toast(`เข้าโต๊ะแล้ว • ซื้อ ${baht(night.buyIn)}`);
+    // Sitting down opens the table view (same tap, so fullscreen and the landscape lock are allowed).
+    window.PokerTableView?.open();
   });
   // ---- เดิมพัน: the hand being bet, replayed by PokerBet from the deal and every action ----
   let raiseDraft = { key: "", value: "" };
@@ -462,8 +465,12 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     get() {
       const night = nightNow(), name = me(); if (!night || !name) return null;
       const v = P.view(night); if (!v.players.some(p => p.name === name)) return null;
-      return { nightId: night.id, me: name, players: v.players.map(p => p.name), hand: v.hand, handKey: `${night.id}:${v.hand.key}` };
+      return { nightId: night.id, me: name, players: v.players.map(p => p.name), hand: v.hand, handKey: `${night.id}:${v.hand.key}`,
+        bet: v.hand.bet, stacks: Object.fromEntries(v.players.map(p => [p.name, p.stack])), sb: night.sb, bb: night.bb,
+        canDeal: v.players.filter(p => p.stack > 0).length >= 2 };
     },
+    act(a, to) { const night = nightNow(), name = me(); if (night && name) change(P.act(poker, night.id, name, a, to)); },
+    award(pot, names) { const night = nightNow(); if (night) change(P.award(poker, night.id, pot, names)); },
     setBoard(i, card) { const night = nightNow(); if (night) change(P.setBoard(poker, night.id, i, card)); },
     show(cards) { const night = nightNow(), name = me(); if (night && name) change(P.show(poker, night.id, name, cards)); },
     fold() { const night = nightNow(), name = me(); if (night && name) change(P.fold(poker, night.id, name)); },
