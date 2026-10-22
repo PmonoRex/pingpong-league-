@@ -1,10 +1,13 @@
 // Poker night (โป๊กเกอร์) — buy-ins, rebuys, chips at the end, and who pays whom. Standalone page.
-// A night is an append-only list of events (join / buy / out / undo), so two phones editing at once merge by
+// A night is an append-only list of events (join / buy / out / undo, plus the shared hand: board / show / fold /
+// deal), so two phones editing at once merge by
 // taking the union of their events. Nights live under `poker` inside the `dummy` column of the shared row (same
 // rev lock and save function as the Dummy sheet; dummy.js carries `poker` along untouched). localStorage is the
 // offline copy.
 const PokerNight = (() => {
-  const MAX_NIGHTS = 20, MAX_EVENTS = 600, TYPES = ["join", "buy", "out", "undo"];
+  const MAX_NIGHTS = 20, MAX_EVENTS = 600, MAX_DEALS = 300, TYPES = ["join", "buy", "out", "undo", "board", "show", "fold", "deal"];
+  const MONEY = ["join", "buy", "out", "undo"], HAND = ["board", "show", "fold"];
+  const cardOk = c => Number.isInteger(c) && c >= 0 && c < 52;
   const int = v => { const n = Math.round(Number(v)); return Number.isFinite(n) ? n : 0; };
   const money = v => { const n = Math.round(Number(v) * 100) / 100; return Number.isFinite(n) ? n : 0; };
   const cleanName = v => String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 30);
@@ -16,11 +19,16 @@ const PokerNight = (() => {
     const out = { id: cleanId(e.id), at: Math.max(0, int(e.at)), t: e.t };
     if (!out.id) return null;
     if (e.t === "undo") { out.ref = cleanId(e.ref); return out.ref ? out : null; }
+    if (e.t === "deal") return out;
+    // A board slot (0-2 flop, 3 turn, 4 river) set to a card, or -1 to clear it. Anyone at the table can set it.
+    if (e.t === "board") { out.i = e.i; out.card = e.card; return Number.isInteger(out.i) && out.i >= 0 && out.i < 5 && (out.card === -1 || cardOk(out.card)) ? out : null; }
     out.name = cleanName(e.name); if (!out.name) return null;
     if (e.t === "buy") { out.amount = money(e.amount); if (!(out.amount > 0)) return null; }
     // A join may carry the first buy-in (เข้าโต๊ะ from the player's own phone), so tapping it twice buys only once.
     if (e.t === "join" && money(e.amount) > 0) out.amount = money(e.amount);
     if (e.t === "out") { out.amount = Math.max(0, int(e.amount)); }
+    // Hole cards reach the shared row only when their owner reveals them (เปิดไพ่); until then they stay on that phone.
+    if (e.t === "show") { out.cards = Array.isArray(e.cards) ? e.cards.slice(0, 2) : []; if (out.cards.length !== 2 || !out.cards.every(cardOk) || out.cards[0] === out.cards[1]) return null; }
     return out;
   }
   function normalizeNight(n) {
@@ -28,8 +36,14 @@ const PokerNight = (() => {
     const night = { id: cleanId(n.id), startedAt: Math.max(0, int(n.startedAt)), buyIn: money(n.buyIn) > 0 ? money(n.buyIn) : 100, chips: int(n.chips) > 0 ? int(n.chips) : 100, closedAt: Math.max(0, int(n.closedAt)) };
     if (!night.id) return null;
     const seen = new Set();
-    night.events = (Array.isArray(n.events) ? n.events : []).map(normalizeEvent).filter(e => e && !seen.has(e.id) && seen.add(e.id))
-      .sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)).slice(-MAX_EVENTS);
+    const all = (Array.isArray(n.events) ? n.events : []).map(normalizeEvent).filter(e => e && !seen.has(e.id) && seen.add(e.id))
+      .sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    // Money events are kept (up to MAX_EVENTS); of the card events only the current hand is kept, so a long night
+    // of hands never pushes a buy-in out of the row.
+    const lastDeal = all.map(e => e.t).lastIndexOf("deal"), moneyEvents = all.filter(e => MONEY.includes(e.t)).slice(-MAX_EVENTS);
+    const deals = all.filter(e => e.t === "deal").slice(-MAX_DEALS), dealIds = new Set(deals.map(e => e.id));
+    const keep = new Set([...moneyEvents, ...deals]);
+    night.events = all.filter((e, i) => keep.has(e) || (HAND.includes(e.t) && i > lastDeal) || (e.t === "deal" && dealIds.has(e.id)));
     return night;
   }
   function trim(nights) {
@@ -60,6 +74,13 @@ const PokerNight = (() => {
     night = normalizeNight(night);
     const undone = new Set(night.events.filter(e => e.t === "undo").map(e => e.ref));
     const live = night.events.filter(e => e.t !== "undo" && !undone.has(e.id));
+    // The hand being played: everything after the latest deal.
+    const lastDeal = live.map(e => e.t).lastIndexOf("deal"), hand = { no: live.filter(e => e.t === "deal").length + 1, key: lastDeal >= 0 ? live[lastDeal].id : "first", board: [null, null, null, null, null], shown: {}, folded: [] };
+    live.slice(lastDeal + 1).forEach(e => {
+      if (e.t === "board") hand.board[e.i] = e.card < 0 ? null : e.card;
+      else if (e.t === "show") hand.shown[e.name] = e.cards;
+      else if (e.t === "fold" && !hand.folded.includes(e.name)) hand.folded.push(e.name);
+    });
     const players = new Map();
     const player = name => { if (!players.has(name)) players.set(name, { name, buys: [], out: null }); return players.get(name); };
     live.forEach(e => {
@@ -75,7 +96,7 @@ const PokerNight = (() => {
     });
     const chipsIn = list.reduce((s, p) => s + p.chipsIn, 0), chipsOut = list.reduce((s, p) => s + (p.out || 0), 0);
     const allOut = list.length > 0 && list.every(p => p.out !== null);
-    return { night, rate, players: list, paid: money(list.reduce((s, p) => s + p.paid, 0)), chipsIn, chipsOut, diffChips: chipsOut - chipsIn, allOut, balanced: allOut && chipsOut === chipsIn, lastAction: live[live.length - 1] || null };
+    return { night, rate, players: list, paid: money(list.reduce((s, p) => s + p.paid, 0)), chipsIn, chipsOut, diffChips: chipsOut - chipsIn, allOut, balanced: allOut && chipsOut === chipsIn, lastAction: live.filter(e => MONEY.includes(e.t)).pop() || null, hand };
   }
   // Fewest transfers: the biggest loser pays the biggest winner until everyone is square. Works in satang; the
   // rounding left over from chips → baht goes to the biggest winner so the transfers always add up.
@@ -98,7 +119,9 @@ const PokerNight = (() => {
   function addEvent(p, nightId, event) {
     const copy = normalize(p), night = copy.nights[nightId];
     if (!night) return copy;
-    night.events.push({ id: newId(), at: Date.now(), ...event });
+    // Strictly after this night's last event, so two taps in the same millisecond keep their order.
+    const last = night.events.reduce((m, e) => Math.max(m, e.at), 0);
+    night.events.push({ id: newId(), at: Math.max(Date.now(), last + 1), ...event });
     copy.nights[nightId] = normalizeNight(night);
     return copy;
   }
@@ -114,9 +137,14 @@ const PokerNight = (() => {
     if (!night || !who || view(night).players.some(x => x.name === who)) return copy;
     return addEvent(copy, nightId, { t: "join", name: who, amount: night.buyIn });
   }
+  // The shared hand: board cards, a player revealing or folding, and a new deal that clears it for everyone.
+  const setBoard = (p, nightId, i, card) => addEvent(p, nightId, { t: "board", i, card: card === null ? -1 : card });
+  const show = (p, nightId, name, cards) => addEvent(p, nightId, { t: "show", name, cards });
+  const fold = (p, nightId, name) => addEvent(p, nightId, { t: "fold", name });
+  const deal = (p, nightId) => addEvent(p, nightId, { t: "deal" });
   function closeNight(p, nightId) { const copy = normalize(p); if (copy.nights[nightId]) copy.nights[nightId].closedAt = Date.now(); return copy; }
 
-  return Object.freeze({ normalize, merge, same, current, history, view, transfers, addEvent, join, startNight, closeNight, cleanName, MAX_NIGHTS });
+  return Object.freeze({ normalize, merge, same, current, history, view, transfers, addEvent, join, setBoard, show, fold, deal, startNight, closeNight, cleanName, MAX_NIGHTS });
 })();
 if (typeof window !== "undefined") window.PokerNight = PokerNight;
 
@@ -309,7 +337,20 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     // A sync while someone is typing a chip count keeps their cursor in that box.
     if (typing) { const box = [...document.querySelectorAll("[data-out]")].find(x => x.dataset.out === typing); box?.focus(); }
     renderHistory();
+    document.dispatchEvent(new CustomEvent("poker:table"));
   }
+  // The shared hand for ส่องไพ่ (poker-cards.js): only for a player seated at the open night.
+  window.PokerTable = Object.freeze({
+    get() {
+      const night = nightNow(), name = me(); if (!night || !name) return null;
+      const v = P.view(night); if (!v.players.some(p => p.name === name)) return null;
+      return { nightId: night.id, me: name, players: v.players.map(p => p.name), hand: v.hand, handKey: `${night.id}:${v.hand.key}` };
+    },
+    setBoard(i, card) { const night = nightNow(); if (night) change(P.setBoard(poker, night.id, i, card)); },
+    show(cards) { const night = nightNow(), name = me(); if (night && name) change(P.show(poker, night.id, name, cards)); },
+    fold() { const night = nightNow(), name = me(); if (night && name) change(P.fold(poker, night.id, name)); },
+    deal() { const night = nightNow(); if (night) change(P.deal(poker, night.id)); }
+  });
   render();
   if (cloudOff) setSync("ออฟไลน์ • เก็บในเครื่อง", "offline");
   else {

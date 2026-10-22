@@ -106,3 +106,32 @@ test('a player joins from their own phone once, with one buy-in, even if both ph
   assert.deepEqual(plain(P.view(undone.nights[id]).players.map(p => p.name)), ['A'], 'undoing the join takes the buy-in back too');
   assert.equal(P.view(P.join(poker, id, 'C').nights[id]).paid, 200);
 });
+
+test('the shared hand: board, reveal, fold and a new deal that clears it', () => {
+  const P = load();
+  let { poker, id } = P.startNight({}, { buyIn: 100, chips: 1000, names: ['A', 'B', 'C'] });
+  poker = P.setBoard(poker, id, 0, 48); poker = P.setBoard(poker, id, 1, 44); poker = P.setBoard(poker, id, 1, null);
+  poker = P.show(poker, id, 'A', [0, 1]); poker = P.fold(poker, id, 'C');
+  let h = P.view(poker.nights[id]).hand;
+  assert.deepEqual(plain(h.board), [48, null, null, null, null]);
+  assert.deepEqual(plain(h.shown), { A: [0, 1] });
+  assert.deepEqual(plain(h.folded), ['C']);
+  assert.equal(h.no, 1);
+  assert.equal(P.view(poker.nights[id]).lastAction.t, 'buy', 'undo only ever targets money, not cards');
+  poker = P.deal(poker, id);
+  h = P.view(poker.nights[id]).hand;
+  assert.deepEqual(plain(h.board), [null, null, null, null, null]);
+  assert.deepEqual(plain(h.shown), {}); assert.equal(h.folded.length, 0); assert.equal(h.no, 2);
+  assert.equal(P.view(poker.nights[id]).paid, 300, 'money is untouched by a new deal');
+});
+
+test('reveals must be two real, different cards; cards of old hands are dropped but money never is', () => {
+  const P = load();
+  let { poker, id } = P.startNight({}, { buyIn: 100, chips: 1000, names: ['A', 'B'] });
+  for (const bad of [[1], [5, 5], [3, 52], ['x', 2]]) assert.ok(P.same(P.show(poker, id, 'A', bad), poker), JSON.stringify(bad));
+  for (let i = 0; i < 400; i++) { poker = P.setBoard(poker, id, i % 5, i % 52); if (i % 5 === 4) poker = P.deal(poker, id); }
+  const events = P.normalize(poker).nights[id].events;
+  assert.ok(events.filter(e => e.t === 'board').length <= 5, 'only the current hand keeps board events');
+  assert.equal(P.view(poker.nights[id]).paid, 200);
+  assert.equal(P.view(poker.nights[id]).hand.no, 81);
+});

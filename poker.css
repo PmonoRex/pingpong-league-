@@ -82,3 +82,16 @@ body.sport-redesign .p-join{min-height:52px;padding:10px 18px;font-size:17px}
 .p-row.p-row-me{border-color:rgba(52,210,124,.55)}
 .p-seat-top{margin:0 0 14px;padding:12px;border-radius:var(--r);background:var(--panel);border:1px solid var(--line-2)}
 .p-seat-top:empty{display:none}
+
+/* ส่องไพ่ at a table: card backs, reveal / fold, showdown */
+body.sport-redesign .pc-card.pc-back{background:repeating-linear-gradient(45deg,#9e111a 0 5px,#d81e29 5px 10px);border-color:#fbfaf7;box-shadow:inset 0 0 0 3px #fbfaf7,0 2px 0 rgba(0,0,0,.35)}
+.pc-seat .pc-card:not(button){display:grid}
+.pc-seat-name{display:inline-flex;align-items:center;gap:6px;min-width:0;overflow-wrap:anywhere}
+.pc-seat.pc-folded .pc-seat-cards{opacity:.3}
+.pc-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pc-acts:empty{display:none}
+.pc-acts>button{flex:1 1 120px}
+.pc-tag{display:inline-flex;align-items:center;min-height:36px;padding:4px 12px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line-2);color:var(--text-2);font-weight:700;font-size:14px}
+.pc-tag-on{background:rgba(52,210,124,.12);border-color:rgba(52,210,124,.4);color:var(--win)}
+.pc-showdown{margin-top:10px;padding:12px;border-radius:var(--r-sm);background:rgba(245,184,11,.12);border:1px solid rgba(245,184,11,.45);font-size:16px;line-height:1.5}
+.pc-showdown b{font-family:var(--display);font-style:italic;font-weight:800;color:var(--gold)}

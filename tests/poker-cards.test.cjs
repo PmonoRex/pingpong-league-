@@ -65,3 +65,12 @@ test('odds: exact on a full board, close to known numbers before it', () => {
   const total = C.odds(cards('Jd 4c'), [cards('Qs Jh'), [], []], { iterations: 2000 });
   assert.ok(Math.abs(total.reduce((s, x) => s + x.share, 0) - 1) < 1e-9, 'shares add up to one pot');
 });
+
+test('showdown names the winner, splits ties and ignores incomplete hands', () => {
+  const board = cards('Ks 9d 4c 2h 7s');
+  const sd = C.showdown(board, { A: cards('As Ah'), B: cards('Kh Kd'), C: [cards('Qs')[0]] });
+  assert.deepEqual([...sd.winners], ['B']); assert.equal(sd.hand, 'ตอง K'); assert.equal(sd.hands.A, 'หนึ่งคู่ A');
+  const split = C.showdown(cards('As Ks Qs Js 10s'), { A: cards('2d 3d'), B: cards('4c 5c') });
+  assert.deepEqual([...split.winners], ['A', 'B']);
+  assert.equal(C.showdown(board, {}), null);
+});
