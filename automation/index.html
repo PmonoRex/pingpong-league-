@@ -43,6 +43,18 @@
     td.prod a { color: var(--text); }
     td.prod a:hover { color: var(--red-hi); }
     @media (max-width: 600px) { .bars { gap: 3px; } .bars .b:nth-child(even) small { visibility: hidden; } .bars .b span { font-size: 10px; } }
+    .tabs { display: flex; gap: 8px; margin: 4px 0 16px; }
+    .tabs button { flex: 1; max-width: 220px; padding: 11px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel);
+      color: var(--text2); font: 600 14px/1 var(--display); cursor: pointer; }
+    .tabs button.on { color: #fff; border-color: rgba(255,71,82,.6); background: linear-gradient(180deg, rgba(255,71,82,.22), rgba(255,71,82,.06)), var(--panel);
+      box-shadow: 0 0 14px var(--red-glow); }
+    .kpi .v.sm { font-size: 22px; }
+    .ytstats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+    .ytstats div { padding: 10px 8px; border-radius: var(--r-sm); background: var(--field); text-align: center; }
+    .ytstats b { display: block; font: italic 800 22px/1.1 var(--display); color: #fff; }
+    .ytstats b.sm { font-size: 13px; line-height: 1.3; font-style: normal; }
+    .ytstats span { font-size: 11px; color: var(--muted); }
+    @media (max-width: 600px) { .ytstats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .warn-card { border-color: rgba(245,184,11,.4); background: linear-gradient(180deg, rgba(245,184,11,.08), transparent 120px), var(--panel); }
   </style>
 </head>
@@ -52,6 +64,6 @@
   <script src="../trade/config.js?v=1"></script>
   <script src="../trade/app.js?v=4"></script>
   <script src="../portal/switcher.js?v=2"></script>
-  <script src="automation.js?v=1"></script>
+  <script src="automation.js?v=2"></script>
 </body>
 </html>
