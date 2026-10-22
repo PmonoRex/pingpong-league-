@@ -247,7 +247,7 @@ if (typeof window !== "undefined") window.PokerCards = PokerCards;
     const s = e.target.closest("[data-slot]");
     if (s) { const [g, i] = s.dataset.slot.split(":"); const group = g === "board" || g === "mine" ? g : Number(g); active = active && active.group === group && active.i === Number(i) ? null : { group, i: Number(i) }; render(); if (active) $("pcPicker").scrollIntoView({ block: "nearest", behavior: "smooth" }); return; }
     const p = e.target.closest("[data-card]");
-    if (p && active) { setCard(active.group, active.i, Number(p.dataset.card), T); advance(table()); render(); return; }
+    if (p && active) { setCard(active.group, active.i, Number(p.dataset.card), T); advance(table()); render(); document.dispatchEvent(new CustomEvent("poker:mine")); return; }
     if (e.target.closest("#pcShow") && T) {
       const mine = mineArr(T); if (!mine.every(c => c !== null)) return;
       if (!confirm("เปิดไพ่ให้ทุกคนในโต๊ะเห็น? เปิดแล้วปิดกลับไม่ได้")) return;
@@ -267,5 +267,11 @@ if (typeof window !== "undefined") window.PokerCards = PokerCards;
   });
   // poker.js redraws the table after every change and every sync.
   document.addEventListener("poker:table", () => render());
+  // My hole cards for the shared hand, for the full-screen table (poker-table.js). They stay on this phone.
+  window.PokerMine = Object.freeze({
+    get: T => mineArr(T).slice(),
+    locked: T => locked(T),
+    set(T, i, c) { setCard("mine", i, c, T); render(); document.dispatchEvent(new CustomEvent("poker:mine")); }
+  });
   render();
 })();
