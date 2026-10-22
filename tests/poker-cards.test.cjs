@@ -74,3 +74,17 @@ test('showdown names the winner, splits ties and ignores incomplete hands', () =
   assert.deepEqual([...split.winners], ['A', 'B']);
   assert.equal(C.showdown(board, {}), null);
 });
+
+test('every card maps to an artwork file that exists, plus the back', () => {
+  const files = new Set(fs.readdirSync('vendor/playing-cards'));
+  for (let c = 0; c < 52; c++) assert.ok(files.has(C.art(c).split('/').pop()), C.art(c));
+  assert.equal(C.art(cards('10h')[0]), 'vendor/playing-cards/10H.svg');
+  assert.equal(C.art(cards('As')[0]), 'vendor/playing-cards/AS.svg');
+  assert.ok(files.has(C.BACK.split('/').pop()));
+  for (const f of ['COPYING.LESSER.txt', 'COPYING.txt', 'NOTICE.md']) assert.ok(files.has(f), f);
+  for (const f of files) if (f.endsWith('.svg')) {
+    const svg = fs.readFileSync(`vendor/playing-cards/${f}`, 'utf8');
+    assert.match(svg, /<svg[^>]*viewBox="0 0 [\d.]+ [\d.]+"/, `${f} scales`);
+    assert.doesNotMatch(svg, /<script|\son\w+=|href="(?:https?:|javascript:)/i, `${f} is plain artwork`);
+  }
+});

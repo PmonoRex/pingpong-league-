@@ -89,7 +89,10 @@ const PokerCards = (() => {
     const top = Math.max(...scored.map(x => x.s)), winners = scored.filter(x => x.s === top);
     return { winners: winners.map(x => x.who), hand: name(winners[0].best), hands: Object.fromEntries(scored.map(x => [x.who, name(x.best)])) };
   }
-  return Object.freeze({ RANKS, SUITS, SUIT_NAMES, HANDS, label, speak, red, valid, evaluate, score, name, odds, showdown, straightTop });
+  // Card artwork (vendor/playing-cards, Vectorized Playing Cards 1.3, LGPL-3): "AS.svg", "10H.svg", …
+  const ART = "vendor/playing-cards/";
+  const art = c => `${ART}${RANKS[rank(c)]}${"SHDC"[suitOf(c)]}.svg`, BACK = `${ART}Red_Back.svg`;
+  return Object.freeze({ RANKS, SUITS, SUIT_NAMES, HANDS, label, speak, red, valid, evaluate, score, name, odds, showdown, straightTop, art, BACK });
 })();
 if (typeof window !== "undefined") window.PokerCards = PokerCards;
 
@@ -136,10 +139,12 @@ if (typeof window !== "undefined") window.PokerCards = PokerCards;
 
   function cardHtml(c, attrs, extra = "") {
     if (c === null) return `<button type="button" class="pc-card pc-empty${extra}" ${attrs}><span aria-hidden="true">+</span></button>`;
-    return `<button type="button" class="pc-card${C.red(c) ? " pc-red" : ""}${extra}" ${attrs}><b>${C.RANKS[c >> 2]}</b><i>${C.SUITS[c & 3]}</i></button>`;
+    return `<button type="button" class="pc-card pc-art${extra}" ${attrs}>${img(c)}</button>`;
   }
-  const faceDown = (n = 2) => '<span class="pc-card pc-back" aria-hidden="true"></span>'.repeat(n);
-  const faceUp = c => `<span class="pc-card${C.red(c) ? " pc-red" : ""}" aria-label="${C.speak(c)}"><b>${C.RANKS[c >> 2]}</b><i>${C.SUITS[c & 3]}</i></span>`;
+  // The rank and suit stay in the button's aria-label; the picture is decoration for screen readers.
+  const img = c => `<img src="${C.art(c)}" alt="" draggable="false" decoding="async">`;
+  const faceDown = (n = 2) => `<span class="pc-card pc-art pc-back" aria-hidden="true"><img src="${C.BACK}" alt="" draggable="false" decoding="async"></span>`.repeat(n);
+  const faceUp = c => `<span class="pc-card pc-art" role="img" aria-label="${C.speak(c)}">${img(c)}</span>`;
   const BOARD_NAMES = ["ฟล็อป 1", "ฟล็อป 2", "ฟล็อป 3", "เทิร์น", "ริเวอร์"];
   function slot(group, i, c, name, disabled = false) {
     const on = active && active.group === group && active.i === i ? " pc-active" : "";
