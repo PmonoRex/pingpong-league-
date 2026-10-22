@@ -18,6 +18,8 @@ const PokerNight = (() => {
     if (e.t === "undo") { out.ref = cleanId(e.ref); return out.ref ? out : null; }
     out.name = cleanName(e.name); if (!out.name) return null;
     if (e.t === "buy") { out.amount = money(e.amount); if (!(out.amount > 0)) return null; }
+    // A join may carry the first buy-in (เข้าโต๊ะ from the player's own phone), so tapping it twice buys only once.
+    if (e.t === "join" && money(e.amount) > 0) out.amount = money(e.amount);
     if (e.t === "out") { out.amount = Math.max(0, int(e.amount)); }
     return out;
   }
@@ -61,7 +63,7 @@ const PokerNight = (() => {
     const players = new Map();
     const player = name => { if (!players.has(name)) players.set(name, { name, buys: [], out: null }); return players.get(name); };
     live.forEach(e => {
-      if (e.t === "join") player(e.name);
+      if (e.t === "join") { if (!players.has(e.name) && e.amount) player(e.name).buys.push(e.amount); else player(e.name); }
       else if (e.t === "buy") player(e.name).buys.push(e.amount);
       else if (e.t === "out") player(e.name).out = e.amount;
     });
@@ -106,9 +108,15 @@ const PokerNight = (() => {
     copy.nights[id] = normalizeNight({ id, startedAt: at, buyIn, chips, events: unique.flatMap((name, i) => [{ id: newId(), at: at + i * 2, t: "join", name }, { id: newId(), at: at + i * 2 + 1, t: "buy", name, amount: money(buyIn) }]) });
     return { poker: { nights: trim(copy.nights) }, id };
   }
+  // The player sits down at the open night with one buy-in; nothing happens if they are already at the table.
+  function join(p, nightId, name) {
+    const copy = normalize(p), night = copy.nights[nightId], who = cleanName(name);
+    if (!night || !who || view(night).players.some(x => x.name === who)) return copy;
+    return addEvent(copy, nightId, { t: "join", name: who, amount: night.buyIn });
+  }
   function closeNight(p, nightId) { const copy = normalize(p); if (copy.nights[nightId]) copy.nights[nightId].closedAt = Date.now(); return copy; }
 
-  return Object.freeze({ normalize, merge, same, current, history, view, transfers, addEvent, startNight, closeNight, cleanName, MAX_NIGHTS });
+  return Object.freeze({ normalize, merge, same, current, history, view, transfers, addEvent, join, startNight, closeNight, cleanName, MAX_NIGHTS });
 })();
 if (typeof window !== "undefined") window.PokerNight = PokerNight;
 
@@ -161,11 +169,15 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const UI = window.LeagueUI, person = window.LeagueProfile?.payeeByName?.(league(), name);
     return UI?.avatar ? UI.avatar(person?.id || `guest:${name}`, name, "sm") : "";
   }
+  // The signed-in player (league account on this phone), or null.
+  function me() { try { const l = league(), id = l && Cloud.sessionUserId(l); return id ? P.cleanName(l.profiles[id]?.displayName) || null : null; } catch { return null; } }
+  let preselected = false;
   function renderSetup() {
+    if (!preselected && me()) { picked.add(me()); preselected = true; }
     const people = [...new Set([...leaguePeople(), ...picked])];
     $("pPeople").innerHTML = people.length ? people.map(n => `<button type="button" class="p-person" data-person="${esc(n)}" aria-pressed="${picked.has(n)}">${avatarFor(n)}<span>${esc(n)}</span></button>`).join("") : '<div class="muted">ยังไม่มีรายชื่อจากลีก พิมพ์ชื่อด้านล่างได้เลย</div>';
-    $("pPickedCount").textContent = picked.size ? `เลือกแล้ว ${picked.size} คน` : "แตะชื่อคนที่เล่นวงนี้";
-    $("pStart").disabled = picked.size < 2;
+    $("pPickedCount").textContent = picked.size ? `เลือกแล้ว ${picked.size} คน${picked.size < 2 ? " • คนอื่นกดเข้าโต๊ะเองจากมือถือได้" : ""}` : "แตะชื่อคนที่เล่นวงนี้";
+    $("pStart").disabled = picked.size < 1;
   }
   $("pPeople").addEventListener("click", e => {
     const b = e.target.closest("[data-person]"); if (!b) return;
@@ -180,7 +192,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   $("pStart").addEventListener("click", () => {
     const buyIn = Number($("pBuyIn").value), chips = Math.round(Number($("pChips").value));
     if (!(buyIn > 0) || !(chips > 0)) return toast("ใส่ราคาซื้อชิปและจำนวนชิปให้ถูกก่อน");
-    if (picked.size < 2) return toast("ต้องมีผู้เล่นอย่างน้อย 2 คน");
+    if (picked.size < 1) return toast("เลือกผู้เล่นอย่างน้อย 1 คน");
     const { poker: next } = P.startNight(poker, { buyIn, chips, names: [...picked] });
     picked = new Set(); change(next); toast("เริ่มวงแล้ว • ทุกคนซื้อชิปคนละ 1 ไม้");
   });
@@ -188,10 +200,11 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   // ---- the night ----
   function renderNight(night) {
     const v = P.view(night), n = v.night;
+    const myName = me(); renderSeat(v, myName);
     $("pMeta").textContent = `ซื้อ 1 ไม้ = ${baht(n.buyIn)} ได้ ${chipsText(n.chips)} • ${v.players.length} คน • ลงรวม ${baht(v.paid)}`;
     $("pPlayers").innerHTML = v.players.map((p, i) => {
       const tone = p.net > 0 ? "pos" : p.net < 0 ? "neg" : "";
-      return `<div class="p-row">
+      return `<div class="p-row${p.name === myName ? " p-row-me" : ""}">
 <div class="p-row-head">${avatarFor(p.name)}<div class="d-board-name"><b>${esc(p.name)}</b><small>ซื้อ ${p.buys.length} ไม้ • ลง ${baht(p.paid)}</small></div><button type="button" class="secondary p-rebuy" data-buy="${esc(p.name)}" aria-label="${esc(p.name)} ซื้อเพิ่ม 1 ไม้ (${baht(n.buyIn)})">+ ซื้อเพิ่ม</button></div>
 <div class="p-row-out"><label for="pOut${i}">ชิปตอนเลิก</label><input id="pOut${i}" type="number" inputmode="numeric" min="0" data-out="${esc(p.name)}" placeholder="นับชิป" value="${p.out ?? ""}"><b class="p-net ${tone}">${p.net === null ? "" : baht(p.net, true)}</b></div></div>`;
     }).join("");
@@ -207,6 +220,24 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     $("pClose").textContent = v.balanced ? "จบวง • เก็บเข้าประวัติ" : "จบวง";
     $("pUndo").disabled = !v.lastAction;
   }
+  // เข้าโต๊ะ: each player sits down from their own phone; the bar says who is seated and how to join.
+  function renderSeat(v, name) {
+    const bar = $("pSeat"), n = v.night;
+    if (!name) { bar.innerHTML = '<span class="muted">เข้าสู่ระบบที่<a href="index.html">หน้าแรก</a>ก่อน แล้วกดเข้าโต๊ะเองได้</span>'; return; }
+    const seated = v.players.find(p => p.name === name);
+    bar.innerHTML = seated
+      ? `<span class="p-seat-on">${avatarFor(name)}<b>${esc(name)}</b> นั่งโต๊ะนี้แล้ว • ซื้อ ${seated.buys.length} ไม้</span>`
+      : `<button type="button" class="primary p-join" id="pJoin">เข้าโต๊ะ • ซื้อ 1 ไม้ (${esc(baht(n.buyIn))})</button><span class="muted">ในวงตอนนี้ ${v.players.length} คน</span>`;
+  }
+  $("pSeat").addEventListener("click", async e => {
+    if (!e.target.closest("#pJoin")) return;
+    const name = me(); if (!name) return;
+    // Pick up the latest table first, so a night someone just opened on another phone is the one we sit at.
+    if (!cloudOff) { await syncNow(); }
+    const night = nightNow(); if (!night) return toast("ยังไม่มีวงเปิดอยู่");
+    if (P.view(night).players.some(p => p.name === name)) return render();
+    change(P.join(poker, night.id, name)); toast(`เข้าโต๊ะแล้ว • ซื้อ ${baht(night.buyIn)}`);
+  });
   function payRow(l) {
     const go = window.LeagueProfile?.openPay ? `<button type="button" class="secondary pay-go" data-pay-to-name="${esc(l.to)}" data-pay-from="${esc(l.from)}" data-pay-amount="${esc(l.amount)}" aria-label="โอนให้ ${esc(l.to)} ${esc(baht(l.amount))}">โอน</button>` : "";
     return `<div class="d-pay-row"><b>${esc(l.from)}</b><span class="d-pay-arrow">จ่าย ➜</span><b>${esc(l.to)}</b><b class="d-pay-amt">${esc(baht(l.amount))}</b>${go}</div>`;
@@ -240,7 +271,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   $("pLate").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("pLateAdd").click(); } });
   $("pUndo").addEventListener("click", () => {
     const night = nightNow(), last = night && P.view(night).lastAction; if (!last) return;
-    const what = last.t === "buy" ? `${last.name} ซื้อ ${baht(last.amount)}` : last.t === "out" ? `ชิปของ ${last.name} (${last.amount})` : `${last.name} เข้าวง`;
+    const what = last.t === "buy" ? `${last.name} ซื้อ ${baht(last.amount)}` : last.t === "out" ? `ชิปของ ${last.name} (${last.amount})` : last.amount ? `${last.name} เข้าโต๊ะ (${baht(last.amount)})` : `${last.name} เข้าวง`;
     change(P.addEvent(poker, night.id, { t: "undo", ref: last.id })); toast(`ย้อนแล้ว: ${what}`);
   });
   $("pClose").addEventListener("click", () => {
@@ -274,7 +305,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const night = nightNow();
     $("pSetup").hidden = Boolean(night); $("pNight").hidden = !night;
     const active = document.activeElement, typing = active?.matches?.("[data-out]") ? active.dataset.out : null;
-    if (night) renderNight(night); else renderSetup();
+    if (night) renderNight(night); else { $("pSeat").innerHTML = ""; renderSetup(); }
     // A sync while someone is typing a chip count keeps their cursor in that box.
     if (typing) { const box = [...document.querySelectorAll("[data-out]")].find(x => x.dataset.out === typing); box?.focus(); }
     renderHistory();

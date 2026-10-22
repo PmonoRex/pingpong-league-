@@ -93,3 +93,16 @@ test('Dummy keeps the poker nights stored in the same column', () => {
   assert.deepEqual(plain(D.mergeDummy(base, local, remote).state.poker), poker, 'a line-up change here does not drop poker saved elsewhere');
   assert.deepEqual(plain(D.mergeDummy(base, base, remote).state.poker), poker);
 });
+
+test('a player joins from their own phone once, with one buy-in, even if both phones tap', () => {
+  const P = load();
+  const { poker, id } = P.startNight({}, { buyIn: 100, chips: 1000, names: ['A'] });
+  const phone1 = P.join(poker, id, 'B'), phone2 = P.join(poker, id, 'B');
+  const v = P.view(P.merge(phone1, phone2).nights[id]);
+  assert.deepEqual(plain(v.players.map(p => [p.name, p.paid])), [['A', 100], ['B', 100]]);
+  assert.ok(P.same(P.join(phone1, id, 'B'), phone1), 'already seated: no change');
+  const join = P.normalize(phone1).nights[id].events.find(e => e.t === 'join' && e.name === 'B');
+  const undone = P.addEvent(phone1, id, { t: 'undo', ref: join.id });
+  assert.deepEqual(plain(P.view(undone.nights[id]).players.map(p => p.name)), ['A'], 'undoing the join takes the buy-in back too');
+  assert.equal(P.view(P.join(poker, id, 'C').nights[id]).paid, 200);
+});

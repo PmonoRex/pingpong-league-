@@ -72,3 +72,13 @@ body.sport-redesign .pc-seat .pc-card{width:44px}
 body.sport-redesign .pc-seat .pc-card b{font-size:17px}
 .pc-seat .pc-card i{font-size:15px}
 .pc-odds-mini{text-align:right;font-size:13px;color:var(--text-soft);overflow-wrap:anywhere}
+
+/* เข้าโต๊ะ: the signed-in player's own seat */
+.p-seat-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:4px 0 10px}
+.p-seat-bar:empty{display:none}
+body.sport-redesign .p-join{min-height:52px;padding:10px 18px;font-size:17px}
+.p-seat-on{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:rgba(52,210,124,.12);border:1px solid rgba(52,210,124,.4);color:var(--text-2)}
+.p-seat-on b{color:var(--text)}
+.p-row.p-row-me{border-color:rgba(52,210,124,.55)}
+.p-seat-top{margin:0 0 14px;padding:12px;border-radius:var(--r);background:var(--panel);border:1px solid var(--line-2)}
+.p-seat-top:empty{display:none}
