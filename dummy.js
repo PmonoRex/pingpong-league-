@@ -25,6 +25,8 @@
     // dayStart: games before this moment belong to earlier days (still kept); rev: cloud revision this copy is based on.
     s.dayStart = Math.max(0, int(raw.dayStart));
     s.rev = Math.max(0, int(raw.rev));
+    // Poker nights (poker.js) share this column and its rev lock; Dummy never edits them, only carries them along.
+    if (raw.poker && typeof raw.poker === "object") s.poker = raw.poker;
     const n = s.players.length;
     s.rounds = (Array.isArray(raw.rounds) ? raw.rounds : []).filter(r => r && Array.isArray(r.scores)).map(r => ({
       scores: s.players.map((_, i) => int(r.scores[i])),
@@ -148,7 +150,7 @@
     base = normalize(base); local = normalize(local); remote = normalize(remote);
     const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     if (!same(local.players, remote.players)) {
-      if (!same(local.players, base.players) && same(remote.players, base.players)) return { state: { ...local, rev: remote.rev }, conflict: false };
+      if (!same(local.players, base.players) && same(remote.players, base.players)) return { state: { ...local, rev: remote.rev, ...(remote.poker ? { poker: remote.poker } : {}) }, conflict: false };
       return { state: remote, conflict: !same(local.rounds, base.rounds) && local.rounds.length > 0 };
     }
     const count = list => list.reduce((m, r) => m.set(roundKey(r), (m.get(roundKey(r)) || 0) + 1), new Map());
@@ -303,7 +305,7 @@
     const next = normalize({
       players: names, target: $("dTarget").value, knockBonus: $("dKnock").value, moneyMode: $("dMoneyMode").value,
       rates: [$("dRate2").value, $("dRate3").value, $("dRate4").value], divisor: $("dDivisor").value, rounds: samePlayers ? state.rounds : [],
-      dayStart: samePlayers ? state.dayStart : 0, rev: state.rev
+      dayStart: samePlayers ? state.dayStart : 0, rev: state.rev, poker: state.poker
     });
     if (!samePlayers && state.rounds.length && !confirm("เปลี่ยนผู้เล่นแล้วแต้มเดิมจะถูกล้าง เริ่มเกมใหม่?")) return;
     state = next; save(); render(); toast(samePlayers && state.rounds.length ? "บันทึกการตั้งค่าแล้ว" : "เริ่มเกมแล้ว");

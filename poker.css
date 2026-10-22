@@ -1,0 +1,97 @@
+/* Poker night (poker.js). Builds on dummy.css (settings grid, pay rows, day summaries, toast) and the arena tokens. */
+#pokerApp .pos{color:var(--win)}
+#pokerApp .neg{color:var(--lose)}
+.p-sub{margin:18px 0 4px;font-family:var(--display);font-size:18px}
+.p-people{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+body.sport-redesign .p-person{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px 6px 8px;border-radius:999px;background:var(--panel-2);color:var(--text-2);border:1px solid var(--line-2);font-weight:700}
+body.sport-redesign .p-person[aria-pressed="true"]{background:var(--red);border-color:var(--red-hi);color:#fff}
+.p-person .pa{--s:28px}
+.p-add{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
+.p-add input{width:100%;box-sizing:border-box}
+.p-players{display:grid;gap:10px;margin-top:12px}
+.p-row{padding:12px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line)}
+.p-row-head{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.p-row-head .pa{--s:36px}
+.p-row-head .d-board-name{display:grid;gap:2px;min-width:0}
+.p-row-head .d-board-name b{font-size:17px;overflow-wrap:anywhere}
+.p-row-head small{color:var(--text-soft)}
+body.sport-redesign .p-rebuy{min-height:44px;padding:6px 12px;white-space:nowrap}
+.p-row-out{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.p-row-out label{font-size:14px;color:var(--text-2);font-weight:700}
+.p-row-out input{width:100%;box-sizing:border-box;font-variant-numeric:tabular-nums}
+.p-net{min-width:72px;text-align:right;font-family:var(--display);font-style:italic;font-weight:800;font-size:20px;font-variant-numeric:tabular-nums lining-nums}
+.p-check{margin-top:14px;padding:10px 12px;border-radius:var(--r-sm);background:var(--field);border:1px solid var(--line);font-size:14px;line-height:1.5}
+.p-check:empty{display:none}
+#pokerApp .d-pay-row:has(.pay-go){grid-template-columns:auto auto 1fr auto auto}
+
+/* ส่องไพ่ (poker-cards.js): playing cards are white faces with red or ink pips, the one light surface on the page. */
+.pc-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pc-head h2{margin:0}
+body.sport-redesign .pc-head button{min-height:40px;padding:6px 12px}
+.pc-row{display:flex;gap:8px;margin-top:8px}
+.pc-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));max-width:420px}
+.pc-board-labels{display:grid;grid-template-columns:3fr 1fr 1fr;gap:8px;max-width:420px;margin-top:4px;font-size:12px;color:var(--text-soft);text-align:center}
+body.sport-redesign .pc-card{display:grid;place-items:center;align-content:center;gap:0;width:100%;max-width:76px;aspect-ratio:5/7;min-height:0;padding:0;border-radius:var(--r-sm);background:#fbfaf7;color:#16171b;border:2px solid #fbfaf7;box-shadow:0 2px 0 rgba(0,0,0,.35);font-family:var(--display);font-style:normal;line-height:1}
+body.sport-redesign :is(.pc-me,.pc-seat) .pc-card{width:62px}
+body.sport-redesign .pc-card b{font-size:clamp(20px,6vw,26px);font-weight:800}
+.pc-card i{font-style:normal;font-size:clamp(18px,5vw,22px)}
+body.sport-redesign .pc-card.pc-red{color:#d81e29}
+body.sport-redesign .pc-card.pc-empty{background:var(--field);border:2px dashed var(--line-2);color:var(--text-soft);box-shadow:none;font-size:22px}
+body.sport-redesign .pc-card.pc-active{border:2px solid var(--red-hi);box-shadow:0 0 0 3px var(--red-glow)}
+.pc-picker{margin-top:12px;padding:10px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line-2)}
+.pc-pick-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.pc-pick-head span{display:flex;gap:6px}
+body.sport-redesign .pc-pick-head button{min-height:40px;padding:4px 12px}
+.pc-grid{display:grid;gap:6px}
+.pc-suit-row{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px}
+body.sport-redesign .pc-pick{display:grid;place-items:center;align-content:center;min-height:46px;padding:0;border-radius:6px;background:#fbfaf7;color:#16171b;border:0;font-weight:800;font-size:13px;line-height:1.05;letter-spacing:-.02em}
+.pc-pick i{font-style:normal;font-size:13px}
+body.sport-redesign .pc-pick.pc-red{color:#d81e29}
+body.sport-redesign .pc-pick.pc-on{outline:3px solid var(--red-hi);outline-offset:-1px}
+body.sport-redesign .pc-pick:disabled{opacity:.18}
+.pc-me{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:end;margin-top:6px}
+.pc-hand{display:grid;gap:2px;justify-items:end;text-align:right;min-width:0}
+.pc-hand small{color:var(--text-soft);font-size:13px}
+.pc-hand b{font-family:var(--display);font-style:italic;font-weight:800;font-size:clamp(20px,6vw,26px);line-height:1.15;overflow-wrap:anywhere}
+.pc-odds{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-top:12px;padding:10px 12px;border-radius:var(--r-sm);background:var(--field);border:1px solid var(--line)}
+.pc-odds:empty{display:none}
+.pc-odds>b{font-family:var(--display);font-style:italic;font-weight:800;font-size:24px}
+.pc-big{display:flex;align-items:baseline;gap:6px}
+.pc-big b{font-family:var(--display);font-style:italic;font-weight:800;font-size:30px;font-variant-numeric:tabular-nums lining-nums}
+.pc-big:first-child b{color:var(--win)}
+.pc-odds>small{flex-basis:100%;font-size:12px}
+.pc-opp-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.pc-stepper{display:flex;align-items:center;gap:8px}
+body.sport-redesign .pc-stepper button{width:44px;min-height:44px;padding:0;font-size:20px}
+.pc-stepper b{min-width:40px;text-align:center}
+.pc-opp{display:grid;gap:8px;margin-top:10px}
+.pc-seat{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center;padding:8px 10px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line)}
+.pc-seat-name{font-weight:700;color:var(--text-2);font-size:14px}
+.pc-seat-cards{display:flex;gap:6px}
+body.sport-redesign .pc-seat .pc-card{width:44px}
+body.sport-redesign .pc-seat .pc-card b{font-size:17px}
+.pc-seat .pc-card i{font-size:15px}
+.pc-odds-mini{text-align:right;font-size:13px;color:var(--text-soft);overflow-wrap:anywhere}
+
+/* เข้าโต๊ะ: the signed-in player's own seat */
+.p-seat-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:4px 0 10px}
+.p-seat-bar:empty{display:none}
+body.sport-redesign .p-join{min-height:52px;padding:10px 18px;font-size:17px}
+.p-seat-on{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:rgba(52,210,124,.12);border:1px solid rgba(52,210,124,.4);color:var(--text-2)}
+.p-seat-on b{color:var(--text)}
+.p-row.p-row-me{border-color:rgba(52,210,124,.55)}
+.p-seat-top{margin:0 0 14px;padding:12px;border-radius:var(--r);background:var(--panel);border:1px solid var(--line-2)}
+.p-seat-top:empty{display:none}
+
+/* ส่องไพ่ at a table: card backs, reveal / fold, showdown */
+body.sport-redesign .pc-card.pc-back{background:repeating-linear-gradient(45deg,#9e111a 0 5px,#d81e29 5px 10px);border-color:#fbfaf7;box-shadow:inset 0 0 0 3px #fbfaf7,0 2px 0 rgba(0,0,0,.35)}
+.pc-seat .pc-card:not(button){display:grid}
+.pc-seat-name{display:inline-flex;align-items:center;gap:6px;min-width:0;overflow-wrap:anywhere}
+.pc-seat.pc-folded .pc-seat-cards{opacity:.3}
+.pc-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pc-acts:empty{display:none}
+.pc-acts>button{flex:1 1 120px}
+.pc-tag{display:inline-flex;align-items:center;min-height:36px;padding:4px 12px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line-2);color:var(--text-2);font-weight:700;font-size:14px}
+.pc-tag-on{background:rgba(52,210,124,.12);border-color:rgba(52,210,124,.4);color:var(--win)}
+.pc-showdown{margin-top:10px;padding:12px;border-radius:var(--r-sm);background:rgba(245,184,11,.12);border:1px solid rgba(245,184,11,.45);font-size:16px;line-height:1.5}
+.pc-showdown b{font-family:var(--display);font-style:italic;font-weight:800;color:var(--gold)}
