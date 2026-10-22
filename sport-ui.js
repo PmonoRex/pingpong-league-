@@ -56,6 +56,7 @@
       '<button type="button" class="tab-menu" aria-haspopup="dialog" aria-controls="siteMenu" aria-expanded="false"><span></span>เมนู</button>';
   }
   const MENU_ICONS={
+    poker:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/>',
     dashboard:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="4" rx="1.5"/><rect x="13" y="10" width="7" height="10" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/>',
     archive:'<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/>',
     tourney:'<path d="M3 4h5v6H3M8 7h4M3 14h5v6H3M8 17h4M12 7v10M12 12h4"/><circle cx="19" cy="12" r="2.5"/>',
@@ -78,7 +79,7 @@
   function signedIn(){const l=league();try{const id=l&&LS()?.sessionUserId?.(l);return id?{id,name:l.profiles?.[id]?.displayName||'',admin:!!LS()?.isAdmin?.(l,id)}:null}catch{return null}}
   function menuItems(){
     const me=signedIn(),item=(ico,label,attrs)=>`<${attrs.href?'a':'button type="button"'} class="menu-item" ${Object.entries(attrs).map(([k,v])=>`${k}="${v}"`).join(' ')}${attrs.href&&attrs.href===page?' aria-current="page"':''}><i class="mi">${svg(MENU_ICONS[ico])}</i><span>${label}</span></${attrs.href?'a':'button'}>`;
-    let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'})+item('tourney','ทัวร์นาเมนต์',{href:'tournament.html'})+item('hall','หอเกียรติยศ',{href:'hall.html'});
+    let html='<p class="menu-sec">หน้าอื่น</p>'+item('dashboard','ภาพรวมลีก',{href:'dashboard.html'})+item('archive','คลังซีซั่น',{href:'archive.html'})+item('tourney','ทัวร์นาเมนต์',{href:'tournament.html'})+item('hall','หอเกียรติยศ',{href:'hall.html'})+item('poker','โป๊กเกอร์',{href:'poker.html'});
     // ท้าดวล (challenge.js): the count is open challenges waiting for this player's answer.
     const CH=window.LeagueChallenge;if(CH){const n=CH.badge();html+=item('swords',`ท้าดวล${n?` <em class="menu-badge">${n}</em>`:''}`,{'data-act':'challenge'})}
     const account=[];

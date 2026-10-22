@@ -16,6 +16,7 @@
 | Backup Center | `backup.html`, `backup.js`, `safety-hooks.js`, `recovery.js` | Snapshot ในเครื่อง, Restore คะแนน / ทั้ง Season |
 | Admin | `admin.html`, `admin.js`, `audit-view.js` | สร้าง/เปลี่ยนชื่อ/ปิดบัญชี, รีเซ็ต PIN, Audit Log |
 | นับแต้มดัมมี่ | `dummy.html`, `dummy.js`, `dummy.css` | นับแต้มไพ่ดัมมี่ 2–4 คน แยกจากลีก ซิงก์ข้ามเครื่องผ่านคอลัมน์ `dummy` (สำเนาออฟไลน์ใน `localStorage`), สรุปรายวัน + ปุ่มเริ่มวันใหม่ |
+| โป๊กเกอร์ | `poker.html`, `poker.js`, `poker.css` | จดซื้อชิป/ซื้อเพิ่ม นับชิปตอนเลิก แล้วสรุปให้โอนน้อยครั้งที่สุด (ปุ่มโอนขึ้น QR PromptPay) เปิดจากเมนู → โป๊กเกอร์ ซิงก์ผ่านคอลัมน์ `dummy` ใต้คีย์ `poker` (ไม่ต้องรัน migration เพิ่ม) แต่ละวงเก็บเป็นรายการเหตุการณ์ สองเครื่องกดพร้อมกันได้ไม่ทับกัน |
 
 ไฟล์ที่ใช้ร่วมกัน:
 

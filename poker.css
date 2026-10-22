@@ -1,0 +1,25 @@
+/* Poker night (poker.js). Builds on dummy.css (settings grid, pay rows, day summaries, toast) and the arena tokens. */
+#pokerApp .pos{color:var(--win)}
+#pokerApp .neg{color:var(--lose)}
+.p-sub{margin:18px 0 4px;font-family:var(--display);font-size:18px}
+.p-people{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+body.sport-redesign .p-person{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px 6px 8px;border-radius:999px;background:var(--panel-2);color:var(--text-2);border:1px solid var(--line-2);font-weight:700}
+body.sport-redesign .p-person[aria-pressed="true"]{background:var(--red);border-color:var(--red-hi);color:#fff}
+.p-person .pa{--s:28px}
+.p-add{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
+.p-add input{width:100%;box-sizing:border-box}
+.p-players{display:grid;gap:10px;margin-top:12px}
+.p-row{padding:12px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line)}
+.p-row-head{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.p-row-head .pa{--s:36px}
+.p-row-head .d-board-name{display:grid;gap:2px;min-width:0}
+.p-row-head .d-board-name b{font-size:17px;overflow-wrap:anywhere}
+.p-row-head small{color:var(--text-soft)}
+body.sport-redesign .p-rebuy{min-height:44px;padding:6px 12px;white-space:nowrap}
+.p-row-out{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.p-row-out label{font-size:14px;color:var(--text-2);font-weight:700}
+.p-row-out input{width:100%;box-sizing:border-box;font-variant-numeric:tabular-nums}
+.p-net{min-width:72px;text-align:right;font-family:var(--display);font-style:italic;font-weight:800;font-size:20px;font-variant-numeric:tabular-nums lining-nums}
+.p-check{margin-top:14px;padding:10px 12px;border-radius:var(--r-sm);background:var(--field);border:1px solid var(--line);font-size:14px;line-height:1.5}
+.p-check:empty{display:none}
+#pokerApp .d-pay-row:has(.pay-go){grid-template-columns:auto auto 1fr auto auto}

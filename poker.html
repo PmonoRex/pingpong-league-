@@ -1,0 +1,34 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0b0e"><script src="transition.js?v=20261018-perf"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="ตีให้สุด">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="mobile-web-app-capable" content="yes"><link rel="preload" href="fonts/kanit-800i-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="fonts.css?v=20261018-arena"><title>โป๊กเกอร์ • ตีให้สุด หยุดที่เบ้าตา</title><link rel="stylesheet" href="dummy.css?v=20261018-promax"><link rel="stylesheet" href="poker.css?v=20261022-poker"><link rel="stylesheet" href="theme.css?v=20261018-thai"><link rel="stylesheet" href="pin-change.css?v=20261018-sec"><link rel="stylesheet" href="motion.css?v=20261018-video3"><link rel="stylesheet" href="arena.css?v=20261020-perf2"><link rel="stylesheet" href="effects.css?v=20261020-perf2"><link rel="stylesheet" href="awards.css?v=20261020-awards"><link rel="stylesheet" href="challenge.css?v=20261019-elo"><link rel="stylesheet" href="profile-me.css?v=20261018-banner"><script src="player-ui.js?v=20261020-perf2" defer></script></head><body><main id="pokerApp">
+<section class="hero"><h1>โป๊กเกอร์</h1><div class="muted">จดซื้อชิป ซื้อเพิ่ม นับชิปตอนเลิก แล้วสรุปให้ว่าใครจ่ายใคร • ไม่ปนกับข้อมูลลีกปิงปอง</div><div class="rules"><span class="pill sync" id="pSync" role="status">กำลังเชื่อมต่อ…</span></div></section>
+
+<section class="card" id="pSetup" hidden><h2>เปิดวงใหม่</h2>
+ <div class="d-settings"><label>ซื้อชิป 1 ไม้ (บาท)<input type="number" inputmode="decimal" id="pBuyIn" min="1" value="100"></label><label>ได้ชิป<input type="number" inputmode="numeric" id="pChips" min="1" value="100"></label></div>
+ <h3 class="p-sub">ใครเล่นบ้าง</h3>
+ <div class="muted" id="pPickedCount" role="status"></div>
+ <div id="pPeople" class="p-people"></div>
+ <div class="p-add"><input id="pGuest" maxlength="30" placeholder="ชื่อแขก / คนนอกลีก" aria-label="ชื่อผู้เล่นเพิ่ม" autocomplete="off"><button type="button" class="secondary" id="pGuestAdd">+ เพิ่ม</button></div>
+ <div class="actions"><button type="button" class="primary" id="pStart">เริ่มวง • ทุกคนซื้อ 1 ไม้</button></div>
+</section>
+
+<div id="pNight" hidden>
+<section class="card"><h2>วงนี้</h2>
+ <div class="muted" id="pMeta"></div>
+ <div id="pPlayers" class="p-players"></div>
+ <div class="p-add"><input id="pLate" maxlength="30" placeholder="มีคนมาเพิ่ม? พิมพ์ชื่อ" aria-label="ชื่อคนที่เข้าวงเพิ่ม" autocomplete="off"><button type="button" class="secondary" id="pLateAdd">+ เข้าวง</button></div>
+ <div class="p-check" id="pCheck" role="status"></div>
+ <div id="pPay" class="d-pay" hidden><h3>ใครจ่ายใคร</h3><div class="muted">คิดให้โอนน้อยครั้งที่สุด คนเสียมากสุดจ่ายคนได้มากสุดก่อน</div><div id="pPayList" class="d-pay-list"></div><button type="button" class="secondary" id="pPayCopy">คัดลอกไปส่งในไลน์</button></div>
+ <div class="actions"><button type="button" class="secondary" id="pUndo">ย้อนรายการล่าสุด</button><button type="button" class="primary" id="pClose">จบวง</button></div>
+</section>
+</div>
+
+<section class="card" id="pHistCard" hidden><h2>วงก่อน ๆ</h2><div id="pHist" class="d-days"></div></section>
+<div class="d-toast" id="pToast" role="status" aria-live="polite"></div>
+</main><script src="shared.js?v=20261020-perf2" defer></script><script src="pin-change.js?v=20261019-sec2" defer></script><script src="promptpay.js?v=20261017-profile2" defer></script><script src="profile-me.js?v=20261018-perf" defer></script><script src="poker.js?v=20261022-poker" defer></script><script src="league-stats.js?v=20261020-e2e2" defer></script><script src="elo.js?v=20261020-perf2" defer></script><script src="hall.js?v=20261020-perf2" defer></script><script src="predboard-rank.js?v=20261020-predrank" defer></script><script src="player-card.js?v=20261020-perf2" defer></script><script src="awards.js?v=20261020-awards" defer></script><script src="challenge.js?v=20261020-perf2" defer></script><script src="wrapped.js?v=20261018-wrap" defer></script><script src="push-config.js?v=20261019-push" defer></script><script src="pwa.js?v=20261020-perf2" defer></script><script src="effects.js?v=20261020-perf2" defer></script><script src="sport-ui.js?v=20261022-poker" defer></script><script src="portal/switcher.js?v=2"></script>
+</body></html>
