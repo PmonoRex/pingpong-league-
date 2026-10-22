@@ -23,3 +23,52 @@ body.sport-redesign .p-rebuy{min-height:44px;padding:6px 12px;white-space:nowrap
 .p-check{margin-top:14px;padding:10px 12px;border-radius:var(--r-sm);background:var(--field);border:1px solid var(--line);font-size:14px;line-height:1.5}
 .p-check:empty{display:none}
 #pokerApp .d-pay-row:has(.pay-go){grid-template-columns:auto auto 1fr auto auto}
+
+/* ส่องไพ่ (poker-cards.js): playing cards are white faces with red or ink pips, the one light surface on the page. */
+.pc-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pc-head h2{margin:0}
+body.sport-redesign .pc-head button{min-height:40px;padding:6px 12px}
+.pc-row{display:flex;gap:8px;margin-top:8px}
+.pc-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));max-width:420px}
+.pc-board-labels{display:grid;grid-template-columns:3fr 1fr 1fr;gap:8px;max-width:420px;margin-top:4px;font-size:12px;color:var(--text-soft);text-align:center}
+body.sport-redesign .pc-card{display:grid;place-items:center;align-content:center;gap:0;width:100%;max-width:76px;aspect-ratio:5/7;min-height:0;padding:0;border-radius:var(--r-sm);background:#fbfaf7;color:#16171b;border:2px solid #fbfaf7;box-shadow:0 2px 0 rgba(0,0,0,.35);font-family:var(--display);font-style:normal;line-height:1}
+body.sport-redesign :is(.pc-me,.pc-seat) .pc-card{width:62px}
+body.sport-redesign .pc-card b{font-size:clamp(20px,6vw,26px);font-weight:800}
+.pc-card i{font-style:normal;font-size:clamp(18px,5vw,22px)}
+body.sport-redesign .pc-card.pc-red{color:#d81e29}
+body.sport-redesign .pc-card.pc-empty{background:var(--field);border:2px dashed var(--line-2);color:var(--text-soft);box-shadow:none;font-size:22px}
+body.sport-redesign .pc-card.pc-active{border:2px solid var(--red-hi);box-shadow:0 0 0 3px var(--red-glow)}
+.pc-picker{margin-top:12px;padding:10px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line-2)}
+.pc-pick-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.pc-pick-head span{display:flex;gap:6px}
+body.sport-redesign .pc-pick-head button{min-height:40px;padding:4px 12px}
+.pc-grid{display:grid;gap:6px}
+.pc-suit-row{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px}
+body.sport-redesign .pc-pick{display:grid;place-items:center;align-content:center;min-height:46px;padding:0;border-radius:6px;background:#fbfaf7;color:#16171b;border:0;font-weight:800;font-size:13px;line-height:1.05;letter-spacing:-.02em}
+.pc-pick i{font-style:normal;font-size:13px}
+body.sport-redesign .pc-pick.pc-red{color:#d81e29}
+body.sport-redesign .pc-pick.pc-on{outline:3px solid var(--red-hi);outline-offset:-1px}
+body.sport-redesign .pc-pick:disabled{opacity:.18}
+.pc-me{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:end;margin-top:6px}
+.pc-hand{display:grid;gap:2px;justify-items:end;text-align:right;min-width:0}
+.pc-hand small{color:var(--text-soft);font-size:13px}
+.pc-hand b{font-family:var(--display);font-style:italic;font-weight:800;font-size:clamp(20px,6vw,26px);line-height:1.15;overflow-wrap:anywhere}
+.pc-odds{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-top:12px;padding:10px 12px;border-radius:var(--r-sm);background:var(--field);border:1px solid var(--line)}
+.pc-odds:empty{display:none}
+.pc-odds>b{font-family:var(--display);font-style:italic;font-weight:800;font-size:24px}
+.pc-big{display:flex;align-items:baseline;gap:6px}
+.pc-big b{font-family:var(--display);font-style:italic;font-weight:800;font-size:30px;font-variant-numeric:tabular-nums lining-nums}
+.pc-big:first-child b{color:var(--win)}
+.pc-odds>small{flex-basis:100%;font-size:12px}
+.pc-opp-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.pc-stepper{display:flex;align-items:center;gap:8px}
+body.sport-redesign .pc-stepper button{width:44px;min-height:44px;padding:0;font-size:20px}
+.pc-stepper b{min-width:40px;text-align:center}
+.pc-opp{display:grid;gap:8px;margin-top:10px}
+.pc-seat{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center;padding:8px 10px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line)}
+.pc-seat-name{font-weight:700;color:var(--text-2);font-size:14px}
+.pc-seat-cards{display:flex;gap:6px}
+body.sport-redesign .pc-seat .pc-card{width:44px}
+body.sport-redesign .pc-seat .pc-card b{font-size:17px}
+.pc-seat .pc-card i{font-size:15px}
+.pc-odds-mini{text-align:right;font-size:13px;color:var(--text-soft);overflow-wrap:anywhere}
