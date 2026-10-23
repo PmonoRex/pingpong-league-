@@ -1,0 +1,45 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0b0e"><script src="transition.js?v=20261018-perf"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="ตีให้สุด">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="mobile-web-app-capable" content="yes"><link rel="preload" href="fonts/kanit-800i-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-thai.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/anuphan-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="fonts.css?v=20261018-arena"><title>ดัมมี่ออนไลน์ • ตีให้สุด หยุดที่เบ้าตา</title><link rel="stylesheet" href="dummy.css?v=20261023-dummyol"><link rel="stylesheet" href="poker.css?v=20261023-rooms"><link rel="stylesheet" href="dummy-online.css?v=20261023-table"><link rel="stylesheet" href="theme.css?v=20261018-thai"><link rel="stylesheet" href="pin-change.css?v=20261018-sec"><link rel="stylesheet" href="motion.css?v=20261018-video3"><link rel="stylesheet" href="arena.css?v=20261020-perf2"><link rel="stylesheet" href="effects.css?v=20261020-perf2"><link rel="stylesheet" href="awards.css?v=20261020-awards"><link rel="stylesheet" href="challenge.css?v=20261019-elo"><link rel="stylesheet" href="profile-me.css?v=20261018-banner"><script src="player-ui.js?v=20261020-perf2" defer></script></head><body><main id="dummyOnline">
+<section class="hero"><h1>ดัมมี่ออนไลน์</h1><div class="muted">สร้างห้องหรือเข้าห้องที่เปิดอยู่ 2–4 คน เล่นดัมมี่จากมือถือตัวเอง ระบบแจก นับแต้ม และสรุปให้ว่าใครจ่ายใคร</div><div class="rules"><span class="pill sync" id="dmSync" role="status">กำลังเชื่อมต่อ…</span></div></section>
+
+<div class="p-seat-bar p-seat-top" id="dmSeat" role="status"></div>
+
+<section class="card" id="dmLobby" hidden><h2>ห้องดัมมี่</h2>
+ <div class="muted">เลือกห้องที่เปิดอยู่ หรือสร้างห้องใหม่ • นั่งได้ห้องละ 4 คน</div>
+ <div id="dmRooms" class="p-rooms" role="list"></div>
+ <h3 class="p-sub">สร้างห้องใหม่</h3>
+ <div class="d-settings"><label>ชื่อห้อง<input id="dmRoomName" maxlength="30" placeholder="เช่น ดัมมี่หลังซ้อม"></label><label>หารแต้มด้วย <small>(แต้ม ÷ ตัวหาร = บาท)</small><input type="number" inputmode="decimal" id="dmDivisor" min="1" value="10"></label></div>
+ <div class="actions"><button type="button" class="primary" id="dmCreate">สร้างห้องแล้วนั่งเลย</button></div>
+ <p class="muted dm-login" id="dmLogin" hidden>เข้าสู่ระบบที่หน้าแรกก่อน ถึงจะนั่งเล่นได้</p>
+</section>
+
+<section class="card dm-table" id="dmTable" aria-label="โต๊ะดัมมี่" hidden></section>
+
+<section class="card" id="dmRoom" hidden><h2 id="dmRoomTitle">ห้องนี้</h2>
+ <div class="muted" id="dmMeta"></div>
+ <div id="dmPlayers" class="p-players"></div>
+ <div id="dmPay" class="d-pay" hidden><h3>ใครจ่ายใคร</h3><div class="muted">รวมทุกเกมในห้องนี้ โอนน้อยครั้งที่สุด</div><div id="dmPayList" class="d-pay-list"></div><button type="button" class="secondary" id="dmPayCopy">คัดลอกไปส่งในไลน์</button></div>
+ <div class="actions" id="dmRoomActs"></div>
+</section>
+
+<section class="card" id="dmRules"><details><summary><h2>กติกาที่ใช้</h2></summary>
+ <ul class="dm-rules">
+  <li>2 คนได้ 11 ใบ • 3 คนได้ 9 ใบ • 4 คนได้ 7 ใบ แล้วหงายใบถัดไปเป็น <b>หัว</b> ในกองทิ้ง</li>
+  <li>แต่ละตา <b>จั่ว</b> 1 ใบ หรือ <b>เก็บ</b> ไพ่ในกองทิ้ง (ได้ใบนั้นและทุกใบที่ทิ้งทีหลัง) แล้วต้องลงใบที่เก็บเป็นชุดทันที</li>
+  <li><b>ลง</b> ตอง (3–4 ใบหน้าเดียวกัน) หรือเรียง (3 ใบขึ้นไป ดอกเดียวกัน A อยู่หัวหรือท้ายได้) • <b>ฝาก</b> ต่อชุดบนโต๊ะได้เมื่อลงชุดของตัวเองแล้ว • จบตาด้วย <b>ทิ้ง</b> 1 ใบ</li>
+  <li>ทิ้งใบสุดท้าย = <b>น็อค</b> จบเกม • จั่วกองหมดแล้วทิ้ง = จบเกม</li>
+  <li>แต้ม: 2–9 = 5 • 10 J Q K = 10 • A = 15 • 2♣ กับ Q♠ (สเปโต) = 50 • ไพ่ที่ลง/ฝากเป็นบวก ไพ่ค้างมือเป็นลบ</li>
+  <li>เก็บหัว +50 • น็อค +50 (น็อคมืด ×2 • น็อคสี ×2) • ทิ้งสเปโตหรือทิ้งใบที่ฝากได้แล้วโดนเก็บไปลง −50</li>
+  <li>เงิน: แต้มแต่ละเกม ÷ ตัวหาร ปัดเป็นบาทเต็ม แล้วจ่ายส่วนต่างกันทุกคู่ (เหมือนแบบ 1 ในหน้านับแต้ม)</li>
+ </ul></details></section>
+
+<section class="card" id="dmHistCard" hidden><h2>ห้องก่อน ๆ</h2><div id="dmHist" class="d-days"></div></section>
+<div class="d-toast" id="dmToast" role="status" aria-live="polite"></div>
+</main><script src="shared.js?v=20261023-pokersrv" defer></script><script src="pin-change.js?v=20261019-sec2" defer></script><script src="promptpay.js?v=20261017-profile2" defer></script><script src="profile-me.js?v=20261018-perf" defer></script><script src="dummy-game.js?v=20261023-online" defer></script><script src="dummy-online.js?v=20261023-table" defer></script><script src="league-stats.js?v=20261020-e2e2" defer></script><script src="elo.js?v=20261020-perf2" defer></script><script src="hall.js?v=20261020-perf2" defer></script><script src="predboard-rank.js?v=20261020-predrank" defer></script><script src="player-card.js?v=20261020-perf2" defer></script><script src="awards.js?v=20261020-awards" defer></script><script src="challenge.js?v=20261020-perf2" defer></script><script src="wrapped.js?v=20261018-wrap" defer></script><script src="push-config.js?v=20261019-push" defer></script><script src="pwa.js?v=20261020-perf2" defer></script><script src="effects.js?v=20261020-perf2" defer></script><script src="sport-ui.js?v=20261023-dummyol" defer></script><script src="portal/switcher.js?v=2"></script>
+</body></html>
