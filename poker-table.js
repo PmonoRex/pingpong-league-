@@ -8,6 +8,8 @@
   const C = PokerCards, $ = sel => root?.querySelector(sel);
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const num = v => Number(v || 0).toLocaleString("th-TH");
+  // Credit rooms show each player's result so far in baht.
+  const signed = v => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(Number(v || 0)).toLocaleString("th-TH", { maximumFractionDigits: 2 })}฿`;
   let root = null, picking = null, raise = { key: "", to: 0 }, odds = { key: "", html: "" }, keypad = null, settling = false;
   const table = () => { try { return window.PokerTable?.get() || null; } catch { return null; } };
   const mineOf = t => t.app ? (t.myCards ? t.myCards.slice() : [null, null]) : (window.PokerMine?.get(t) || [null, null]);
@@ -77,7 +79,7 @@
       const tags = bet ? [name === bet.button ? '<i class="pt-tag pt-d">D</i>' : "", name === bet.sbName ? '<i class="pt-tag">SB</i>' : "", name === bet.bbName ? '<i class="pt-tag">BB</i>' : ""].join("") : "";
       const state = out ? "หมอบ" : p?.allIn ? "ออลอิน" : turn ? "ถึงตา" : "";
       const chips = p && p.streetBet ? `<div class="pt-bet" style="left:${bx}%;top:${by}%"><i></i>${num(p.streetBet)}</div>` : "";
-      return `${chips}<div class="pt-seat${me ? " pt-me" : ""}${y < 45 ? " pt-upper" : ""}${turn ? " pt-turn" : ""}${out ? " pt-out" : ""}" style="left:${x}%;top:${y}%"><div class="pt-cards">${cards}</div><div class="pt-plate">${avatar(name)}<span class="pt-who"><b>${esc(name)}</b><small>${num(t.stacks[name])}</small></span>${tags}</div>${state ? `<span class="pt-state">${state}</span>` : ""}</div>`;
+      return `${chips}<div class="pt-seat${me ? " pt-me" : ""}${y < 45 ? " pt-upper" : ""}${turn ? " pt-turn" : ""}${out ? " pt-out" : ""}" style="left:${x}%;top:${y}%"><div class="pt-cards">${cards}</div><div class="pt-plate">${avatar(name)}<span class="pt-who"><b>${esc(name)}</b><small>${t.credit ? signed(t.nets[name]) : num(t.stacks[name])}</small></span>${tags}</div>${state ? `<span class="pt-state">${state}</span>` : ""}</div>`;
     }).join("");
     const board = t.hand.board.map((c, i) => t.app ? (c === null ? '<span class="pt-card pt-slot pt-wait" aria-hidden="true"></span>' : cardImg(c)) : c === null ? slot(`data-pick="board:${i}"`, `ไพ่กองกลางใบที่ ${i + 1}`) : `<button type="button" class="pt-cardbtn" data-pick="board:${i}" aria-label="กองกลาง: ${C.speak(c)} (แตะเพื่อเปลี่ยน)">${cardImg(c)}</button>`).join("");
     const center = `<div class="pt-center"><div class="pt-pot">${bet ? `<small>${esc(bet.streetName)}</small>กอง <b>${num(bet.pot)}</b>` : `<small>บลายด์ ${num(t.sb)}/${num(t.bb)}</small>ยังไม่เริ่มตา`}</div><div class="pt-board">${board}</div>${centerNote(t)}</div>`;
@@ -124,7 +126,7 @@
     const quick = (to, text) => `<button type="button" class="pt-chip" data-to="${to}">${text}</button>`;
     const potTo = share => Math.max(bet.minTo, Math.min(bet.maxTo, bet.currentBet + Math.round((bet.pot + bet.toCall) * share)));
     return `<button type="button" class="pt-btn" data-act="fold">หมอบ</button>${bet.toCall ? `<button type="button" class="pt-btn pt-primary" data-act="call">${allInCall ? "คอล ออลอิน" : "คอล"} ${num(bet.toCall)}</button>` : '<button type="button" class="pt-btn pt-primary" data-act="check">เช็ค</button>'}`
-      + (canRaise ? `<span class="pt-raise"><button type="button" class="pt-step" data-step="-1" aria-label="ลด">−</button><button type="button" class="pt-amount" data-act="keypad" aria-label="พิมพ์ยอดเอง: ${num(raise.to)}">${num(raise.to)}</button><button type="button" class="pt-step" data-step="1" aria-label="เพิ่ม">+</button><button type="button" class="pt-btn pt-raise-go" data-act="raise">${bet.currentBet ? "เรส" : "เบท"}</button></span><span class="pt-quick">${quick(bet.minTo, "ขั้นต่ำ")}${quick(potTo(.5), "½ กอง")}${quick(potTo(1), "กอง")}${quick(bet.maxTo, "ออลอิน")}</span>` : "");
+      + (canRaise ? `<span class="pt-raise"><button type="button" class="pt-step" data-step="-1" aria-label="ลด">−</button><button type="button" class="pt-amount" data-act="keypad" aria-label="พิมพ์ยอดเอง: ${num(raise.to)}">${num(raise.to)}</button><button type="button" class="pt-step" data-step="1" aria-label="เพิ่ม">+</button><button type="button" class="pt-btn pt-raise-go" data-act="raise">${bet.currentBet ? "เรส" : "เบท"}</button></span><span class="pt-quick">${quick(bet.minTo, "ขั้นต่ำ")}${quick(potTo(.5), "½ กอง")}${quick(potTo(1), "กอง")}${t.credit ? "" : quick(bet.maxTo, "ออลอิน")}</span>` : "");
   }
   const resultLine = bet => bet.players.map(p => { const d = bet.delta[p.name] || 0; return `<span class="${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${esc(p.name)} ${d > 0 ? "+" : ""}${num(d)}</span>`; }).join(" ");
   // Your own bet: an on-screen number pad (the phone keyboard would come up sideways on a turned stage).
@@ -135,7 +137,7 @@
     const to = Math.min(value, bet.maxTo), verb = bet.currentBet ? "เรสเป็น" : "เบท";
     const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "0", "⌫"];
     return `<div class="pt-picker pt-pad" role="dialog" aria-label="พิมพ์ยอด"><div class="pt-pick-head"><b>${verb}เท่าไหร่?</b><span><button type="button" class="pt-chip" data-act="pad-close">ปิด</button></span></div>
-<div class="pt-pad-show"><b aria-live="polite">${keypad.value ? num(value) : "0"}</b><small>ขั้นต่ำ ${num(bet.minTo)} • มีอยู่ ${num(bet.maxTo)}${allIn && value ? " • ออลอิน" : ""}</small></div>
+<div class="pt-pad-show"><b aria-live="polite">${keypad.value ? num(value) : "0"}</b><small>ขั้นต่ำ ${num(bet.minTo)}${t.credit ? "฿" : ` • มีอยู่ ${num(bet.maxTo)}${allIn && value ? " • ออลอิน" : ""}`}</small></div>
 <div class="pt-pad-keys">${keys.map(k => `<button type="button" class="pt-key" data-key="${k}" aria-label="${k === "C" ? "ล้าง" : k === "⌫" ? "ลบ" : k}">${k === "C" ? "ล้าง" : k}</button>`).join("")}</div>
 <button type="button" class="pt-btn pt-primary pt-pad-go" data-act="pad-go"${ok && value ? "" : " disabled"}>${ok && value ? `${allIn ? "ออลอิน" : verb} ${num(to)}` : `อย่างน้อย ${num(bet.minTo)}`}</button></div>`;
   }
@@ -145,7 +147,7 @@
     const baht = v => `${v > 0 ? "+" : ""}${Number(v).toLocaleString("th-TH", { maximumFractionDigits: 2 })}฿`;
     const nets = live.rows.map(r => `<span class="${r.net > 0 ? "pos" : r.net < 0 ? "neg" : ""}">${esc(r.name)} ${baht(r.net)}</span>`).join("");
     const lines = live.transfers.length ? live.transfers.map(l => `<div class="pt-pay-row"><b>${esc(l.from)}</b><span>จ่าย ➜</span><b>${esc(l.to)}</b><b class="pt-pay-amt">${baht(l.amount).replace("+", "")}</b>${window.LeagueProfile?.openPay ? `<button type="button" class="pt-chip" data-pay="${esc(l.to)}" data-from="${esc(l.from)}" data-amount="${l.amount}">โอน</button>` : ""}</div>`).join("") : '<div class="pt-msg">ยังเท่าทุนกันหมด</div>';
-    return `<div class="pt-picker pt-settle" role="dialog" aria-label="ใครจ่ายใคร"><div class="pt-pick-head"><b>ใครจ่ายใคร <small>ถ้าเลิกตอนนี้</small></b><span><button type="button" class="pt-chip" data-act="settle-close">ปิด</button></span></div><div class="pt-settle-nets">${nets}</div>${lines}<small class="pt-settle-note">คิดจากชิปบนโต๊ะ ÷ ${esc(String(t.rate))} ชิปต่อบาท ลบเงินที่ซื้อ${live.pending ? " • ตาที่กำลังเล่นยังไม่นับ" : ""}</small></div>`;
+    return `<div class="pt-picker pt-settle" role="dialog" aria-label="ใครจ่ายใคร"><div class="pt-pick-head"><b>ใครจ่ายใคร <small>ถ้าเลิกตอนนี้</small></b><span><button type="button" class="pt-chip" data-act="settle-close">ปิด</button></span></div><div class="pt-settle-nets">${nets}</div>${lines}<small class="pt-settle-note">${t.credit ? "ได้เสียกันในห้องนี้" : `คิดจากชิปบนโต๊ะ ÷ ${esc(String(t.rate))} ชิปต่อบาท ลบเงินที่ซื้อ`}${live.pending ? " • ตาที่กำลังเล่นยังไม่นับ" : ""}</small></div>`;
   }
   function picker(t, mine) {
     const used = new Set([...t.hand.board, ...mine, ...Object.values(t.hand.shown).flat()].filter(c => c !== null));
