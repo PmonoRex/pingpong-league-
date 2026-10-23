@@ -62,3 +62,28 @@ test('the night keeps sealed deals, keys and the mode; old boxes are dropped', a
   poker = N.setMode(poker, id, 'real');
   assert.equal(N.view(poker.nights[id]).mode, 'real');
 });
+
+test('a server-dealt hand takes its board and shown hands only from the server', () => {
+  let { poker, id } = N.startNight({}, { buyIn: 100, chips: 100, names: ['A', 'B'], sb: 1, bb: 2, mode: 'server' });
+  assert.equal(N.view(poker.nights[id]).mode, 'server');
+  const next = N.nextDeal(poker.nights[id]);
+  poker = N.deal(poker, id, { ...next, id: 'shand1', mode: 'server', by: 'A' });
+  let v = N.view(poker.nights[id]);
+  assert.equal(v.hand.key, 'shand1', 'the deal keeps the id the server dealt under'); assert.ok(v.hand.server);
+  // board and show events written into the row by a phone do not count
+  poker = N.setBoard(poker, id, 0, 51); poker = N.show(poker, id, 'B', [0, 1]);
+  v = N.view(poker.nights[id]);
+  assert.deepEqual(plain(v.hand.board), [null, null, null, null, null]); assert.deepEqual(plain(v.hand.shown), {});
+  // what the server says does, but only for this hand
+  const server = { key: 'shand1', board: [4, 8, 12], shown: { A: [50, 49] } };
+  v = N.view(poker.nights[id], { server });
+  assert.deepEqual(plain(v.hand.board), [4, 8, 12, null, null]); assert.deepEqual(plain(v.hand.shown), { A: [50, 49] });
+  assert.deepEqual(plain(N.view(poker.nights[id], { server: { ...server, key: 'other' } }).hand.board), [null, null, null, null, null]);
+  // a pot settled by the server's cards carries into the next deal's result
+  poker = N.act(poker, id, 'A', 'raise', 100); poker = N.act(poker, id, 'B', 'call');
+  const full = { key: 'shand1', board: [0, 5, 22, 31, 45], shown: { A: [51, 50], B: [8, 13] } }; // A♣A♦ against 4♠5♥ on 2♠ 3♥ 7♦ 9♣ Q♥
+  const done = N.view(poker.nights[id], { server: full }).hand.bet;
+  assert.ok(done.done); assert.deepEqual(plain(done.delta), { A: 100, B: -100 });
+  assert.deepEqual(plain(N.nextDeal(poker.nights[id], { server: full }).res), { A: 100, B: -100 });
+  assert.deepEqual(plain(N.nextDeal(poker.nights[id]).res), {}, 'without the server the hand is not settled');
+});

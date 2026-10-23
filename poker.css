@@ -215,7 +215,7 @@ button.pt-cardbtn:disabled{opacity:1}
 @keyframes ptPulse{50%{box-shadow:0 0 0 2px var(--red-glow),0 0 26px var(--red-glow)}}
 
 /* ไพ่จริง / แจกในแอป */
-.p-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.p-modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
 .p-mode-card{position:relative;display:grid;gap:4px;padding:12px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line-2);cursor:pointer}
 .p-mode-card input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .p-mode-card b{font-size:16px}
@@ -229,3 +229,14 @@ body.sport-redesign .pb-mode-opt:disabled{opacity:.6}
 .pt-modeflag{font-style:normal;padding:1px 8px;border-radius:999px;background:var(--red);color:#fff;font-size:12px}
 .pt-card.pt-wait{background:rgba(0,0,0,.18);border:2px dashed rgba(255,255,255,.25);box-shadow:none}
 @media(max-width:420px){.p-modes{grid-template-columns:1fr}}
+
+/* พิมพ์ยอดเอง: number pad on the table */
+.pt-amount{min-width:64px;min-height:40px!important;padding:2px 10px!important;border-radius:9px;background:var(--field);color:var(--text);border:1px dashed var(--line-2);font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+.pt-pad{width:min(92%,380px)}
+.pt-pad-show{display:grid;justify-items:center;gap:2px;padding:6px 0 8px}
+.pt-pad-show b{font-family:var(--display);font-style:italic;font-weight:800;font-size:calc(var(--h) * .08);color:var(--gold);font-variant-numeric:tabular-nums lining-nums}
+.pt-pad-show small{color:var(--text-soft);font-size:12px}
+.pt-pad-keys{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.pt-key{min-height:calc(var(--h) * .1)!important;padding:0!important;border-radius:9px;background:var(--panel-3);color:var(--text);border:0;font-weight:800;font-size:18px}
+.pt-pad-go{margin-top:6px;width:100%}
+.pt-pad-go:disabled{opacity:.5}

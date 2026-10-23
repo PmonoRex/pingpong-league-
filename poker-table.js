@@ -8,7 +8,7 @@
   const C = PokerCards, $ = sel => root?.querySelector(sel);
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const num = v => Number(v || 0).toLocaleString("th-TH");
-  let root = null, picking = null, raise = { key: "", to: 0 }, odds = { key: "", html: "" };
+  let root = null, picking = null, raise = { key: "", to: 0 }, odds = { key: "", html: "" }, keypad = null;
   const table = () => { try { return window.PokerTable?.get() || null; } catch { return null; } };
   const mineOf = t => t.app ? (t.myCards ? t.myCards.slice() : [null, null]) : (window.PokerMine?.get(t) || [null, null]);
   const avatar = name => window.LeagueUI?.avatar ? window.LeagueUI.avatar(window.LeagueProfile?.payeeByName?.(LeagueShared.readLocalLeague(), name)?.id || `guest:${name}`, name, "") : "";
@@ -36,7 +36,13 @@
     if (!fromHistory && history.state?.pokerTable) history.back();
   }
   addEventListener("popstate", () => { if (root) close(true); });
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && root) { if (picking) { picking = null; render(); } else close(); } });
+  document.addEventListener("keydown", e => {
+    if (!root) return;
+    // A hardware keyboard works on the pad too.
+    if (keypad && /^[0-9]$/.test(e.key)) { keypad.value = (keypad.value + e.key).replace(/^0+/, "").slice(0, 7); return render(); }
+    if (keypad && e.key === "Backspace") { keypad.value = keypad.value.slice(0, -1); return render(); }
+    if (e.key === "Escape") { if (keypad) keypad = null; else if (picking) picking = null; else return close(); render(); }
+  });
   // Android: fullscreen, then lock to landscape (both need the tap that opened the table). Elsewhere CSS rotates.
   async function landscape() {
     try {
@@ -75,8 +81,8 @@
     }).join("");
     const board = t.hand.board.map((c, i) => t.app ? (c === null ? '<span class="pt-card pt-slot pt-wait" aria-hidden="true"></span>' : cardImg(c)) : c === null ? slot(`data-pick="board:${i}"`, `ไพ่กองกลางใบที่ ${i + 1}`) : `<button type="button" class="pt-cardbtn" data-pick="board:${i}" aria-label="กองกลาง: ${C.speak(c)} (แตะเพื่อเปลี่ยน)">${cardImg(c)}</button>`).join("");
     const center = `<div class="pt-center"><div class="pt-pot">${bet ? `<small>${esc(bet.streetName)}</small>กอง <b>${num(bet.pot)}</b>` : `<small>บลายด์ ${num(t.sb)}/${num(t.bb)}</small>ยังไม่เริ่มตา`}</div><div class="pt-board">${board}</div>${centerNote(t)}</div>`;
-    root.innerHTML = `<div class="pt-stage"><header class="pt-top"><span>ตาที่ ${t.hand.no}${t.app ? ' • <i class="pt-modeflag">แจกในแอป</i>' : ""}</span><span class="pt-myhand">${myHand(t, mine)}</span><button type="button" class="pt-exit" data-act="exit" aria-label="ออกจากโหมดโต๊ะ">ออก</button></header>
-<div class="pt-table"><div class="pt-felt"></div>${center}${seatsHtml}</div><div class="pt-bar">${actions(t, mine)}</div>${picking ? picker(t, mine) : ""}</div>`;
+    root.innerHTML = `<div class="pt-stage"><header class="pt-top"><span>ตาที่ ${t.hand.no}${t.app ? ` • <i class="pt-modeflag">${t.server ? "เซิร์ฟเวอร์แจก" : "แจกในแอป"}</i>` : ""}</span><span class="pt-myhand">${myHand(t, mine)}</span><button type="button" class="pt-exit" data-act="exit" aria-label="ออกจากโหมดโต๊ะ">ออก</button></header>
+<div class="pt-table"><div class="pt-felt"></div>${center}${seatsHtml}</div><div class="pt-bar">${actions(t, mine)}</div>${picking ? picker(t, mine) : ""}${keypad ? pad(t) : ""}</div>`;
   }
   function centerNote(t) {
     const bet = t.bet;
@@ -108,7 +114,7 @@
     const bet = t.bet, meIn = bet?.players.find(p => p.name === t.me);
     const reveal = mine.every(c => c !== null) && !t.hand.shown[t.me] && !t.hand.folded.includes(t.me) && !meIn?.folded
       ? '<button type="button" class="pt-btn" data-act="show">เปิดไพ่</button>' : "";
-    if (!bet || bet.done) return `<span class="pt-msg">${bet?.done ? resultLine(bet) : t.mode === "app" ? "กดแจกไพ่ แอปจะสับและแจกให้ทุกคน" : "แตะ + บนโต๊ะเพื่อเลือกไพ่ได้"}</span>${reveal}${t.canDeal ? `<button type="button" class="pt-btn pt-primary" data-act="deal">แจกไพ่ตาใหม่</button>` : ""}`;
+    if (!bet || bet.done) return `<span class="pt-msg">${bet?.done ? resultLine(bet) : t.mode === "app" ? "กดแจกไพ่ แอปจะสับและแจกให้ทุกคน" : t.mode === "server" ? "กดแจกไพ่ เซิร์ฟเวอร์จะสับและแจกให้ทุกคน" : "แตะ + บนโต๊ะเพื่อเลือกไพ่ได้"}</span>${reveal}${t.canDeal ? `<button type="button" class="pt-btn pt-primary" data-act="deal">แจกไพ่ตาใหม่</button>` : ""}`;
     if (bet.street >= 4) return `<span class="pt-msg">โชว์ไพ่ • เลือกคนชนะกลางโต๊ะ หรือทุกคนเปิดไพ่ให้ระบบตัดสิน</span>${reveal}`;
     if (bet.toAct !== t.me) return `<span class="pt-msg">${meIn && !meIn.folded ? "รอ " : ""}<b>${esc(bet.toAct || "")}</b> กำลังตัดสินใจ</span>${reveal}`;
     const key = `${t.handKey}:${bet.street}:${bet.currentBet}`;
@@ -118,9 +124,21 @@
     const quick = (to, text) => `<button type="button" class="pt-chip" data-to="${to}">${text}</button>`;
     const potTo = share => Math.max(bet.minTo, Math.min(bet.maxTo, bet.currentBet + Math.round((bet.pot + bet.toCall) * share)));
     return `<button type="button" class="pt-btn" data-act="fold">หมอบ</button>${bet.toCall ? `<button type="button" class="pt-btn pt-primary" data-act="call">${allInCall ? "คอล ออลอิน" : "คอล"} ${num(bet.toCall)}</button>` : '<button type="button" class="pt-btn pt-primary" data-act="check">เช็ค</button>'}`
-      + (canRaise ? `<span class="pt-raise"><button type="button" class="pt-step" data-step="-1" aria-label="ลด">−</button><b aria-live="polite">${num(raise.to)}</b><button type="button" class="pt-step" data-step="1" aria-label="เพิ่ม">+</button><button type="button" class="pt-btn pt-raise-go" data-act="raise">${bet.currentBet ? "เรส" : "เบท"}</button></span><span class="pt-quick">${quick(bet.minTo, "ขั้นต่ำ")}${quick(potTo(.5), "½ กอง")}${quick(potTo(1), "กอง")}${quick(bet.maxTo, "ออลอิน")}</span>` : "");
+      + (canRaise ? `<span class="pt-raise"><button type="button" class="pt-step" data-step="-1" aria-label="ลด">−</button><button type="button" class="pt-amount" data-act="keypad" aria-label="พิมพ์ยอดเอง: ${num(raise.to)}">${num(raise.to)}</button><button type="button" class="pt-step" data-step="1" aria-label="เพิ่ม">+</button><button type="button" class="pt-btn pt-raise-go" data-act="raise">${bet.currentBet ? "เรส" : "เบท"}</button></span><span class="pt-quick">${quick(bet.minTo, "ขั้นต่ำ")}${quick(potTo(.5), "½ กอง")}${quick(potTo(1), "กอง")}${quick(bet.maxTo, "ออลอิน")}</span>` : "");
   }
   const resultLine = bet => bet.players.map(p => { const d = bet.delta[p.name] || 0; return `<span class="${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${esc(p.name)} ${d > 0 ? "+" : ""}${num(d)}</span>`; }).join(" ");
+  // Your own bet: an on-screen number pad (the phone keyboard would come up sideways on a turned stage).
+  function pad(t) {
+    const bet = t.bet;
+    if (!bet || bet.toAct !== t.me || bet.maxTo <= bet.currentBet) { keypad = null; return ""; }
+    const value = Number(keypad.value || 0), allIn = value >= bet.maxTo, ok = value >= bet.minTo || allIn;
+    const to = Math.min(value, bet.maxTo), verb = bet.currentBet ? "เรสเป็น" : "เบท";
+    const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "0", "⌫"];
+    return `<div class="pt-picker pt-pad" role="dialog" aria-label="พิมพ์ยอด"><div class="pt-pick-head"><b>${verb}เท่าไหร่?</b><span><button type="button" class="pt-chip" data-act="pad-close">ปิด</button></span></div>
+<div class="pt-pad-show"><b aria-live="polite">${keypad.value ? num(value) : "0"}</b><small>ขั้นต่ำ ${num(bet.minTo)} • มีอยู่ ${num(bet.maxTo)}${allIn && value ? " • ออลอิน" : ""}</small></div>
+<div class="pt-pad-keys">${keys.map(k => `<button type="button" class="pt-key" data-key="${k}" aria-label="${k === "C" ? "ล้าง" : k === "⌫" ? "ลบ" : k}">${k === "C" ? "ล้าง" : k}</button>`).join("")}</div>
+<button type="button" class="pt-btn pt-primary pt-pad-go" data-act="pad-go"${ok && value ? "" : " disabled"}>${ok && value ? `${allIn ? "ออลอิน" : verb} ${num(to)}` : `อย่างน้อย ${num(bet.minTo)}`}</button></div>`;
+  }
   function picker(t, mine) {
     const used = new Set([...t.hand.board, ...mine, ...Object.values(t.hand.shown).flat()].filter(c => c !== null));
     const [group, i] = picking.split(":"), current = group === "board" ? t.hand.board[i] : mine[i];
@@ -144,6 +162,15 @@
     }
     if (el('[data-act="clear"]') && picking) { const [group, i] = picking.split(":"); if (group === "board") window.PokerTable.setBoard(Number(i), null); else window.PokerMine?.set(t, Number(i), null); return render(); }
     if (el('[data-act="unpick"]')) { picking = null; return render(); }
+    if (el('[data-act="keypad"]')) { keypad = { value: "" }; return render(); }
+    if (el('[data-act="pad-close"]')) { keypad = null; return render(); }
+    const key = el("[data-key]");
+    if (key && keypad) { const k = key.dataset.key; keypad.value = k === "C" ? "" : k === "⌫" ? keypad.value.slice(0, -1) : (keypad.value + k).replace(/^0+/, "").slice(0, 7); return render(); }
+    if (el('[data-act="pad-go"]') && keypad && t.bet) {
+      const to = Math.min(Number(keypad.value || 0), t.bet.maxTo); keypad = null;
+      if (to >= t.bet.minTo || to === t.bet.maxTo) { raise.to = to; return window.PokerTable.act("raise", to); }
+      return render();
+    }
     const step = el("[data-step]");
     if (step && t.bet) { raise.to = Math.max(t.bet.minTo, Math.min(t.bet.maxTo, raise.to + Number(step.dataset.step) * t.bb)); return render(); }
     const to = el("[data-to]"); if (to) { raise.to = Number(to.dataset.to); return render(); }
