@@ -123,15 +123,17 @@ if (typeof window !== "undefined") window.PokerCards = PokerCards;
   // My cards for the shared hand; a new deal (new hand key) starts them empty.
   function tableMine(T) { if (st.table.key !== T.handKey) { st.table = { key: T.handKey, mine: [null, null] }; save(); } return st.table.mine; }
   const boardArr = T => T ? T.hand.board : st.board;
-  const mineArr = T => T ? tableMine(T) : st.mine;
+  // แจกในแอป: my cards are the ones the app dealt me (opened on this phone), not picked by hand.
+  const mineArr = T => T ? (T.app ? (T.myCards ? T.myCards.slice() : [null, null]) : tableMine(T)) : st.mine;
   const groupArr = (g, T) => g === "board" ? boardArr(T) : g === "mine" ? mineArr(T) : st.opp[g];
-  const locked = T => Boolean(T && (T.hand.shown[T.me] || T.hand.folded.includes(T.me)));
+  const locked = T => Boolean(T && (T.app || T.hand.shown[T.me] || T.hand.folded.includes(T.me)));
   function usedCards(T) {
     const cards = [...boardArr(T), ...mineArr(T)];
     if (T) Object.values(T.hand.shown).forEach(h => cards.push(...h)); else st.opp.forEach(h => cards.push(...h));
     return new Set(cards.filter(c => c !== null));
   }
   function setCard(group, i, c, T) {
+    if (T?.app && (group === "board" || group === "mine")) return; // the app deals these
     if (group === "board" && T) return window.PokerTable.setBoard(i, c);
     if (group === "mine" && locked(T)) return;
     groupArr(group, T)[i] = c; save();
@@ -158,9 +160,9 @@ if (typeof window !== "undefined") window.PokerCards = PokerCards;
     const T = table();
     if (T) { const mine = mineArr(T); mine.forEach((c, i) => { if (c !== null && boardArr(T).includes(c)) mine[i] = null; }); }
     if (active && typeof active.group === "number" && T) active = null;
-    $("pcBoard").innerHTML = boardArr(T).map((c, i) => slot("board", i, c, BOARD_NAMES[i])).join("");
+    $("pcBoard").innerHTML = boardArr(T).map((c, i) => slot("board", i, c, BOARD_NAMES[i], Boolean(T?.app))).join("");
     $("pcMine").innerHTML = mineArr(T).map((c, i) => slot("mine", i, c, `ไพ่ของฉันใบที่ ${i + 1}`, locked(T))).join("");
-    $("pcMode").textContent = T ? `ตาที่ ${T.hand.no} • ไพ่กองกลางซิงก์กับทั้งโต๊ะ • ไพ่ในมืออยู่ในเครื่องนี้จนกว่าจะกดเปิด` : "แตะช่องแล้วเลือกไพ่ • เก็บไว้ในเครื่องนี้เท่านั้น";
+    $("pcMode").textContent = T ? (T.app ? `ตาที่ ${T.hand.no} • แจกในแอป: ไพ่กองกลางเปิดเองตามรอบ ไพ่ในมือเห็นแค่ในเครื่องนี้${T.myCards ? "" : " (กำลังเปิดไพ่…)"}` : `ตาที่ ${T.hand.no} • ไพ่กองกลางซิงก์กับทั้งโต๊ะ • ไพ่ในมืออยู่ในเครื่องนี้จนกว่าจะกดเปิด`) : "แตะช่องแล้วเลือกไพ่ • เก็บไว้ในเครื่องนี้เท่านั้น";
     $("pcStepper").hidden = Boolean(T);
     $("pcOppHint").textContent = T ? "คนอื่นเห็นหลังไพ่จนกว่าเจ้าตัวจะกดเปิดไพ่" : "ไม่รู้ไพ่คู่แข่งก็เว้นไว้ ระบบสุ่มให้ • ถ้าเปิดไพ่แล้วใส่ได้";
     if (T) {
