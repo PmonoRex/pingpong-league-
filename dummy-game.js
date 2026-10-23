@@ -253,32 +253,16 @@ const DummyRooms = (() => {
   }
   const same = (a, b) => JSON.stringify(normalize(a)) === JSON.stringify(normalize(b));
 
-  // Points → baht like แบบ 1 on the score sheet: each score ÷ divisor rounded to whole baht (halves away from zero),
+  // Points → play chips (not money) like แบบ 1 on the score sheet: each score ÷ divisor rounded to whole chips (halves away from zero),
   // and every pair settles the difference, so a player's net is their value × players − everyone's values.
   function settle(scores, divisor) {
     const vals = scores.map(v => { const x = int(v) / divisor; return Math.sign(x) * Math.round(Math.abs(x)) || 0; }), sum = vals.reduce((a, b) => a + b, 0);
     return vals.map(v => money(v * vals.length - sum));
   }
-  // Fewest transfers that settle everyone's net (in satang, so rounding never leaves a stray 0.01).
-  function transfers(nets) {
-    const list = Object.entries(nets).map(([name, v]) => ({ name, c: Math.round(v * 100) }));
-    const pay = list.filter(p => p.c < 0).map(p => ({ ...p, c: -p.c })).sort((a, b) => b.c - a.c || a.name.localeCompare(b.name));
-    const get = list.filter(p => p.c > 0).sort((a, b) => b.c - a.c || a.name.localeCompare(b.name));
-    const out = [];
-    let i = 0, j = 0;
-    while (i < pay.length && j < get.length) {
-      const c = Math.min(pay[i].c, get[j].c);
-      if (c > 0) out.push({ from: pay[i].name, to: get[j].name, amount: c / 100 });
-      pay[i].c -= c; get[j].c -= c;
-      if (!pay[i].c) i++; if (!get[j].c) j++;
-    }
-    return out;
-  }
-
   // Everything the page shows about a room.
-  //   seated: names at the table now (join order); players: everyone who ever sat, with games, points and baht so far
+  //   seated: names at the table now (join order); players: everyone who ever sat, with games, points and chips so far
   //   game: the game being played or just finished { id, no, seats, dealer, table, over, scores } (or null)
-  //   games: finished games [{ id, scores, money }]; transfers: who pays whom for the whole room
+  //   games: finished games [{ id, scores, chips }]
   function view(room) {
     room = normalizeRoom(room);
     const seated = [], everyone = [], games = [];
@@ -322,12 +306,11 @@ const DummyRooms = (() => {
     const finished = games.map(g => {
       const names = g.seats, m = settle(names.map(s => g.scores[s] || 0), room.divisor);
       names.forEach((s, i) => { totals[s] = (totals[s] || 0) + (g.scores[s] || 0); nets[s] = money((nets[s] || 0) + m[i]); played[s] = (played[s] || 0) + 1; });
-      return { id: g.id, no: g.no, seats: names, scores: g.scores, money: Object.fromEntries(names.map((s, i) => [s, m[i]])) };
+      return { id: g.id, no: g.no, seats: names, scores: g.scores, chips: Object.fromEntries(names.map((s, i) => [s, m[i]])) };
     });
     return {
       room, seated, running: Boolean(live()), game: game && !game.aborted ? game : null, games: finished,
       players: everyone.map(name => ({ name, seated: seated.includes(name), games: played[name] || 0, points: totals[name] || 0, net: nets[name] || 0 })),
-      transfers: transfers(nets),
       // A finished game whose result is not in the row yet (the page writes it).
       needsResult: game && game.done && !room.events.some(e => e.t === "res" && e.g === game.id) ? game : null
     };
@@ -360,6 +343,6 @@ const DummyRooms = (() => {
   function close(p, id) { const copy = normalize(p); if (copy.rooms[id]) copy.rooms[id].closedAt = Date.now(); return copy; }
   const openRooms = p => Object.values(normalize(p).rooms).filter(r => !r.closedAt).sort((a, b) => b.createdAt - a.createdAt);
   const history = p => Object.values(normalize(p).rooms).filter(r => r.closedAt).sort((a, b) => b.closedAt - a.closedAt);
-  return Object.freeze({ MAX_SEATS, cleanName, normalize, normalizeRoom, merge, same, settle, transfers, view, addEvent, create, join, leave, start, move, abort, result, close, openRooms, history });
+  return Object.freeze({ MAX_SEATS, cleanName, normalize, normalizeRoom, merge, same, settle, view, addEvent, create, join, leave, start, move, abort, result, close, openRooms, history });
 })();
 if (typeof window !== "undefined") { window.DummyGame = DummyGame; window.DummyRooms = DummyRooms; }

@@ -8,9 +8,9 @@
   const C = PokerCards, $ = sel => root?.querySelector(sel);
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const num = v => Number(v || 0).toLocaleString("th-TH");
-  // Credit rooms show each player's result so far in baht.
-  const signed = v => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(Number(v || 0)).toLocaleString("th-TH", { maximumFractionDigits: 2 })}฿`;
-  let root = null, picking = null, raise = { key: "", to: 0 }, odds = { key: "", html: "" }, keypad = null, settling = false;
+  // Rooms show each player's chips won or lost so far (play chips, not money).
+  const signed = v => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(Number(v || 0)).toLocaleString("th-TH")}`;
+  let root = null, picking = null, raise = { key: "", to: 0 }, odds = { key: "", html: "" }, keypad = null;
   const table = () => { try { return window.PokerTable?.get() || null; } catch { return null; } };
   const mineOf = t => t.app ? (t.myCards ? t.myCards.slice() : [null, null]) : (window.PokerMine?.get(t) || [null, null]);
   const avatar = name => window.LeagueUI?.avatar ? window.LeagueUI.avatar(window.LeagueProfile?.payeeByName?.(LeagueShared.readLocalLeague(), name)?.id || `guest:${name}`, name, "") : "";
@@ -83,8 +83,8 @@
     }).join("");
     const board = t.hand.board.map((c, i) => t.app ? (c === null ? '<span class="pt-card pt-slot pt-wait" aria-hidden="true"></span>' : cardImg(c)) : c === null ? slot(`data-pick="board:${i}"`, `ไพ่กองกลางใบที่ ${i + 1}`) : `<button type="button" class="pt-cardbtn" data-pick="board:${i}" aria-label="กองกลาง: ${C.speak(c)} (แตะเพื่อเปลี่ยน)">${cardImg(c)}</button>`).join("");
     const center = `<div class="pt-center"><div class="pt-pot">${bet ? `<small>${esc(bet.streetName)}</small>กอง <b>${num(bet.pot)}</b>` : `<small>บลายด์ ${num(t.sb)}/${num(t.bb)}</small>ยังไม่เริ่มตา`}</div><div class="pt-board">${board}</div>${centerNote(t)}</div>`;
-    root.innerHTML = `<div class="pt-stage"><header class="pt-top"><span>ตาที่ ${t.hand.no}${t.app ? ` • <i class="pt-modeflag">${t.server ? "เซิร์ฟเวอร์แจก" : "แจกในแอป"}</i>` : ""}</span><span class="pt-myhand">${myHand(t, mine)}</span>${t.settle ? '<button type="button" class="pt-exit pt-settle-btn" data-act="settle">ใครจ่ายใคร</button>' : ""}<button type="button" class="pt-exit" data-act="exit" aria-label="ออกจากโหมดโต๊ะ">ออก</button></header>
-<div class="pt-table"><div class="pt-felt"></div>${center}${seatsHtml}</div><div class="pt-bar">${actions(t, mine)}</div>${picking ? picker(t, mine) : ""}${keypad ? pad(t) : ""}${settling ? settlePanel(t) : ""}</div>`;
+    root.innerHTML = `<div class="pt-stage"><header class="pt-top"><span>ตาที่ ${t.hand.no}${t.app ? ` • <i class="pt-modeflag">${t.server ? "เซิร์ฟเวอร์แจก" : "แจกในแอป"}</i>` : ""}</span><span class="pt-myhand">${myHand(t, mine)}</span><button type="button" class="pt-exit" data-act="exit" aria-label="ออกจากโหมดโต๊ะ">ออก</button></header>
+<div class="pt-table"><div class="pt-felt"></div>${center}${seatsHtml}</div><div class="pt-bar">${actions(t, mine)}</div>${picking ? picker(t, mine) : ""}${keypad ? pad(t) : ""}</div>`;
   }
   function centerNote(t) {
     const bet = t.bet;
@@ -137,17 +137,9 @@
     const to = Math.min(value, bet.maxTo), verb = bet.currentBet ? "เรสเป็น" : "เบท";
     const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "0", "⌫"];
     return `<div class="pt-picker pt-pad" role="dialog" aria-label="พิมพ์ยอด"><div class="pt-pick-head"><b>${verb}เท่าไหร่?</b><span><button type="button" class="pt-chip" data-act="pad-close">ปิด</button></span></div>
-<div class="pt-pad-show"><b aria-live="polite">${keypad.value ? num(value) : "0"}</b><small>ขั้นต่ำ ${num(bet.minTo)}${t.credit ? "฿" : ` • มีอยู่ ${num(bet.maxTo)}${allIn && value ? " • ออลอิน" : ""}`}</small></div>
+<div class="pt-pad-show"><b aria-live="polite">${keypad.value ? num(value) : "0"}</b><small>ขั้นต่ำ ${num(bet.minTo)}${t.credit ? " ชิป" : ` • มีอยู่ ${num(bet.maxTo)}${allIn && value ? " • ออลอิน" : ""}`}</small></div>
 <div class="pt-pad-keys">${keys.map(k => `<button type="button" class="pt-key" data-key="${k}" aria-label="${k === "C" ? "ล้าง" : k === "⌫" ? "ลบ" : k}">${k === "C" ? "ล้าง" : k}</button>`).join("")}</div>
 <button type="button" class="pt-btn pt-primary pt-pad-go" data-act="pad-go"${ok && value ? "" : " disabled"}>${ok && value ? `${allIn ? "ออลอิน" : verb} ${num(to)}` : `อย่างน้อย ${num(bet.minTo)}`}</button></div>`;
-  }
-  // ใครจ่ายใคร ถ้าเลิกตอนนี้ (PokerNight.liveSettle): each player's money now and the fewest transfers.
-  function settlePanel(t) {
-    const live = t.settle; if (!live) { settling = false; return ""; }
-    const baht = v => `${v > 0 ? "+" : ""}${Number(v).toLocaleString("th-TH", { maximumFractionDigits: 2 })}฿`;
-    const nets = live.rows.map(r => `<span class="${r.net > 0 ? "pos" : r.net < 0 ? "neg" : ""}">${esc(r.name)} ${baht(r.net)}</span>`).join("");
-    const lines = live.transfers.length ? live.transfers.map(l => `<div class="pt-pay-row"><b>${esc(l.from)}</b><span>จ่าย ➜</span><b>${esc(l.to)}</b><b class="pt-pay-amt">${baht(l.amount).replace("+", "")}</b>${window.LeagueProfile?.openPay ? `<button type="button" class="pt-chip" data-pay="${esc(l.to)}" data-from="${esc(l.from)}" data-amount="${l.amount}">โอน</button>` : ""}</div>`).join("") : '<div class="pt-msg">ยังเท่าทุนกันหมด</div>';
-    return `<div class="pt-picker pt-settle" role="dialog" aria-label="ใครจ่ายใคร"><div class="pt-pick-head"><b>ใครจ่ายใคร <small>ถ้าเลิกตอนนี้</small></b><span><button type="button" class="pt-chip" data-act="settle-close">ปิด</button></span></div><div class="pt-settle-nets">${nets}</div>${lines}<small class="pt-settle-note">${t.credit ? "ได้เสียกันในห้องนี้" : `คิดจากชิปบนโต๊ะ ÷ ${esc(String(t.rate))} ชิปต่อบาท ลบเงินที่ซื้อ`}${live.pending ? " • ตาที่กำลังเล่นยังไม่นับ" : ""}</small></div>`;
   }
   function picker(t, mine) {
     const used = new Set([...t.hand.board, ...mine, ...Object.values(t.hand.shown).flat()].filter(c => c !== null));
@@ -161,11 +153,6 @@
     const t = table(); if (!t) return close();
     const el = sel => e.target.closest(sel);
     if (el('[data-act="exit"]')) return close();
-    if (el('[data-act="settle"]')) { settling = !settling; picking = null; keypad = null; return render(); }
-    if (el('[data-act="settle-close"]')) { settling = false; return render(); }
-    // โอน: the QR sheet lives on the page, so leave the table first.
-    const pay = el("[data-pay]");
-    if (pay) { const args = { toName: pay.dataset.pay, fromName: pay.dataset.from, amount: Number(pay.dataset.amount) }; settling = false; close(); return window.LeagueProfile?.openPay(args); }
     const pick = el("[data-pick]"); if (pick && !t.app) { picking = picking === pick.dataset.pick ? null : pick.dataset.pick; return render(); }
     const card = el("[data-card]");
     if (card && picking) {
