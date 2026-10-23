@@ -8,6 +8,7 @@ const PokerNight = (() => {
   // Deals are never trimmed below MAX_DEALS: each one carries the chip result of the hand before it.
   const MAX_NIGHTS = 20, MAX_EVENTS = 600, MAX_DEALS = 1000, TYPES = ["join", "buy", "out", "undo", "board", "show", "fold", "deal", "act", "award", "key", "mode"];
   const MONEY = ["join", "buy", "out", "undo"], HAND = ["board", "show", "fold", "act", "award"], BET_ACTIONS = ["fold", "check", "call", "raise"];
+  const MODES = ["real", "app", "server"];
   const b64 = (v, max) => typeof v === "string" && v.length > 0 && v.length <= max && /^[A-Za-z0-9+/]+={0,2}$/.test(v);
   const nameList = (v, max) => [...new Set((Array.isArray(v) ? v : []).map(cleanName).filter(Boolean))].slice(0, max);
   const cardOk = c => Number.isInteger(c) && c >= 0 && c < 52;
@@ -32,11 +33,13 @@ const PokerNight = (() => {
         const holes = out.seats.map(nm => [nm, e.holes[nm]]).filter(([, h]) => h && b64(h.iv, 40) && b64(h.ct, 200)).map(([nm, h]) => [nm, { iv: h.iv, ct: h.ct }]);
         if (holes.length === out.seats.length) Object.assign(out, { mode: "app", by: cleanName(e.by), epk: e.epk, holes: Object.fromEntries(holes) });
       }
+      // แจกจากเซิร์ฟเวอร์: the deck is on the server under this deal's id (supabase pp_poker_* functions).
+      if (e.mode === "server" && out.seats) Object.assign(out, { mode: "server", by: cleanName(e.by) });
       return out;
     }
     // A player's public key for แจกในแอป (the private half never leaves their phone), and the table's card mode.
     if (e.t === "key") { out.name = cleanName(e.name); out.pub = e.pub; return out.name && b64(e.pub, 200) ? out : null; }
-    if (e.t === "mode") { out.mode = e.mode === "app" ? "app" : "real"; return out; }
+    if (e.t === "mode") { out.mode = MODES.includes(e.mode) ? e.mode : "real"; return out; }
     if (e.t === "award") { out.pot = e.pot; out.names = nameList(e.names, 10); return Number.isInteger(out.pot) && out.pot >= 0 && out.pot < 20 && out.names.length ? out : null; }
     // A board slot (0-2 flop, 3 turn, 4 river) set to a card, or -1 to clear it. Anyone at the table can set it.
     if (e.t === "board") { out.i = e.i; out.card = e.card; return Number.isInteger(out.i) && out.i >= 0 && out.i < 5 && (out.card === -1 || cardOk(out.card)) ? out : null; }
@@ -56,7 +59,7 @@ const PokerNight = (() => {
     // Blinds in chips; a night from before betting gets a big blind of about 1/50 of a buy-in.
     night.bb = int(n.bb) > 0 ? int(n.bb) : Math.max(1, Math.round(night.chips / 50));
     night.sb = int(n.sb) > 0 ? Math.min(int(n.sb), night.bb) : Math.max(1, Math.floor(night.bb / 2));
-    night.mode = n.mode === "app" ? "app" : "real";
+    night.mode = MODES.includes(n.mode) ? n.mode : "real";
     if (!night.id) return null;
     const seen = new Set();
     const all = (Array.isArray(n.events) ? n.events : []).map(normalizeEvent).filter(e => e && !seen.has(e.id) && seen.add(e.id))
@@ -98,20 +101,27 @@ const PokerNight = (() => {
   function history(p) { return Object.values(normalize(p).nights).filter(n => n.closedAt).sort((a, b) => b.closedAt - a.closedAt); }
 
   // Everything the page shows about a night, worked out from its events. Money is baht; chip counts are whole chips.
-  function view(night) {
+  // ext.server: { key, board, shown } from the server for a แจกจากเซิร์ฟเวอร์ hand; its board and shown hands are the
+  // only ones that count for that hand (board / show events in the row are ignored, so nobody can fake them).
+  function view(night, ext = {}) {
     night = normalizeNight(night);
     const undone = new Set(night.events.filter(e => e.t === "undo").map(e => e.ref));
     const live = night.events.filter(e => e.t !== "undo" && !undone.has(e.id));
     // The hand being played: everything after the latest deal.
     const lastDeal = live.map(e => e.t).lastIndexOf("deal"), dealEvent = lastDeal >= 0 ? live[lastDeal] : null;
     const hand = { no: Math.max(1, live.filter(e => e.t === "deal").length), deals: live.filter(e => e.t === "deal").length, key: dealEvent ? dealEvent.id : "first", board: [null, null, null, null, null], shown: {}, folded: [], button: dealEvent?.button || null, bet: null,
-      app: dealEvent?.mode === "app", by: dealEvent?.by || null, epk: dealEvent?.epk || null, holes: dealEvent?.holes || null };
+      app: dealEvent?.mode === "app", server: dealEvent?.mode === "server", by: dealEvent?.by || null, epk: dealEvent?.epk || null, holes: dealEvent?.holes || null };
+    const srv = hand.server && ext.server?.key === hand.key ? ext.server : null;
+    if (srv) {
+      hand.board = [0, 1, 2, 3, 4].map(i => Number.isInteger(srv.board?.[i]) ? srv.board[i] : null);
+      hand.shown = Object.fromEntries(Object.entries(srv.shown || {}).filter(([, c]) => Array.isArray(c) && c.length === 2));
+    }
     const keys = {}; let mode = night.mode;
     live.forEach(e => { if (e.t === "key") keys[e.name] = e.pub; else if (e.t === "mode") mode = e.mode; });
     const acts = [], awards = [];
     live.slice(lastDeal + 1).forEach(e => {
-      if (e.t === "board") hand.board[e.i] = e.card < 0 ? null : e.card;
-      else if (e.t === "show") hand.shown[e.name] = e.cards;
+      if (e.t === "board") { if (!hand.server) hand.board[e.i] = e.card < 0 ? null : e.card; }
+      else if (e.t === "show") { if (!hand.server) hand.shown[e.name] = e.cards; }
       else if (e.t === "fold" || (e.t === "act" && e.a === "fold")) { if (!hand.folded.includes(e.name)) hand.folded.push(e.name); if (e.t === "fold") acts.push({ name: e.name, a: "fold" }); else acts.push(e); }
       else if (e.t === "act") acts.push(e);
       else if (e.t === "award") awards.push(e);
@@ -195,8 +205,8 @@ const PokerNight = (() => {
   const award = (p, nightId, pot, names) => addEvent(p, nightId, { t: "award", pot, names });
   // A new hand: closes the one being played (its chip result is recorded here; an unfinished hand is called off and
   // everyone keeps what they had), deals in everyone seated with chips, and moves the button one seat left.
-  function nextDeal(night) {
-    const v = view(night), bet = v.hand.bet, res = bet?.done ? bet.delta : {};
+  function nextDeal(night, ext = {}) {
+    const v = view(night, ext), bet = v.hand.bet, res = bet?.done ? bet.delta : {};
     const order = v.players.map(x => x.name), after = nm => (v.bank[nm] || 0) + (res[nm] || 0);
     const seats = order.filter(nm => after(nm) > 0);
     let button = seats[0] || null;
@@ -204,9 +214,10 @@ const PokerNight = (() => {
     return { seats, button, res: Object.fromEntries(Object.entries(res).filter(([, d]) => d)) };
   }
   // `sealed` (แจกในแอป) adds { mode: "app", by, epk, holes } from poker-deal.js; it must cover exactly these seats.
-  function deal(p, nightId, sealed = null) {
+  // `sealed` may also carry the deal's own id and the seats it was made for (แจกจากเซิร์ฟเวอร์ deals the server first).
+  function deal(p, nightId, sealed = null, ext = {}) {
     const copy = normalize(p), night = copy.nights[nightId]; if (!night) return copy;
-    return addEvent(copy, nightId, { t: "deal", ...nextDeal(night), ...(sealed || {}) });
+    return addEvent(copy, nightId, { t: "deal", ...nextDeal(night, ext), ...(sealed || {}) });
   }
   const setKey = (p, nightId, name, pub) => addEvent(p, nightId, { t: "key", name, pub });
   const setMode = (p, nightId, mode) => addEvent(p, nightId, { t: "mode", mode });
@@ -223,6 +234,20 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   const baht = (v, sign = false) => `${sign && v > 0 ? "+" : ""}${Number(v).toLocaleString("th-TH", { maximumFractionDigits: 2 })}฿`;
   const chipsText = v => `${Number(v).toLocaleString("th-TH")} ชิป`;
   const KEY = "pp_poker_v1", Cloud = typeof LeagueShared !== "undefined" ? LeagueShared : null;
+  // แจกจากเซิร์ฟเวอร์: what the server says about the hand being played (board turned so far, hands shown, my cards).
+  // Every view of the night on this page goes through V so that hand's board and shown hands come from here.
+  let srv = { key: "", board: [], shown: {}, mine: null, at: 0 }, serverReady = null, serverBusy = false;
+  const ext = () => ({ server: srv });
+  const V = night => P.view(night, ext());
+  const rpc = (name, args) => Cloud.authedRpc(name, args);
+  // Whether supabase/migrations/20261023120000_poker_server_deal.sql has been run (and this phone is signed in).
+  async function probeServer() {
+    if (serverReady !== null) return serverReady;
+    if (!Cloud?.authedRpc || !Cloud.sessionToken?.()) return false;
+    try { await rpc("pp_poker_hand", { p_night: "probe", p_hand: "probe" }); serverReady = true; }
+    catch (error) { if (error.missing) serverReady = false; else return false; }
+    render(); return serverReady;
+  }
   let poker = load(), dirty = (() => { try { return localStorage.getItem(KEY + "_dirty") === "1"; } catch { return false; } })();
   let syncing = false, syncTimer = 0, cloudOff = !Cloud, picked = new Set();
   function load() { try { return P.normalize(JSON.parse(localStorage.getItem(KEY) || "null")); } catch { return P.normalize(null); } }
@@ -291,14 +316,14 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     if (picked.size < 1) return toast("เลือกผู้เล่นอย่างน้อย 1 คน");
     const sb = Math.round(Number($("pSb").value)) || undefined, bb = Math.round(Number($("pBb").value)) || undefined;
     if (sb && bb && sb > bb) return toast("บลายด์เล็กต้องไม่มากกว่าบลายด์ใหญ่");
-    const mode = document.querySelector('input[name="pMode"]:checked')?.value === "app" ? "app" : "real";
+    const chosen = document.querySelector('input[name="pMode"]:checked')?.value, mode = ["app", "server"].includes(chosen) ? chosen : "real";
     const { poker: next } = P.startNight(poker, { buyIn, chips, names: [...picked], sb, bb, mode });
     picked = new Set(); change(next); toast("เริ่มวงแล้ว • ทุกคนซื้อชิปคนละ 1 ไม้");
   });
 
   // ---- the night ----
   function renderNight(night) {
-    const v = P.view(night), n = v.night;
+    const v = V(night), n = v.night;
     const myName = me(); renderSeat(v, myName); renderBet(v, myName);
     $("pMeta").textContent = `ซื้อ 1 ไม้ = ${baht(n.buyIn)} ได้ ${chipsText(n.chips)} • ${v.players.length} คน • ลงรวม ${baht(v.paid)}`;
     $("pPlayers").innerHTML = v.players.map((p, i) => {
@@ -337,7 +362,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     // Pick up the latest table first, so a night someone just opened on another phone is the one we sit at.
     if (!cloudOff) { await syncNow(); }
     const night = nightNow(); if (!night) return toast("ยังไม่มีวงเปิดอยู่");
-    if (P.view(night).players.some(p => p.name === name)) return render();
+    if (V(night).players.some(p => p.name === name)) return render();
     change(P.join(poker, night.id, name)); toast(`เข้าโต๊ะแล้ว • ซื้อ ${baht(night.buyIn)}`);
     // Sitting down opens the table view (same tap, so fullscreen and the landscape lock are allowed).
     window.PokerTableView?.open();
@@ -347,8 +372,12 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   const tag = (on, text, cls = "") => on ? `<span class="pb-tag ${cls}">${text}</span>` : "";
   // ไพ่จริง (cards dealt at the table, entered by hand) or แจกในแอป (the app shuffles and deals). Switch between hands.
   function modeSwitch(v, seated) {
-    const busy = v.hand.bet && !v.hand.bet.done, opt = (m, label) => `<button type="button" class="pb-mode-opt" data-mode="${m}" aria-pressed="${v.mode === m}"${busy || !seated ? " disabled" : ""}>${label}</button>`;
-    return `<div class="pb-mode" role="group" aria-label="วิธีแจกไพ่">${opt("real", "ไพ่จริง")}${opt("app", "แจกในแอป")}</div>${v.mode === "app" ? `<p class="muted pb-hint">${busy ? "ตาถัดไปค่อยสลับโหมดได้ • " : ""}แอปสับไพ่และแจกให้ ไพ่ในมือเห็นแค่ในมือถือของแต่ละคน • เครื่องที่กดแจกเป็นคนสับ</p>` : busy ? '<p class="muted pb-hint">ตาถัดไปค่อยสลับโหมดได้</p>' : ""}`;
+    if (serverReady === null) probeServer();
+    const busy = v.hand.bet && !v.hand.bet.done, opt = (m, label, off = false) => `<button type="button" class="pb-mode-opt" data-mode="${m}" aria-pressed="${v.mode === m}"${busy || !seated || off ? " disabled" : ""}>${label}</button>`;
+    const note = { app: "แอปสับไพ่และแจกให้ ไพ่ในมือเห็นแค่ในมือถือของแต่ละคน • เครื่องที่กดแจกเป็นคนสับ", server: "เซิร์ฟเวอร์สับและเก็บสำรับไว้ ไม่มีใครเห็นไพ่ของคนอื่น รวมถึงคนที่กดแจก" }[v.mode];
+    return `<div class="pb-mode" role="group" aria-label="วิธีแจกไพ่">${opt("real", "ไพ่จริง")}${opt("app", "แจกในแอป")}${opt("server", "เซิร์ฟเวอร์แจก", serverReady === false && v.mode !== "server")}</div>`
+      + (note || busy ? `<p class="muted pb-hint">${busy ? "ตาถัดไปค่อยสลับโหมดได้" : ""}${busy && note ? " • " : ""}${note || ""}</p>` : "")
+      + (serverReady === false ? '<p class="muted pb-hint">เซิร์ฟเวอร์แจกยังไม่เปิดใช้ (เจ้าของเว็บต้องรัน SQL ไฟล์ poker_server_deal ก่อน)</p>' : "");
   }
   function renderBet(v, myName) {
     const el = $("pBet"), bet = v.hand.bet, n = v.night, seated = v.players.some(p => p.name === myName);
@@ -397,9 +426,9 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
       change(P.award(poker, night.id, k, names)); return;
     }
     const b = e.target.closest("[data-bet]"); if (!b) return;
-    const v = P.view(night), bet = v.hand.bet, a = b.dataset.bet;
+    const v = V(night), bet = v.hand.bet, a = b.dataset.bet;
     const modeBtn = e.target.closest("[data-mode]");
-    if (modeBtn) { if (P.view(night).mode !== modeBtn.dataset.mode) change(P.setMode(poker, night.id, modeBtn.dataset.mode)); return; }
+    if (modeBtn) { if (V(night).mode !== modeBtn.dataset.mode) change(P.setMode(poker, night.id, modeBtn.dataset.mode)); return; }
     if (a === "deal") {
       if (bet && !bet.done && !confirm("ตานี้ยังไม่จบ ยกเลิกแล้วแจกใหม่? ทุกคนได้ชิปที่ลงไปคืน")) return;
       window.PokerTable.deal(); return;
@@ -424,7 +453,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   });
   $("pPlayers").addEventListener("change", e => {
     const input = e.target.closest("[data-out]"), night = nightNow(); if (!input || !night) return;
-    const name = input.dataset.out, prev = P.view(night).players.find(p => p.name === name)?.out ?? null;
+    const name = input.dataset.out, prev = V(night).players.find(p => p.name === name)?.out ?? null;
     if (input.value === "") { if (prev !== null) { const last = [...night.events].reverse().find(x => x.t === "out" && x.name === name); if (last) change(P.addEvent(poker, night.id, { t: "undo", ref: last.id })); } return; }
     const chips = Math.max(0, Math.round(Number(input.value)));
     if (chips !== prev) change(P.addEvent(poker, night.id, { t: "out", name, amount: chips }));
@@ -440,31 +469,31 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     if (!e.target.closest("#pFill")) return;
     const night = nightNow(); if (!night) return;
     let next = poker;
-    P.view(night).players.forEach(p => { if (p.out !== p.stack) next = P.addEvent(next, night.id, { t: "out", name: p.name, amount: p.stack }); });
+    V(night).players.forEach(p => { if (p.out !== p.stack) next = P.addEvent(next, night.id, { t: "out", name: p.name, amount: p.stack }); });
     change(next); toast("ใส่ชิปตามโต๊ะแล้ว");
   });
   $("pLateAdd").addEventListener("click", () => addGuest($("pLate"), name => {
     const night = nightNow(); if (!night) return;
-    if (P.view(night).players.some(p => p.name === name)) return toast("มีชื่อนี้ในวงแล้ว");
+    if (V(night).players.some(p => p.name === name)) return toast("มีชื่อนี้ในวงแล้ว");
     let next = P.addEvent(poker, night.id, { t: "join", name }); next = P.addEvent(next, night.id, { t: "buy", name, amount: night.buyIn });
     change(next); toast(`${name} เข้าวง • ซื้อ ${baht(night.buyIn)}`);
   }));
   $("pLate").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("pLateAdd").click(); } });
   $("pUndo").addEventListener("click", () => {
-    const night = nightNow(), last = night && P.view(night).lastAction; if (!last) return;
+    const night = nightNow(), last = night && V(night).lastAction; if (!last) return;
     const what = last.t === "buy" ? `${last.name} ซื้อ ${baht(last.amount)}` : last.t === "out" ? `ชิปของ ${last.name} (${last.amount})` : last.amount ? `${last.name} เข้าโต๊ะ (${baht(last.amount)})` : `${last.name} เข้าวง`;
     change(P.addEvent(poker, night.id, { t: "undo", ref: last.id })); toast(`ย้อนแล้ว: ${what}`);
   });
   $("pClose").addEventListener("click", () => {
     const night = nightNow(); if (!night) return;
-    const v = P.view(night);
+    const v = V(night);
     if (!v.balanced && !confirm("ชิปยังไม่ครบหรือยังใส่ไม่ครบทุกคน จบวงเลยไหม? (วงนี้จะไม่มีสรุปเงิน)")) return;
     if (v.balanced && !confirm("จบวงนี้แล้วเก็บเข้าประวัติ?")) return;
     change(P.closeNight(poker, night.id)); toast("จบวงแล้ว");
   });
   async function copyText(text) { try { await navigator.clipboard.writeText(text); toast("คัดลอกแล้ว วางในไลน์ได้เลย"); } catch { prompt("คัดลอกข้อความนี้", text); } }
   const dayText = at => new Date(at).toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short" });
-  const lineText = night => { const v = P.view(night); return [`♠️ สรุปโป๊กเกอร์ ${dayText(night.startedAt)} (ลงรวม ${baht(v.paid)})`, ...v.players.map(p => `${p.name} ${p.net === null ? "-" : baht(p.net, true)}`), "", ...P.transfers(v.players).map(l => `${l.from} จ่าย ${l.to} ${baht(l.amount)}`)].join("\n"); };
+  const lineText = night => { const v = V(night); return [`♠️ สรุปโป๊กเกอร์ ${dayText(night.startedAt)} (ลงรวม ${baht(v.paid)})`, ...v.players.map(p => `${p.name} ${p.net === null ? "-" : baht(p.net, true)}`), "", ...P.transfers(v.players).map(l => `${l.from} จ่าย ${l.to} ${baht(l.amount)}`)].join("\n"); };
   $("pPayCopy").addEventListener("click", () => { const night = nightNow(); if (night) copyText(lineText(night)); });
 
   // ---- history ----
@@ -472,7 +501,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const list = P.history(poker);
     $("pHistCard").hidden = !list.length;
     $("pHist").innerHTML = list.map((night, i) => {
-      const v = P.view(night), lines = v.balanced ? P.transfers(v.players) : [];
+      const v = V(night), lines = v.balanced ? P.transfers(v.players) : [];
       const rows = v.players.slice().sort((a, b) => (b.net ?? -1e9) - (a.net ?? -1e9)).map(p => `<span class="${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(p.name)} ${p.net === null ? "–" : esc(baht(p.net, true))}</span>`).join("");
       return `<details class="d-day"${i === 0 ? " open" : ""}><summary><b>${esc(dayText(night.startedAt))}</b><span class="muted">${v.players.length} คน • ลงรวม ${esc(baht(v.paid))}</span></summary><div class="d-preview-list">${rows}</div>${v.balanced ? `<div class="d-pay-list">${lines.length ? lines.map(payRow).join("") : '<div class="muted">เท่าทุนกันหมด</div>'}</div><button type="button" class="secondary" data-copy-night="${esc(night.id)}">คัดลอกไปส่งในไลน์</button>` : '<div class="muted">วงนี้ปิดก่อนนับชิปครบ จึงไม่มีสรุปเงิน</div>'}</details>`;
     }).join("");
@@ -491,7 +520,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     if (typing) { const box = [...document.querySelectorAll("[data-out]")].find(x => x.dataset.out === typing); box?.focus(); }
     renderHistory();
     document.dispatchEvent(new CustomEvent("poker:table"));
-    if (night) setTimeout(() => appChores(night.id), 0);
+    if (night) setTimeout(() => { appChores(night.id); serverSync(); }, 0);
   }
   // แจกในแอป housekeeping, run after every redraw on each phone at the table:
   // publish this phone's key, open my sealed cards, turn the board over (the phone that dealt), reveal at showdown.
@@ -499,7 +528,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   async function appChores(nightId) {
     const D = window.PokerDeal, name = me(), night = nightNow();
     if (choring || !D || !name || !night || night.id !== nightId || !globalThis.crypto?.subtle) return;
-    let v = P.view(night); if (!v.players.some(p => p.name === name)) return;
+    let v = V(night); if (!v.players.some(p => p.name === name)) return;
     choring = true;
     try {
       const pub = (await D.myKeys()).pub;
@@ -521,35 +550,77 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   // A new hand. แจกในแอป: shuffle here, seal each seat's two cards to that player's key, keep the board on this phone.
   async function dealHand() {
     const night = nightNow(); if (!night) return;
-    const v = P.view(night), D = window.PokerDeal;
-    if (v.mode !== "app") { change(P.deal(poker, night.id)); return toast(`แจกไพ่ตาที่ ${P.view(nightNow()).hand.no}`); }
+    const v = V(night), D = window.PokerDeal;
+    if (v.mode === "server") return dealServer(night);
+    if (v.mode !== "app") { change(P.deal(poker, night.id, null, ext())); return toast(`แจกไพ่ตาที่ ${V(nightNow()).hand.no}`); }
     if (!D || !globalThis.crypto?.subtle) return toast("มือถือเครื่องนี้แจกในแอปไม่ได้ • ใช้โหมดไพ่จริงแทน");
-    const { seats } = P.nextDeal(night), missing = seats.filter(nm => !v.keys[nm]);
+    const { seats } = P.nextDeal(night, ext()), missing = seats.filter(nm => !v.keys[nm]);
     if (seats.length < 2) return toast("ต้องมีคนที่มีชิปอย่างน้อย 2 คน");
     if (missing.length) return toast(`${missing.join(", ")} ยังไม่ได้เปิดหน้าโป๊กเกอร์ในมือถือตัวเอง • แจกในแอปต้องให้ทุกคนเปิดก่อน`);
     const deck = D.shuffle(), hands = Object.fromEntries(seats.map((nm, i) => [nm, [deck[i], deck[i + seats.length]]]));
     const sealed = await D.seal(Object.fromEntries(seats.map(nm => [nm, v.keys[nm]])), hands);
     const current = nightNow(); if (!current || current.id !== night.id) return;
-    change(P.deal(poker, night.id, { mode: "app", by: me(), epk: sealed.epk, holes: sealed.boxes }));
-    const h = P.view(nightNow()).hand;
+    change(P.deal(poker, night.id, { mode: "app", by: me(), epk: sealed.epk, holes: sealed.boxes }, ext()));
+    const h = V(nightNow()).hand;
     if (!h.app) return toast("คนในโต๊ะเปลี่ยนระหว่างแจก • กดแจกใหม่อีกครั้ง");
     D.saveBoard(h.key, deck.slice(seats.length * 2, seats.length * 2 + 5));
     toast(`แจกไพ่ตาที่ ${h.no} • ไพ่ของแต่ละคนอยู่ในมือถือตัวเอง`);
+  }
+  // แจกจากเซิร์ฟเวอร์: the server shuffles first (under a fresh deal id), then the deal event goes into the row.
+  async function dealServer(night) {
+    if (!(await probeServer())) return toast("เซิร์ฟเวอร์แจกยังไม่เปิดใช้ • ใช้ไพ่จริงหรือแจกในแอปแทน");
+    const next = P.nextDeal(night, ext()), id = `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+    if (next.seats.length < 2) return toast("ต้องมีคนที่มีชิปอย่างน้อย 2 คน");
+    try { srv = { key: id, ...normState(await rpc("pp_poker_deal", { p_night: night.id, p_hand: id, p_seats: next.seats })), mine: null, at: Date.now() }; }
+    catch (error) { return toast(`แจกไม่ได้: ${error.message}`); }
+    change(P.deal(poker, night.id, { ...next, id, mode: "server", by: me() }, ext()));
+    toast(`แจกไพ่ตาที่ ${V(nightNow()).hand.no} • เซิร์ฟเวอร์สับให้แล้ว`);
+    serverSync(true);
+  }
+  const normState = st => ({ board: Array.isArray(st?.board) ? st.board.filter(Number.isInteger).slice(0, 5) : [], shown: st?.shown && typeof st.shown === "object" ? st.shown : {} });
+  // Keeps srv up to date for the hand being played, turns the board over when a betting round ends, shows my cards
+  // at the showdown. Any seated phone may do it; the server only ever moves forward, so doing it twice is harmless.
+  async function serverSync(force = false) {
+    const night = nightNow(), name = me(); if (!night || !name || serverBusy) return;
+    let v = V(night), h = v.hand;
+    if (!h.server || !h.bet?.players.some(p => p.name === name)) return;
+    if (!force && srv.key === h.key && Date.now() - srv.at < 2000) return;
+    serverBusy = true;
+    try {
+      const args = { p_night: night.id, p_hand: h.key };
+      const before = JSON.stringify([srv.key, srv.board, srv.shown, srv.mine]);
+      if (srv.key !== h.key) srv = { key: h.key, board: [], shown: {}, mine: null, at: 0 };
+      Object.assign(srv, normState(await rpc("pp_poker_hand", args)), { at: Date.now() });
+      if (!srv.mine) { const c = await rpc("pp_poker_my_cards", args); if (Array.isArray(c) && c.length === 2) srv.mine = c; }
+      v = V(night); h = v.hand;
+      const bet = h.bet, live = bet ? bet.players.filter(p => !p.folded) : [];
+      if (bet) {
+        const target = bet.street >= 4 ? (live.length >= 2 ? 5 : 0) : [0, 3, 4, 5][bet.street];
+        if (srv.board.length < target) Object.assign(srv, normState(await rpc("pp_poker_board", { ...args, p_count: target })));
+        v = V(night); h = v.hand;
+        if (bet.street >= 4 && live.length >= 2 && srv.board.length === 5 && live.some(p => p.name === name) && !srv.shown[name]) Object.assign(srv, normState(await rpc("pp_poker_show", args)));
+      }
+      if (JSON.stringify([srv.key, srv.board, srv.shown, srv.mine]) !== before) { render(); document.dispatchEvent(new CustomEvent("poker:mine")); }
+    } catch {} finally { serverBusy = false; }
+  }
+  async function showServer() {
+    const night = nightNow(), h = night && V(night).hand; if (!h?.server) return;
+    try { Object.assign(srv, normState(await rpc("pp_poker_show", { p_night: night.id, p_hand: h.key }))); render(); } catch (error) { toast(`เปิดไพ่ไม่ได้: ${error.message}`); }
   }
   // The shared hand for ส่องไพ่ (poker-cards.js): only for a player seated at the open night.
   window.PokerTable = Object.freeze({
     get() {
       const night = nightNow(), name = me(); if (!night || !name) return null;
-      const v = P.view(night); if (!v.players.some(p => p.name === name)) return null;
+      const v = V(night); if (!v.players.some(p => p.name === name)) return null;
       return { nightId: night.id, me: name, players: v.players.map(p => p.name), hand: v.hand, handKey: `${night.id}:${v.hand.key}`,
         bet: v.hand.bet, stacks: Object.fromEntries(v.players.map(p => [p.name, p.stack])), sb: night.sb, bb: night.bb,
-        canDeal: v.players.filter(p => p.stack > 0).length >= 2, mode: v.mode, app: v.hand.app,
-        myCards: v.hand.app ? window.PokerDeal?.myCards(v.hand.key) || null : null };
+        canDeal: v.players.filter(p => p.stack > 0).length >= 2, mode: v.mode, app: v.hand.app || v.hand.server, server: v.hand.server,
+        myCards: v.hand.app ? window.PokerDeal?.myCards(v.hand.key) || null : v.hand.server ? (srv.key === v.hand.key ? srv.mine : null) : null };
     },
     act(a, to) { const night = nightNow(), name = me(); if (night && name) change(P.act(poker, night.id, name, a, to)); },
     award(pot, names) { const night = nightNow(); if (night) change(P.award(poker, night.id, pot, names)); },
     setBoard(i, card) { const night = nightNow(); if (night) change(P.setBoard(poker, night.id, i, card)); },
-    show(cards) { const night = nightNow(), name = me(); if (night && name) change(P.show(poker, night.id, name, cards)); },
+    show(cards) { const night = nightNow(), name = me(); if (!night || !name) return; if (V(night).hand.server) return showServer(); change(P.show(poker, night.id, name, cards)); },
     fold() { const night = nightNow(), name = me(); if (night && name) change(P.fold(poker, night.id, name)); },
     deal: dealHand
   });
@@ -559,7 +630,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     syncNow();
     // Every 2.5 s while a table is open (someone may be waiting on your bet), otherwise every 6 s.
     let lastPoll = 0;
-    setInterval(() => { const gap = nightNow() ? 2500 : 6000; if (document.hidden || Date.now() - lastPoll < gap || document.activeElement?.matches?.("[data-out],#pbTo")) return; lastPoll = Date.now(); syncNow(); }, 500);
+    setInterval(() => { const gap = nightNow() ? 2500 : 6000; if (document.hidden || Date.now() - lastPoll < gap || document.activeElement?.matches?.("[data-out],#pbTo")) return; lastPoll = Date.now(); syncNow(); serverSync(); }, 500);
     addEventListener("online", syncNow);
     if (dirty) queueSync();
   }

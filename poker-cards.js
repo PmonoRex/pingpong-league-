@@ -162,7 +162,7 @@ if (typeof window !== "undefined") window.PokerCards = PokerCards;
     if (active && typeof active.group === "number" && T) active = null;
     $("pcBoard").innerHTML = boardArr(T).map((c, i) => slot("board", i, c, BOARD_NAMES[i], Boolean(T?.app))).join("");
     $("pcMine").innerHTML = mineArr(T).map((c, i) => slot("mine", i, c, `ไพ่ของฉันใบที่ ${i + 1}`, locked(T))).join("");
-    $("pcMode").textContent = T ? (T.app ? `ตาที่ ${T.hand.no} • แจกในแอป: ไพ่กองกลางเปิดเองตามรอบ ไพ่ในมือเห็นแค่ในเครื่องนี้${T.myCards ? "" : " (กำลังเปิดไพ่…)"}` : `ตาที่ ${T.hand.no} • ไพ่กองกลางซิงก์กับทั้งโต๊ะ • ไพ่ในมืออยู่ในเครื่องนี้จนกว่าจะกดเปิด`) : "แตะช่องแล้วเลือกไพ่ • เก็บไว้ในเครื่องนี้เท่านั้น";
+    $("pcMode").textContent = T ? (T.app ? `ตาที่ ${T.hand.no} • ${T.server ? "เซิร์ฟเวอร์แจก" : "แจกในแอป"}: ไพ่กองกลางเปิดเองตามรอบ ไพ่ในมือเห็นแค่ในเครื่องนี้${T.myCards ? "" : " (กำลังเปิดไพ่…)"}` : `ตาที่ ${T.hand.no} • ไพ่กองกลางซิงก์กับทั้งโต๊ะ • ไพ่ในมืออยู่ในเครื่องนี้จนกว่าจะกดเปิด`) : "แตะช่องแล้วเลือกไพ่ • เก็บไว้ในเครื่องนี้เท่านั้น";
     $("pcStepper").hidden = Boolean(T);
     $("pcOppHint").textContent = T ? "คนอื่นเห็นหลังไพ่จนกว่าเจ้าตัวจะกดเปิดไพ่" : "ไม่รู้ไพ่คู่แข่งก็เว้นไว้ ระบบสุ่มให้ • ถ้าเปิดไพ่แล้วใส่ได้";
     if (T) {
