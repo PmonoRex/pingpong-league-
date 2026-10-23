@@ -141,7 +141,7 @@
     const owners = t.seats.filter(s => t.melds.some(m => m.owner === s));
     const melds = owners.length ? owners.map(s => `<div class="dm-meld-row"><span class="dm-meld-owner">${esc(s)}</span><span class="dm-meld-list">${t.melds.filter(m => m.owner === s).map(m => `<button type="button" class="dm-meld${fits.has(m.id) ? " dm-fit" : ""}" data-meld="${m.id}" aria-label="ชุดของ ${esc(s)}">${m.cards.map(x => `<span class="dm-card dm-static${x.by !== m.owner ? " dm-laid" : ""}"><img src="${G.art(x.c)}" alt="${esc(G.label(x.c))}" draggable="false" decoding="async"></span>`).join("")}</button>`).join("")}</span></div>`).join("") : '<div class="muted dm-empty">ยังไม่มีใครลงไพ่</div>';
     const myHand = mineSeat ? `<div class="dm-hand${myTurn ? " dm-hand-turn" : ""}">${hand.map(c => card(c, { cls: `dm-hand-card${c === t.drawn ? " dm-new" : ""}`, data: ` data-card="${c}"`, on: sel.has(c) })).join("")}</div>` : "";
-    el.innerHTML = `<div class="dm-top"><h2>เกมที่ ${g.no}</h2><span class="muted">กองจั่ว ${t.stock.length} ใบ${turn ? ` • ตาของ <b>${esc(turn)}</b>` : ""}</span></div>
+    el.innerHTML = `<div class="dm-top"><h2>เกมที่ ${g.no}</h2><span class="muted">กองจั่ว ${t.stock.length} ใบ${turn ? ` • ตาของ <b>${esc(turn)}</b>` : ""}</span><button type="button" class="primary dm-stage-open" data-stage-open>เปิดโหมดโต๊ะ</button></div>
 <div class="dm-opps">${opps}</div>
 <div class="dm-zone"><div class="dm-zone-head"><b>กองทิ้ง</b><small class="muted">${myTurn && t.phase === "draw" ? "แตะใบที่จะเก็บ (ได้ใบนั้นกับทุกใบทางขวา)" : `${t.pile.length} ใบ`}</small></div><div class="dm-pile">${pile || '<span class="muted">ว่าง</span>'}</div></div>
 <div class="dm-zone"><div class="dm-zone-head"><b>ไพ่ที่ลงแล้ว</b></div><div class="dm-melds">${melds}</div></div>
@@ -175,7 +175,9 @@ ${over ? resultPanel(v, g, t, name) : mineSeat ? `<div class="dm-zone dm-mine"><
     const seated = v.seated.includes(name);
     return `<div class="dm-zone dm-result"><div class="dm-zone-head"><b>จบเกม • ${how}</b></div>${rows}${seated && v.seated.length >= 2 ? `<div class="actions"><button type="button" class="primary" data-start>เริ่มเกมต่อไป</button></div>` : ""}</div>`;
   }
-  $("dmTable").addEventListener("click", e => {
+  function onTableClick(e) {
+    if (e.target.closest("[data-stage-close]")) return closeStage();
+    if (e.target.closest("[data-stage-open]")) return openStage();
     const room = roomNow(), name = me(); if (!room || !name) return;
     const v = R.view(room), g = v.game, t = g?.table; if (!t) return;
     if (e.target.closest("[data-start]")) return startGame(room);
@@ -199,7 +201,8 @@ ${over ? resultPanel(v, g, t, name) : mineSeat ? `<div class="dm-zone dm-mine"><
     if (btn.dataset.act === "pick") return play(room, g, t, name, { a: "pick", i: pickAt, with: picked });
     if (btn.dataset.act === "meld") return play(room, g, t, name, { a: "meld", cards: picked });
     if (btn.dataset.act === "discard") return play(room, g, t, name, { a: "discard", c: picked[0] });
-  });
+  }
+  $("dmTable").addEventListener("click", onTableClick);
   function play(room, g, t, name, act) {
     const why = G.check(t, { by: name, ...act });
     if (why) return toast(why);
@@ -214,6 +217,64 @@ ${over ? resultPanel(v, g, t, name) : mineSeat ? `<div class="dm-zone dm-mine"><
     if (v.seated.length < 2) return toast("ต้องมีคนนั่งอย่างน้อย 2 คน");
     sel.clear(); pickAt = null;
     change(R.start(online, room.id)); toast(`แจกไพ่แล้ว • เกมที่ ${v.games.length + 1}`);
+    openStage();
+  }
+
+  // ---- โหมดโต๊ะ: a full-screen landscape table (poker.css .pt-root turns it sideways on a phone held upright).
+  // Opponents sit around a felt oval, the stock, discard pile and melds are in the middle, my hand and the buttons
+  // along the bottom. Same picks and moves as the card above (onTableClick). ----
+  let stage = null;
+  function openStage() {
+    const room = roomNow(); if (!room || !R.view(room).game?.table) return;
+    if (!stage) {
+      stage = document.createElement("div"); stage.className = "pt-root dm-stage-root";
+      stage.setAttribute("role", "dialog"); stage.setAttribute("aria-modal", "true"); stage.setAttribute("aria-label", "โต๊ะดัมมี่");
+      document.body.appendChild(stage); stage.addEventListener("click", onTableClick);
+      // The phone's back button leaves the table instead of the page.
+      try { history.pushState({ dummyTable: 1 }, ""); } catch {}
+    }
+    document.body.classList.add("pt-open");
+    landscape(); render();
+  }
+  function closeStage(fromHistory = false) {
+    if (!stage) return;
+    stage.remove(); stage = null; document.body.classList.remove("pt-open");
+    try { screen.orientation?.unlock?.(); } catch {}
+    try { if (document.fullscreenElement) document.exitFullscreen(); } catch {}
+    if (!fromHistory && history.state?.dummyTable) history.back();
+  }
+  addEventListener("popstate", () => { if (stage) closeStage(true); });
+  document.addEventListener("keydown", e => { if (stage && e.key === "Escape") closeStage(); });
+  // Android: fullscreen, then lock to landscape (both need the tap that opened the table). Elsewhere CSS rotates.
+  async function landscape() {
+    try {
+      if (!matchMedia("(pointer:coarse)").matches || !document.documentElement.requestFullscreen) return;
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+      await screen.orientation?.lock?.("landscape");
+    } catch {}
+  }
+  // Where the others sit, in turn order after me: one across, two left and right, three left, across, right.
+  const SPOTS = { 1: ["top"], 2: ["left", "right"], 3: ["left", "top", "right"] };
+  function renderStage(v, name) {
+    if (!stage) return;
+    const g = v.game, t = g?.table;
+    if (!t) return closeStage();
+    const over = t.over || g.done, turn = over ? null : t.seats[t.turn], mineSeat = t.seats.includes(name), myTurn = !over && turn === name;
+    const others = mineSeat ? [...t.seats.slice(t.seats.indexOf(name) + 1), ...t.seats.slice(0, t.seats.indexOf(name))] : t.seats;
+    const score = G.score(t), spots = SPOTS[others.length] || ["left", "top", "right", "top"];
+    const seat = (s, spot) => `<div class="dm-st-seat dm-at-${spot}${s === turn ? " dm-turn" : ""}">${avatarFor(s)}<span class="dm-st-who"><b>${esc(s)}</b><small>${t.hands[s].length} ใบ • ลง ${score[s].played}</small></span>${backs(t.hands[s].length)}${s === turn ? '<span class="dm-turn-tag">ถึงตา</span>' : ""}</div>`;
+    const hand = mineSeat ? G.sortHand(t.hands[name], byRank) : [], picked = [...sel];
+    const fits = picked.length === 1 && myTurn && t.phase === "play" ? new Set(G.fits(t, picked[0])) : new Set();
+    const pile = t.pile.map((x, i) => card(x.c, { cls: `dm-pile-card${x.head ? " dm-head" : ""}`, data: ` data-pile="${i}"`, on: pickAt !== null && i >= pickAt })).join("");
+    const melds = t.melds.map(m => `<button type="button" class="dm-meld${fits.has(m.id) ? " dm-fit" : ""}" data-meld="${m.id}" aria-label="ชุดของ ${esc(m.owner)}"><i class="dm-meld-tag">${esc(m.owner)}</i>${m.cards.map(x => `<span class="dm-card dm-static${x.by !== m.owner ? " dm-laid" : ""}"><img src="${G.art(x.c)}" alt="${esc(G.label(x.c))}" draggable="false" decoding="async"></span>`).join("")}</button>`).join("");
+    const status = over ? "จบเกม" : myTurn ? (t.phase === "draw" ? "ถึงตาคุณ • จั่วหรือเก็บ" : "ถึงตาคุณ • ลง ฝาก แล้วทิ้ง") : `ตาของ ${esc(turn)}`;
+    const bottom = !mineSeat ? '<p class="dm-wait">คุณดูอยู่ • ไม่ได้เล่นเกมนี้</p>'
+      : `<div class="dm-st-hand">${hand.map(c => card(c, { cls: `dm-hand-card${c === t.drawn ? " dm-new" : ""}`, data: ` data-card="${c}"`, on: sel.has(c) })).join("")}</div><div class="dm-st-acts">${over ? "" : actions(t, name, picked)}<button type="button" class="dm-sort" data-sort>${byRank ? "เรียงตามดอก" : "เรียงตามแต้ม"}</button></div>`;
+    stage.innerHTML = `<div class="pt-stage dm-stage"><header class="dm-st-top"><span>เกมที่ ${g.no} • <b class="${myTurn ? "dm-st-mine" : ""}">${status}</b></span><span class="dm-st-last">${last(t).replace(/<\/?p[^>]*>/g, "")}</span><button type="button" class="pt-exit" data-stage-close aria-label="ออกจากโหมดโต๊ะ">ออก</button></header>
+<div class="dm-st-mid"><div class="pt-felt"></div>${others.map((s, i) => seat(s, spots[i])).join("")}
+<div class="dm-st-center"><div class="dm-st-row"><span class="dm-st-deck">${t.stock.length ? `<span class="dm-card dm-static dm-back"><img src="${G.BACK}" alt="" draggable="false"></span>` : ""}<small>จั่ว ${t.stock.length}</small></span><div class="dm-pile dm-st-pile">${pile || '<span class="dm-st-empty">กองทิ้งว่าง</span>'}</div></div><div class="dm-st-melds">${melds || '<span class="dm-st-empty">ยังไม่มีใครลงไพ่</span>'}</div></div></div>
+<div class="dm-st-bottom">${bottom}</div>
+${over ? `<div class="dm-st-over">${resultPanel(v, g, t, name)}</div>` : ""}</div>`;
   }
 
   // ---- the room: points and money so far ----
@@ -275,9 +336,9 @@ ${over ? resultPanel(v, g, t, name) : mineSeat ? `<div class="dm-zone dm-mine"><
   function render() {
     const room = roomNow(), name = me();
     $("dmLobby").hidden = Boolean(room); $("dmRoom").hidden = !room;
-    if (!room) { $("dmSeat").innerHTML = ""; $("dmTable").hidden = true; renderLobby(); renderHistory(); return; }
+    if (!room) { $("dmSeat").innerHTML = ""; $("dmTable").hidden = true; closeStage(); renderLobby(); renderHistory(); return; }
     const v = R.view(room);
-    renderSeat(v, name); renderTable(v, name); renderRoom(v, name); renderHistory();
+    renderSeat(v, name); renderTable(v, name); renderRoom(v, name); renderHistory(); renderStage(v, name);
     const done = v.needsResult;
     if (done && name && done.seats.includes(name) && !written.has(done.id)) { written.add(done.id); change(R.result(online, room.id, done.id, done.scores)); }
   }
