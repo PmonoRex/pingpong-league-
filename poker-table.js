@@ -10,7 +10,7 @@
   const num = v => Number(v || 0).toLocaleString("th-TH");
   let root = null, picking = null, raise = { key: "", to: 0 }, odds = { key: "", html: "" };
   const table = () => { try { return window.PokerTable?.get() || null; } catch { return null; } };
-  const mineOf = t => window.PokerMine?.get(t) || [null, null];
+  const mineOf = t => t.app ? (t.myCards ? t.myCards.slice() : [null, null]) : (window.PokerMine?.get(t) || [null, null]);
   const avatar = name => window.LeagueUI?.avatar ? window.LeagueUI.avatar(window.LeagueProfile?.payeeByName?.(LeagueShared.readLocalLeague(), name)?.id || `guest:${name}`, name, "") : "";
   const cardImg = (c, cls = "") => `<span class="pt-card ${cls}" role="img" aria-label="${C.speak(c)}"><img src="${C.art(c)}" alt="" draggable="false" decoding="async"></span>`;
   const back = (cls = "") => `<span class="pt-card ${cls}" aria-hidden="true"><img src="${C.BACK}" alt="" draggable="false" decoding="async"></span>`;
@@ -64,7 +64,8 @@
       const p = inHand(name), me = name === t.me, turn = bet?.toAct === name, out = folded(name);
       const shown = t.hand.shown[name];
       let cards = "";
-      if (me) cards = mine.map((c, k) => c === null ? (out ? "" : slot(`data-pick="mine:${k}"`, `เลือกไพ่ในมือใบที่ ${k + 1}`, "pt-mine")) : `<button type="button" class="pt-cardbtn" data-pick="mine:${k}" aria-label="ไพ่ในมือ: ${C.speak(c)} (แตะเพื่อเปลี่ยน)"${window.PokerMine?.locked(t) ? " disabled" : ""}>${cardImg(c, "pt-mine")}</button>`).join("");
+      if (me && t.app) cards = out ? "" : mine.map(c => c === null ? back("pt-mine") : cardImg(c, "pt-mine")).join("");
+      else if (me) cards = mine.map((c, k) => c === null ? (out ? "" : slot(`data-pick="mine:${k}"`, `เลือกไพ่ในมือใบที่ ${k + 1}`, "pt-mine")) : `<button type="button" class="pt-cardbtn" data-pick="mine:${k}" aria-label="ไพ่ในมือ: ${C.speak(c)} (แตะเพื่อเปลี่ยน)"${window.PokerMine?.locked(t) ? " disabled" : ""}>${cardImg(c, "pt-mine")}</button>`).join("");
       else if (shown) cards = shown.map(c => cardImg(c)).join("");
       else if (!out && (!bet || p)) cards = back() + back();
       const tags = bet ? [name === bet.button ? '<i class="pt-tag pt-d">D</i>' : "", name === bet.sbName ? '<i class="pt-tag">SB</i>' : "", name === bet.bbName ? '<i class="pt-tag">BB</i>' : ""].join("") : "";
@@ -72,9 +73,9 @@
       const chips = p && p.streetBet ? `<div class="pt-bet" style="left:${bx}%;top:${by}%"><i></i>${num(p.streetBet)}</div>` : "";
       return `${chips}<div class="pt-seat${me ? " pt-me" : ""}${y < 45 ? " pt-upper" : ""}${turn ? " pt-turn" : ""}${out ? " pt-out" : ""}" style="left:${x}%;top:${y}%"><div class="pt-cards">${cards}</div><div class="pt-plate">${avatar(name)}<span class="pt-who"><b>${esc(name)}</b><small>${num(t.stacks[name])}</small></span>${tags}</div>${state ? `<span class="pt-state">${state}</span>` : ""}</div>`;
     }).join("");
-    const board = t.hand.board.map((c, i) => c === null ? slot(`data-pick="board:${i}"`, `ไพ่กองกลางใบที่ ${i + 1}`) : `<button type="button" class="pt-cardbtn" data-pick="board:${i}" aria-label="กองกลาง: ${C.speak(c)} (แตะเพื่อเปลี่ยน)">${cardImg(c)}</button>`).join("");
+    const board = t.hand.board.map((c, i) => t.app ? (c === null ? '<span class="pt-card pt-slot pt-wait" aria-hidden="true"></span>' : cardImg(c)) : c === null ? slot(`data-pick="board:${i}"`, `ไพ่กองกลางใบที่ ${i + 1}`) : `<button type="button" class="pt-cardbtn" data-pick="board:${i}" aria-label="กองกลาง: ${C.speak(c)} (แตะเพื่อเปลี่ยน)">${cardImg(c)}</button>`).join("");
     const center = `<div class="pt-center"><div class="pt-pot">${bet ? `<small>${esc(bet.streetName)}</small>กอง <b>${num(bet.pot)}</b>` : `<small>บลายด์ ${num(t.sb)}/${num(t.bb)}</small>ยังไม่เริ่มตา`}</div><div class="pt-board">${board}</div>${centerNote(t)}</div>`;
-    root.innerHTML = `<div class="pt-stage"><header class="pt-top"><span>ตาที่ ${t.hand.no}</span><span class="pt-myhand">${myHand(t, mine)}</span><button type="button" class="pt-exit" data-act="exit" aria-label="ออกจากโหมดโต๊ะ">ออก</button></header>
+    root.innerHTML = `<div class="pt-stage"><header class="pt-top"><span>ตาที่ ${t.hand.no}${t.app ? ' • <i class="pt-modeflag">แจกในแอป</i>' : ""}</span><span class="pt-myhand">${myHand(t, mine)}</span><button type="button" class="pt-exit" data-act="exit" aria-label="ออกจากโหมดโต๊ะ">ออก</button></header>
 <div class="pt-table"><div class="pt-felt"></div>${center}${seatsHtml}</div><div class="pt-bar">${actions(t, mine)}</div>${picking ? picker(t, mine) : ""}</div>`;
   }
   function centerNote(t) {
@@ -107,7 +108,7 @@
     const bet = t.bet, meIn = bet?.players.find(p => p.name === t.me);
     const reveal = mine.every(c => c !== null) && !t.hand.shown[t.me] && !t.hand.folded.includes(t.me) && !meIn?.folded
       ? '<button type="button" class="pt-btn" data-act="show">เปิดไพ่</button>' : "";
-    if (!bet || bet.done) return `<span class="pt-msg">${bet?.done ? resultLine(bet) : "แตะ + บนโต๊ะเพื่อเลือกไพ่ได้"}</span>${reveal}${t.canDeal ? `<button type="button" class="pt-btn pt-primary" data-act="deal">แจกไพ่ตาใหม่</button>` : ""}`;
+    if (!bet || bet.done) return `<span class="pt-msg">${bet?.done ? resultLine(bet) : t.mode === "app" ? "กดแจกไพ่ แอปจะสับและแจกให้ทุกคน" : "แตะ + บนโต๊ะเพื่อเลือกไพ่ได้"}</span>${reveal}${t.canDeal ? `<button type="button" class="pt-btn pt-primary" data-act="deal">แจกไพ่ตาใหม่</button>` : ""}`;
     if (bet.street >= 4) return `<span class="pt-msg">โชว์ไพ่ • เลือกคนชนะกลางโต๊ะ หรือทุกคนเปิดไพ่ให้ระบบตัดสิน</span>${reveal}`;
     if (bet.toAct !== t.me) return `<span class="pt-msg">${meIn && !meIn.folded ? "รอ " : ""}<b>${esc(bet.toAct || "")}</b> กำลังตัดสินใจ</span>${reveal}`;
     const key = `${t.handKey}:${bet.street}:${bet.currentBet}`;
@@ -132,7 +133,7 @@
     const t = table(); if (!t) return close();
     const el = sel => e.target.closest(sel);
     if (el('[data-act="exit"]')) return close();
-    const pick = el("[data-pick]"); if (pick) { picking = picking === pick.dataset.pick ? null : pick.dataset.pick; return render(); }
+    const pick = el("[data-pick]"); if (pick && !t.app) { picking = picking === pick.dataset.pick ? null : pick.dataset.pick; return render(); }
     const card = el("[data-card]");
     if (card && picking) {
       const [group, i] = picking.split(":"), c = Number(card.dataset.card);
