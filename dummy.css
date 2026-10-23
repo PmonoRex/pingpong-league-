@@ -125,3 +125,6 @@ td .d-icon{width:34px;flex:none}
 .d-toast{bottom:calc(120px + var(--kb,0px));display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100vw - 32px);box-sizing:border-box;box-shadow:0 6px 18px rgba(23,17,15,.28)}
 .d-toast.has-action.show{pointer-events:auto}
 .d-toast-act{flex:none;min-height:36px;padding:6px 12px!important;border:0;border-radius:var(--r,6px);background:var(--poster,#ffd21f);color:var(--ink,#17110f);font-weight:800}
+/* link to ดัมมี่ออนไลน์ (dummy-online.html) */
+.d-online-link{display:grid;gap:4px;text-decoration:none;color:inherit;border-color:rgba(52,210,124,.4)}
+.d-online-link b{font-family:var(--display);font-size:19px;color:var(--text)}
