@@ -134,3 +134,64 @@ test('a busted player is not dealt in; two phones acting at once agree', () => {
   assert.ok(N.same(merged, N.merge(p2, p1)), 'both phones hold the same events');
   assert.deepEqual(plain([m.toAct, m.pot, m.street]), plain([other.toAct, other.pot, other.street]), 'and replay them to the same state');
 });
+
+test('who pays whom if the night ended now, from the chips at the table', () => {
+  let { poker, id } = N.startNight({}, { buyIn: 100, chips: 1000, names: ['A', 'B', 'C'], sb: 10, bb: 20 });
+  assert.equal(N.liveSettle(N.view(poker.nights[id])), null, 'nothing to settle before any hand is bet');
+  poker = N.deal(poker, id);
+  poker = N.act(poker, id, 'A', 'raise', 500); poker = N.act(poker, id, 'B', 'fold'); poker = N.act(poker, id, 'C', 'fold');
+  // A won B's 10 and C's 20 chips: 1030 / 990 / 980 chips = +3 / -1 / -2 baht
+  let live = N.liveSettle(N.view(poker.nights[id]));
+  assert.deepEqual(plain(live.rows.map(r => [r.name, r.chips, r.net])), [['A', 1030, 3], ['B', 990, -1], ['C', 980, -2]]);
+  assert.deepEqual(plain(live.transfers.map(t => [t.from, t.to, t.amount])), [['C', 'A', 2], ['B', 'A', 1]]);
+  assert.equal(live.pending, false);
+  // a hand being played does not move money yet; a rebuy counts what was paid
+  poker = N.deal(poker, id); poker = N.act(poker, id, 'B', 'raise', 300);
+  poker = N.addEvent(poker, id, { t: 'buy', name: 'C', amount: 100 });
+  live = N.liveSettle(N.view(poker.nights[id]));
+  assert.ok(live.pending);
+  assert.deepEqual(plain(live.rows.map(r => [r.name, r.chips, r.paid, r.net])), [['A', 1030, 100, 3], ['B', 990, 100, -1], ['C', 1980, 200, -2]]);
+  const sum = live.rows.reduce((s, r) => s + r.net, 0);
+  assert.equal(Math.round(sum * 100), 0, 'money adds up to zero');
+});
+
+test('a room with no buy-ins: play for baht, stand up, sit back down, settle', () => {
+  let { poker, id } = N.startNight({}, { name: 'โต๊ะ 1', credit: true, sb: 5, bb: 10, names: ['A'] });
+  poker = N.join(poker, id, 'B'); poker = N.join(poker, id, 'C');
+  let v = N.view(poker.nights[id]);
+  assert.equal(v.night.name, 'โต๊ะ 1'); assert.ok(v.credit);
+  assert.deepEqual(plain(v.players.map(p => [p.name, p.paid, p.net, p.seated])), [['A', 0, 0, true], ['B', 0, 0, true], ['C', 0, 0, true]]);
+  poker = N.deal(poker, id); // button A, B small 5, C big 10
+  poker = N.act(poker, id, 'A', 'raise', 300); poker = N.act(poker, id, 'B', 'call'); poker = N.act(poker, id, 'C', 'fold');
+  const bet = N.view(poker.nights[id]).hand.bet;
+  assert.equal(bet.maxTo > 1e8, true, 'nobody can run out of money');
+  for (let i = 0; i < 6; i++) poker = N.act(poker, id, ['B', 'A'][i % 2], 'check');
+  poker = N.award(poker, id, 0, ['B']);
+  v = N.view(poker.nights[id]);
+  assert.deepEqual(plain(v.players.map(p => [p.name, p.net])), [['A', -300], ['B', 310], ['C', -10]]);
+  assert.ok(v.balanced, 'a credit room settles whenever no hand is being played');
+  assert.deepEqual(plain(N.transfers(v.players).map(t => [t.from, t.to, t.amount])), [['A', 'B', 300], ['C', 'B', 10]]);
+  // C stands up: not dealt in, result kept; sits back down later at the same result
+  poker = N.leave(poker, id, 'C');
+  poker = N.deal(poker, id);
+  v = N.view(poker.nights[id]);
+  assert.deepEqual(plain(v.hand.bet.players.map(p => p.name)), ['A', 'B']);
+  assert.equal(v.players.find(p => p.name === 'C').seated, false);
+  assert.equal(v.players.find(p => p.name === 'C').net, -10);
+  poker = N.join(poker, id, 'C');
+  assert.equal(N.view(poker.nights[id]).players.find(p => p.name === 'C').seated, true);
+  assert.equal(N.view(poker.nights[id]).players.find(p => p.name === 'C').net, -10, 'sitting back down costs nothing');
+  // two rooms at once
+  const second = N.startNight(poker, { name: 'โต๊ะ 2', credit: true, sb: 1, bb: 2, names: ['D'] });
+  assert.deepEqual(plain(N.openNights(second.poker).map(n => n.name)), ['โต๊ะ 2', 'โต๊ะ 1']);
+  assert.deepEqual(plain(N.openNights(N.closeNight(second.poker, id)).map(n => n.name)), ['โต๊ะ 2']);
+});
+
+test('a buy-in night still works as before, and a leaver there is not dealt in either', () => {
+  let { poker, id } = N.startNight({}, { buyIn: 100, chips: 100, names: ['A', 'B', 'C'], sb: 1, bb: 2 });
+  assert.equal(N.view(poker.nights[id]).credit, false);
+  poker = N.leave(poker, id, 'C'); poker = N.deal(poker, id);
+  assert.deepEqual(plain(N.view(poker.nights[id]).hand.bet.players.map(p => p.name)), ['A', 'B']);
+  poker = N.join(poker, id, 'C');
+  assert.equal(N.view(poker.nights[id]).players.find(p => p.name === 'C').paid, 100, 'coming back does not buy in again');
+});
