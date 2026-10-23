@@ -240,3 +240,17 @@ body.sport-redesign .pb-mode-opt:disabled{opacity:.6}
 .pt-key{min-height:calc(var(--h) * .1)!important;padding:0!important;border-radius:9px;background:var(--panel-3);color:var(--text);border:0;font-weight:800;font-size:18px}
 .pt-pad-go{margin-top:6px;width:100%}
 .pt-pad-go:disabled{opacity:.5}
+
+/* ใครจ่ายใคร ถ้าเลิกตอนนี้ (betting panel and table view) */
+.pb-settle{margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2)}
+.pb-settle h3{margin:0 0 6px;font-size:17px}
+.pb-settle h3 small{font-weight:400;color:var(--text-soft);font-size:13px}
+.pb-settle-nets,.pt-settle-nets{display:flex;flex-wrap:wrap;gap:4px 14px;font-weight:700;margin-bottom:6px}
+#pokerApp .pb-settle .d-pay-row:has(.pay-go){grid-template-columns:auto auto 1fr auto auto}
+.pt-settle-btn{margin-left:auto}
+.pt-settle{width:min(92%,460px);max-height:86%;overflow:auto}
+.pt-settle .pos{color:var(--win)}.pt-settle .neg{color:var(--lose)}
+.pt-pay-row{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:8px;align-items:center;padding:6px 2px;border-bottom:1px solid var(--line);font-size:14px}
+.pt-pay-row span{color:var(--text-soft);font-size:12px}
+.pt-pay-amt{font-family:var(--display);font-style:italic;color:var(--red-hi)}
+.pt-settle-note{display:block;margin-top:6px;color:var(--text-soft);font-size:12px}

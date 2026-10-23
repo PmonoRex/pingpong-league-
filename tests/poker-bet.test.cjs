@@ -134,3 +134,23 @@ test('a busted player is not dealt in; two phones acting at once agree', () => {
   assert.ok(N.same(merged, N.merge(p2, p1)), 'both phones hold the same events');
   assert.deepEqual(plain([m.toAct, m.pot, m.street]), plain([other.toAct, other.pot, other.street]), 'and replay them to the same state');
 });
+
+test('who pays whom if the night ended now, from the chips at the table', () => {
+  let { poker, id } = N.startNight({}, { buyIn: 100, chips: 1000, names: ['A', 'B', 'C'], sb: 10, bb: 20 });
+  assert.equal(N.liveSettle(N.view(poker.nights[id])), null, 'nothing to settle before any hand is bet');
+  poker = N.deal(poker, id);
+  poker = N.act(poker, id, 'A', 'raise', 500); poker = N.act(poker, id, 'B', 'fold'); poker = N.act(poker, id, 'C', 'fold');
+  // A won B's 10 and C's 20 chips: 1030 / 990 / 980 chips = +3 / -1 / -2 baht
+  let live = N.liveSettle(N.view(poker.nights[id]));
+  assert.deepEqual(plain(live.rows.map(r => [r.name, r.chips, r.net])), [['A', 1030, 3], ['B', 990, -1], ['C', 980, -2]]);
+  assert.deepEqual(plain(live.transfers.map(t => [t.from, t.to, t.amount])), [['C', 'A', 2], ['B', 'A', 1]]);
+  assert.equal(live.pending, false);
+  // a hand being played does not move money yet; a rebuy counts what was paid
+  poker = N.deal(poker, id); poker = N.act(poker, id, 'B', 'raise', 300);
+  poker = N.addEvent(poker, id, { t: 'buy', name: 'C', amount: 100 });
+  live = N.liveSettle(N.view(poker.nights[id]));
+  assert.ok(live.pending);
+  assert.deepEqual(plain(live.rows.map(r => [r.name, r.chips, r.paid, r.net])), [['A', 1030, 100, 3], ['B', 990, 100, -1], ['C', 1980, 200, -2]]);
+  const sum = live.rows.reduce((s, r) => s + r.net, 0);
+  assert.equal(Math.round(sum * 100), 0, 'money adds up to zero');
+});
