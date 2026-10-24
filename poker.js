@@ -454,7 +454,9 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const unit = " ชิป", stackOf = p => n.credit ? chips(p.stack - P.CREDIT, true) : p.stack.toLocaleString("th-TH");
     const head = `<div class="pb-head"><h2 id="pbTitle">เดิมพัน</h2><span class="muted">บลายด์ ${n.sb}/${n.bb}${unit}</span></div>${modeSwitch(v, seated)}`;
     if (!bet) {
-      el.innerHTML = `${head}<p class="muted">กดแจกไพ่เพื่อเริ่มตา ระบบวางบลายด์ บอกว่าใครถึงตา และจ่ายกองให้คนชนะ</p>${canDeal ? `<button type="button" class="primary pb-wide" data-bet="deal">แจกไพ่ • เริ่มตาที่ ${v.hand.deals + 1}</button>` : `<p class="muted">${seated ? (n.credit ? "ต้องมีคนนั่งอย่างน้อย 2 คน" : "ต้องมีคนที่มีชิปอย่างน้อย 2 คน") : "กดนั่งโต๊ะก่อนถึงจะเล่นได้"}</p>`}`;
+      // ไพ่จริง: the cards are dealt by hand at the table; this button only starts the betting.
+      const real = v.mode === "real";
+      el.innerHTML = `${head}<p class="muted">${real ? "แจกไพ่จริงบนโต๊ะ แล้วกดเริ่มตาเพื่อเบท ระบบวางบลายด์ บอกว่าใครถึงตา และจ่ายกองให้คนชนะ" : "กดแจกไพ่เพื่อเริ่มตา ระบบวางบลายด์ บอกว่าใครถึงตา และจ่ายกองให้คนชนะ"}</p>${canDeal ? `<button type="button" class="primary pb-wide" data-bet="deal">${real ? "เริ่มตาเบท" : "แจกไพ่"} • ตาที่ ${v.hand.deals + 1}</button>` : `<p class="muted">${seated ? (n.credit ? "ต้องมีคนนั่งอย่างน้อย 2 คน" : "ต้องมีคนที่มีชิปอย่างน้อย 2 คน") : "กดนั่งโต๊ะก่อนถึงจะเล่นได้"}</p>`}`;
       return;
     }
     const mine = bet.players.find(p => p.name === myName), myTurn = bet.toAct && bet.toAct === myName;
@@ -478,7 +480,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
       }).join("");
       if (bet.done) body += `<div class="pb-result">${bet.players.map(p => { const d = bet.delta[p.name] || 0; return `<span class="${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${esc(p.name)} ${d > 0 ? "+" : ""}${d.toLocaleString("th-TH")}</span>`; }).join("")}</div>`;
     }
-    const dealBtn = canDeal ? `<button type="button" class="${bet.done ? "primary" : "secondary"} pb-wide" data-bet="deal">${bet.done ? `แจกไพ่ตาใหม่ (ตาที่ ${v.hand.deals + 1})` : "ยกเลิกตานี้ แจกใหม่"}</button>` : "";
+    const dealBtn = canDeal ? `<button type="button" class="${bet.done ? "primary" : "secondary"} pb-wide" data-bet="deal">${bet.done ? `${v.mode === "real" ? "เริ่มตาเบทใหม่" : "แจกไพ่ตาใหม่"} (ตาที่ ${v.hand.deals + 1})` : v.mode === "real" ? "ยกเลิกตานี้ เริ่มใหม่" : "ยกเลิกตานี้ แจกใหม่"}</button>` : "";
     el.innerHTML = `${head}<div class="pb-street"><span>ตาที่ ${v.hand.no} • <b>${bet.streetName}</b></span><span class="pb-pot-total">กอง <b>${bet.pot.toLocaleString("th-TH")}</b></span></div><div class="pb-seats">${rows}</div>${body}${dealBtn}`;
   }
   // Raise-to for a fraction of the pot: call first, then raise by that share of the pot after the call.

@@ -116,7 +116,7 @@
     const bet = t.bet, meIn = bet?.players.find(p => p.name === t.me);
     const reveal = mine.every(c => c !== null) && !t.hand.shown[t.me] && !t.hand.folded.includes(t.me) && !meIn?.folded
       ? '<button type="button" class="pt-btn" data-act="show">เปิดไพ่</button>' : "";
-    if (!bet || bet.done) return `<span class="pt-msg">${bet?.done ? resultLine(bet) : t.mode === "app" ? "กดแจกไพ่ แอปจะสับและแจกให้ทุกคน" : t.mode === "server" ? "กดแจกไพ่ เซิร์ฟเวอร์จะสับและแจกให้ทุกคน" : "แตะ + บนโต๊ะเพื่อเลือกไพ่ได้"}</span>${reveal}${t.canDeal ? `<button type="button" class="pt-btn pt-primary" data-act="deal">แจกไพ่ตาใหม่</button>` : ""}`;
+    if (!bet || bet.done) return `<span class="pt-msg">${bet?.done ? resultLine(bet) : t.mode === "app" ? "กดแจกไพ่ แอปจะสับและแจกให้ทุกคน" : t.mode === "server" ? "กดแจกไพ่ เซิร์ฟเวอร์จะสับและแจกให้ทุกคน" : "แจกไพ่จริงบนโต๊ะ แล้วกดเริ่มตาเพื่อเบท"}</span>${reveal}${t.canDeal ? `<button type="button" class="pt-btn pt-primary" data-act="deal">${t.mode === "real" ? "เริ่มตาเบท" : "แจกไพ่ตาใหม่"}</button>` : '<span class="pt-msg">รอเพื่อนนั่งอีกคน (ต้องมีอย่างน้อย 2 คน)</span>'}`;
     if (bet.street >= 4) return `<span class="pt-msg">โชว์ไพ่ • เลือกคนชนะกลางโต๊ะ หรือทุกคนเปิดไพ่ให้ระบบตัดสิน</span>${reveal}`;
     if (bet.toAct !== t.me) return `<span class="pt-msg">${meIn && !meIn.folded ? "รอ " : ""}<b>${esc(bet.toAct || "")}</b> กำลังตัดสินใจ</span>${reveal}`;
     const key = `${t.handKey}:${bet.street}:${bet.currentBet}`;
