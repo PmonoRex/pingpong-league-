@@ -269,7 +269,8 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   if (typeof document === "undefined" || !document.getElementById?.("pokerApp")) return;
   const P = PokerNight, $ = id => document.getElementById(id);
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const baht = (v, sign = false) => `${sign && v > 0 ? "+" : ""}${Number(v).toLocaleString("th-TH", { maximumFractionDigits: 2 })}฿`;
+  // Rooms are played for chips, not money: no baht, no who-pays-whom, no transfer buttons.
+  const chips = (v, sign = false) => `${sign && v > 0 ? "+" : ""}${Number(v).toLocaleString("th-TH", { maximumFractionDigits: 2 })} ชิป`;
   const chipsText = v => `${Number(v).toLocaleString("th-TH")} ชิป`;
   const KEY = "pp_poker_v1", Cloud = typeof LeagueShared !== "undefined" ? LeagueShared : null;
   // แจกจากเซิร์ฟเวอร์: what the server says about the hand being played (board turned so far, hands shown, my cards).
@@ -339,13 +340,15 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   let roomId = (() => { try { return localStorage.getItem(ROOM_KEY) || ""; } catch { return ""; } })();
   function setRoom(id) { roomId = id || ""; try { if (roomId) localStorage.setItem(ROOM_KEY, roomId); else localStorage.removeItem(ROOM_KEY); } catch {} }
   const roomName = n => n.name || `วง ${dayText(n.startedAt)}`;
+  // Only rooms (credit nights) are shown; nights from the old buy-in flow stay in storage but are not listed.
+  const openRooms = () => P.openNights(poker).filter(n => n.credit);
   const modeName = { real: "ไพ่จริง", app: "แจกในแอป", server: "เซิร์ฟเวอร์แจก" };
   function renderSetup() {
-    const name = me(), rooms = P.openNights(poker);
+    const name = me(), rooms = openRooms();
     $("pRooms").innerHTML = rooms.length ? rooms.map(n => {
       const v = V(n), seated = v.players.filter(p => p.seated), mine = v.players.find(p => p.name === name);
-      const stakes = n.credit ? `บลายด์ ${n.sb}/${n.bb}฿` : `ซื้อไม้ละ ${baht(n.buyIn)}`;
-      return `<div class="p-room" role="listitem"><div class="p-room-info"><b>${esc(roomName(n))}</b><small>${seated.length} คนนั่งอยู่ • ${esc(stakes)} • ${esc(modeName[v.mode] || "")}${mine?.seated ? " • คุณนั่งอยู่" : mine ? ` • คุณ ${esc(baht(mine.net ?? 0, true))}` : ""}</small><span class="p-room-who">${seated.slice(0, 9).map(p => avatarFor(p.name)).join("")}</span></div><button type="button" class="primary" data-room="${esc(n.id)}">${mine?.seated ? "กลับเข้าห้อง" : "เข้าห้อง"}</button></div>`;
+      const stakes = `บลายด์ ${n.sb}/${n.bb} ชิป`;
+      return `<div class="p-room" role="listitem"><div class="p-room-info"><b>${esc(roomName(n))}</b><small>${seated.length} คนนั่งอยู่ • ${esc(stakes)} • ${esc(modeName[v.mode] || "")}${mine?.seated ? " • คุณนั่งอยู่" : mine ? ` • คุณ ${esc(chips(mine.net ?? 0, true))}` : ""}</small><span class="p-room-who">${seated.slice(0, 9).map(p => avatarFor(p.name)).join("")}</span></div><button type="button" class="primary" data-room="${esc(n.id)}">${mine?.seated ? "กลับเข้าห้อง" : "เข้าห้อง"}</button></div>`;
     }).join("") : '<div class="muted p-rooms-empty">ยังไม่มีห้องเปิดอยู่ • สร้างห้องด้านล่างได้เลย</div>';
     if (!$("pRoomName").value) $("pRoomName").placeholder = `โต๊ะ ${rooms.length + 1}`;
     $("pStart").disabled = !name;
@@ -354,7 +357,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
   // Entering a room sits you down (credit rooms); the table view opens on the same tap.
   $("pRooms").addEventListener("click", e => {
     const b = e.target.closest("[data-room]"); if (!b) return;
-    const night = P.openNights(poker).find(n => n.id === b.dataset.room); if (!night) return render();
+    const night = openRooms().find(n => n.id === b.dataset.room); if (!night) return render();
     setRoom(night.id);
     const name = me(), seat = V(night).players.find(p => p.name === name);
     if (name && night.credit && !seat?.seated) { change(P.join(poker, night.id, name)); toast(`นั่งโต๊ะ ${roomName(night)} แล้ว`); }
@@ -367,53 +370,30 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     if (!(sb > 0) || !(bb > 0)) return toast("ใส่บลายด์ให้ถูกก่อน");
     if (sb > bb) return toast("บลายด์เล็กต้องไม่มากกว่าบลายด์ใหญ่");
     const chosen = document.querySelector('input[name="pMode"]:checked')?.value, mode = ["app", "server"].includes(chosen) ? chosen : "real";
-    const title = P.cleanName($("pRoomName").value) || `โต๊ะ ${P.openNights(poker).length + 1}`;
+    const title = P.cleanName($("pRoomName").value) || `โต๊ะ ${openRooms().length + 1}`;
     const { poker: next, id } = P.startNight(poker, { name: title, credit: true, names: [name], sb, bb, mode });
     $("pRoomName").value = ""; setRoom(id); change(next); toast(`สร้างห้อง ${title} แล้ว • ชวนเพื่อนกดเข้าห้องได้เลย`);
     window.PokerTableView?.open();
   });
 
   // ---- the night ----
-  // A credit room: everyone's result in baht, who is seated, and who pays whom (live while no hand is running).
+  // A room: everyone's chips won or lost so far and who is seated.
   function renderRoom(v, myName) {
     const n = v.night, seated = v.players.filter(p => p.seated).length, inPlay = v.hand.bet && !v.hand.bet.done;
     $("pRoomTitle").textContent = roomName(n);
-    $("pMeta").textContent = `บลายด์ ${n.sb}/${n.bb}฿ • ${seated} คนนั่งอยู่${v.players.length > seated ? ` • ลุกไปแล้ว ${v.players.length - seated} คน` : ""} • เล่นไป ${v.hand.deals} ตา`;
-    $("pPlayers").innerHTML = v.players.slice().sort((a, b) => b.net - a.net).map(p => `<div class="p-row p-room-row${p.name === myName ? " p-row-me" : ""}${p.seated ? "" : " p-left"}"><div class="p-row-head">${avatarFor(p.name)}<div class="d-board-name"><b>${esc(p.name)}</b><small>${p.seated ? "นั่งอยู่" : "ลุกแล้ว"}</small></div><b class="p-net ${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(baht(p.net, true))}</b></div></div>`).join("");
+    $("pMeta").textContent = `บลายด์ ${n.sb}/${n.bb} ชิป • ${seated} คนนั่งอยู่${v.players.length > seated ? ` • ลุกไปแล้ว ${v.players.length - seated} คน` : ""} • เล่นไป ${v.hand.deals} ตา`;
+    $("pPlayers").innerHTML = v.players.slice().sort((a, b) => b.net - a.net).map(p => `<div class="p-row p-room-row${p.name === myName ? " p-row-me" : ""}${p.seated ? "" : " p-left"}"><div class="p-row-head">${avatarFor(p.name)}<div class="d-board-name"><b>${esc(p.name)}</b><small>${p.seated ? "นั่งอยู่" : "ลุกแล้ว"}</small></div><b class="p-net ${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(chips(p.net, true))}</b></div></div>`).join("");
     $("pLateRow").hidden = true; $("pUndo").hidden = true;
-    const live = P.liveSettle(v), lines = live ? live.transfers : [];
     $("pCheck").innerHTML = inPlay ? '<span class="muted">กำลังเล่นตาหนึ่งอยู่ • ยอดด้านบนนับถึงตาที่จบแล้ว</span>' : "";
-    $("pPay").hidden = !live;
-    $("pPayList").innerHTML = lines.length ? lines.map(payRow).join("") : '<div class="muted">ยังเท่าทุนกันหมด</div>';
-    $("pPayCopy").hidden = !lines.length;
+    $("pPay").hidden = !v.hand.deals;
     $("pClose").textContent = "ปิดห้อง • เก็บเข้าประวัติ";
     $("pClose").disabled = Boolean(inPlay);
   }
   function renderNight(night) {
-    const v = V(night), n = v.night;
+    const v = V(night);
     const myName = me(); renderSeat(v, myName); renderBet(v, myName);
-    if (n.credit) return renderRoom(v, myName);
-    $("pRoomTitle").textContent = n.name || "วงนี้"; $("pLateRow").hidden = false; $("pUndo").hidden = false; $("pClose").disabled = false;
-    $("pMeta").textContent = `ซื้อ 1 ไม้ = ${baht(n.buyIn)} ได้ ${chipsText(n.chips)} • ${v.players.length} คน • ลงรวม ${baht(v.paid)}`;
-    $("pPlayers").innerHTML = v.players.map((p, i) => {
-      const tone = p.net > 0 ? "pos" : p.net < 0 ? "neg" : "";
-      return `<div class="p-row${p.name === myName ? " p-row-me" : ""}">
-<div class="p-row-head">${avatarFor(p.name)}<div class="d-board-name"><b>${esc(p.name)}</b><small>ซื้อ ${p.buys.length} ไม้ • ลง ${baht(p.paid)} • บนโต๊ะ ${chipsText(p.stack)}</small></div><button type="button" class="secondary p-rebuy" data-buy="${esc(p.name)}" aria-label="${esc(p.name)} ซื้อเพิ่ม 1 ไม้ (${baht(n.buyIn)})">+ ซื้อเพิ่ม</button></div>
-<div class="p-row-out"><label for="pOut${i}">ชิปตอนเลิก</label><input id="pOut${i}" type="number" inputmode="numeric" min="0" data-out="${esc(p.name)}" placeholder="นับชิป" value="${p.out ?? ""}"><b class="p-net ${tone}">${p.net === null ? "" : baht(p.net, true)}</b></div></div>`;
-    }).join("");
-    const check = $("pCheck");
-    if (!v.players.some(p => p.out !== null)) check.innerHTML = `<span class="muted">ชิปในวงทั้งหมด ${chipsText(v.chipsIn)} • เลิกเล่นแล้วนับชิปแต่ละคนใส่ช่องด้านบน</span>`;
-    else if (!v.allOut) check.innerHTML = `<span class="muted">นับแล้ว ${chipsText(v.chipsOut)} จาก ${chipsText(v.chipsIn)} • ยังไม่ได้ใส่ ${v.players.filter(p => p.out === null).map(p => esc(p.name)).join(", ")}</span>`;
-    else if (!v.balanced) check.innerHTML = `<b class="neg">ชิป${v.diffChips > 0 ? "เกิน" : "ขาด"} ${chipsText(Math.abs(v.diffChips))}</b> <span class="muted">ชิปที่นับได้ต้องเท่ากับชิปที่ซื้อ (${chipsText(v.chipsIn)}) นับใหม่อีกรอบก่อนสรุปเงิน</span>`;
-    else check.innerHTML = `<b class="pos">ชิปครบ ${chipsText(v.chipsIn)}</b>`;
-    const played = n.events.some(e => e.t === "deal" && e.seats), inPlay = v.hand.bet && !v.hand.bet.done;
-    if (played) check.insertAdjacentHTML("beforeend", `<div class="p-fill"><button type="button" class="secondary" id="pFill"${inPlay ? " disabled" : ""}>ใส่ชิปตามโต๊ะ</button><small class="muted">${inPlay ? "จบตาที่เล่นอยู่ก่อน" : "ใช้ชิปที่ระบบนับจากการเดิมพันเป็นชิปตอนเลิก"}</small></div>`);
-    const lines = v.balanced ? P.transfers(v.players) : [];
-    $("pPay").hidden = !v.balanced;
-    $("pPayList").innerHTML = lines.length ? lines.map(payRow).join("") : '<div class="muted">ไม่มีใครต้องจ่าย (เท่าทุนกันหมด)</div>';
-    $("pPayCopy").hidden = !lines.length;
-    $("pClose").textContent = v.balanced ? "จบวง • เก็บเข้าประวัติ" : "จบวง";
-    $("pUndo").disabled = !v.lastAction;
+    // Only rooms are opened (nightNow); nights from the old buy-in flow are no longer shown.
+    renderRoom(v, myName);
   }
   // เข้าโต๊ะ: each player sits down from their own phone; the bar says who is seated and how to join.
   function renderSeat(v, name) {
@@ -422,13 +402,13 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const mine = v.players.find(p => p.name === name), lobby = '<button type="button" class="secondary" data-lobby>ห้องรวม</button>';
     const table = window.PokerTableView ? '<button type="button" class="primary p-tablemode" data-tablemode>เปิดโหมดโต๊ะ</button>' : "";
     if (mine?.seated) {
-      const detail = n.credit ? `${mine.net > 0 ? "ได้" : mine.net < 0 ? "เสีย" : "เท่าทุน"} ${esc(baht(Math.abs(mine.net)))}` : `ซื้อ ${mine.buys.length} ไม้`;
+      const detail = n.credit ? `${mine.net > 0 ? "ได้" : mine.net < 0 ? "เสีย" : "เท่าทุน"} ${esc(chips(Math.abs(mine.net)))}` : `ซื้อ ${mine.buys.length} ไม้`;
       bar.innerHTML = `<span class="p-seat-on">${avatarFor(name)}<b>${esc(name)}</b> นั่งอยู่ • ${detail}</span>${table}<button type="button" class="secondary" data-leave>ลุกจากโต๊ะ</button>${lobby}`;
     } else {
       const sitting = v.players.filter(p => p.seated).length;
       bar.innerHTML = n.credit
-        ? `<button type="button" class="primary p-join" id="pJoin">${mine ? "กลับมานั่ง" : "นั่งโต๊ะ"}</button><span class="muted">${sitting} คนนั่งอยู่${mine ? ` • คุณ ${esc(baht(mine.net, true))}` : ""}</span>${lobby}`
-        : `<button type="button" class="primary p-join" id="pJoin">${mine ? "กลับมานั่ง" : `เข้าโต๊ะ • ซื้อ 1 ไม้ (${esc(baht(n.buyIn))})`}</button><span class="muted">ในวงตอนนี้ ${sitting} คน</span>${lobby}`;
+        ? `<button type="button" class="primary p-join" id="pJoin">${mine ? "กลับมานั่ง" : "นั่งโต๊ะ"}</button><span class="muted">${sitting} คนนั่งอยู่${mine ? ` • คุณ ${esc(chips(mine.net, true))}` : ""}</span>${lobby}`
+        : `<button type="button" class="primary p-join" id="pJoin">${mine ? "กลับมานั่ง" : `เข้าโต๊ะ • ซื้อ 1 ไม้ (${esc(chips(n.buyIn))})`}</button><span class="muted">ในวงตอนนี้ ${sitting} คน</span>${lobby}`;
     }
   }
   $("pSeat").addEventListener("click", async e => {
@@ -441,7 +421,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
       if (!confirm("ลุกจากโต๊ะ? ตาต่อไปจะไม่ถูกแจกไพ่ กลับมานั่งใหม่ได้")) return;
       change(P.leave(poker, night.id, name));
       const net = V(nightNow() || night).players.find(p => p.name === name)?.net;
-      return toast(night.credit && net ? `ลุกแล้ว • คุณ${net > 0 ? "ได้" : "เสีย"} ${baht(Math.abs(net))}` : "ลุกจากโต๊ะแล้ว");
+      return toast(night.credit && net ? `ลุกแล้ว • คุณ${net > 0 ? "ได้" : "เสีย"} ${chips(Math.abs(net))}` : "ลุกจากโต๊ะแล้ว");
     }
     if (!e.target.closest("#pJoin")) return;
     const name = me(); if (!name) return;
@@ -450,7 +430,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const night = nightNow(); if (!night) return toast("ยังไม่มีวงเปิดอยู่");
     const seen = V(night).players.find(p => p.name === name);
     if (seen?.seated) return render();
-    change(P.join(poker, night.id, name)); toast(night.credit || seen ? "นั่งโต๊ะแล้ว" : `เข้าโต๊ะแล้ว • ซื้อ ${baht(night.buyIn)}`);
+    change(P.join(poker, night.id, name)); toast(night.credit || seen ? "นั่งโต๊ะแล้ว" : `เข้าโต๊ะแล้ว • ซื้อ ${chips(night.buyIn)}`);
     // Sitting down opens the table view (same tap, so fullscreen and the landscape lock are allowed).
     window.PokerTableView?.open();
   });
@@ -470,11 +450,13 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const el = $("pBet"), bet = v.hand.bet, n = v.night, seated = v.players.some(p => p.name === myName && p.seated);
     el.hidden = false;
     const canDeal = seated && v.players.filter(p => p.seated && p.stack > 0).length >= 2;
-    // Credit rooms: amounts are baht and a row shows the player's result so far instead of a stack.
-    const unit = n.credit ? "฿" : " ชิป", stackOf = p => n.credit ? baht(p.stack - P.CREDIT, true) : p.stack.toLocaleString("th-TH");
+    // Rooms: a row shows the player's chips won or lost so far instead of a stack.
+    const unit = " ชิป", stackOf = p => n.credit ? chips(p.stack - P.CREDIT, true) : p.stack.toLocaleString("th-TH");
     const head = `<div class="pb-head"><h2 id="pbTitle">เดิมพัน</h2><span class="muted">บลายด์ ${n.sb}/${n.bb}${unit}</span></div>${modeSwitch(v, seated)}`;
     if (!bet) {
-      el.innerHTML = `${head}<p class="muted">กดแจกไพ่เพื่อเริ่มตา ระบบวางบลายด์ บอกว่าใครถึงตา และจ่ายกองให้คนชนะ</p>${canDeal ? `<button type="button" class="primary pb-wide" data-bet="deal">แจกไพ่ • เริ่มตาที่ ${v.hand.deals + 1}</button>` : `<p class="muted">${seated ? (n.credit ? "ต้องมีคนนั่งอย่างน้อย 2 คน" : "ต้องมีคนที่มีชิปอย่างน้อย 2 คน") : "กดนั่งโต๊ะก่อนถึงจะเล่นได้"}</p>`}${liveSettleHtml(v)}`;
+      // ไพ่จริง: the cards are dealt by hand at the table; this button only starts the betting.
+      const real = v.mode === "real";
+      el.innerHTML = `${head}<p class="muted">${real ? "แจกไพ่จริงบนโต๊ะ แล้วกดเริ่มตาเพื่อเบท ระบบวางบลายด์ บอกว่าใครถึงตา และจ่ายกองให้คนชนะ" : "กดแจกไพ่เพื่อเริ่มตา ระบบวางบลายด์ บอกว่าใครถึงตา และจ่ายกองให้คนชนะ"}</p>${canDeal ? `<button type="button" class="primary pb-wide" data-bet="deal">${real ? "เริ่มตาเบท" : "แจกไพ่"} • ตาที่ ${v.hand.deals + 1}</button>` : `<p class="muted">${seated ? (n.credit ? "ต้องมีคนนั่งอย่างน้อย 2 คน" : "ต้องมีคนที่มีชิปอย่างน้อย 2 คน") : "กดนั่งโต๊ะก่อนถึงจะเล่นได้"}</p>`}`;
       return;
     }
     const mine = bet.players.find(p => p.name === myName), myTurn = bet.toAct && bet.toAct === myName;
@@ -498,15 +480,14 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
       }).join("");
       if (bet.done) body += `<div class="pb-result">${bet.players.map(p => { const d = bet.delta[p.name] || 0; return `<span class="${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${esc(p.name)} ${d > 0 ? "+" : ""}${d.toLocaleString("th-TH")}</span>`; }).join("")}</div>`;
     }
-    const dealBtn = canDeal ? `<button type="button" class="${bet.done ? "primary" : "secondary"} pb-wide" data-bet="deal">${bet.done ? `แจกไพ่ตาใหม่ (ตาที่ ${v.hand.deals + 1})` : "ยกเลิกตานี้ แจกใหม่"}</button>` : "";
-    el.innerHTML = `${head}<div class="pb-street"><span>ตาที่ ${v.hand.no} • <b>${bet.streetName}</b></span><span class="pb-pot-total">กอง <b>${bet.pot.toLocaleString("th-TH")}</b></span></div><div class="pb-seats">${rows}</div>${body}${dealBtn}${liveSettleHtml(v)}`;
+    const dealBtn = canDeal ? `<button type="button" class="${bet.done ? "primary" : "secondary"} pb-wide" data-bet="deal">${bet.done ? `${v.mode === "real" ? "เริ่มตาเบทใหม่" : "แจกไพ่ตาใหม่"} (ตาที่ ${v.hand.deals + 1})` : v.mode === "real" ? "ยกเลิกตานี้ เริ่มใหม่" : "ยกเลิกตานี้ แจกใหม่"}</button>` : "";
+    el.innerHTML = `${head}<div class="pb-street"><span>ตาที่ ${v.hand.no} • <b>${bet.streetName}</b></span><span class="pb-pot-total">กอง <b>${bet.pot.toLocaleString("th-TH")}</b></span></div><div class="pb-seats">${rows}</div>${body}${dealBtn}`;
   }
   // Raise-to for a fraction of the pot: call first, then raise by that share of the pot after the call.
   function potTo(bet, share) { const to = bet.currentBet + Math.round((bet.pot + bet.toCall) * share); return Math.max(bet.minTo, Math.min(bet.maxTo, to)); }
   $("pBet").addEventListener("input", e => { if (e.target.id === "pbTo") raiseDraft.value = e.target.value; });
   $("pBet").addEventListener("click", e => {
     const night = nightNow(), name = me(); if (!night || !name) return;
-    if (e.target.closest("[data-live-copy]")) return copyText(liveText(night));
     const quick = e.target.closest("[data-to]"); if (quick) { raiseDraft.value = quick.dataset.to; $("pbTo").value = quick.dataset.to; return; }
     const pickBtn = e.target.closest("[data-win]"); if (pickBtn) { pickBtn.setAttribute("aria-pressed", String(pickBtn.getAttribute("aria-pressed") !== "true")); return; }
     const awardBtn = e.target.closest("[data-award]");
@@ -531,23 +512,11 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     }
     change(P.act(poker, night.id, name, a));
   });
-  // ใครจ่ายใคร ถ้าเลิกตอนนี้: money from the chips at the table, settled in the fewest transfers.
-  function liveSettleHtml(v) {
-    const live = !v.credit && P.liveSettle(v); if (!live) return "";
-    const nets = live.rows.map(r => `<span class="${r.net > 0 ? "pos" : r.net < 0 ? "neg" : ""}">${esc(r.name)} ${esc(baht(r.net, true))}</span>`).join("");
-    return `<div class="pb-settle"><h3>ใครจ่ายใคร <small>ถ้าเลิกตอนนี้</small></h3><div class="pb-settle-nets">${nets}</div><div class="d-pay-list">${live.transfers.length ? live.transfers.map(payRow).join("") : '<div class="muted">ยังเท่าทุนกันหมด</div>'}</div>`
-      + `<p class="muted pb-hint">คิดจากชิปบนโต๊ะ ÷ ${esc(String(v.rate))} ชิปต่อบาท ลบเงินที่ซื้อ${live.pending ? " • ตาที่กำลังเล่นยังไม่นับ" : ""}</p>${live.transfers.length ? '<button type="button" class="secondary" data-live-copy>คัดลอกไปส่งในไลน์</button>' : ""}</div>`;
-  }
-  const liveText = night => { const live = P.liveSettle(V(night)); return live ? [`♠️ ใครจ่ายใคร (ถ้าเลิกตอนนี้) • ${dayText(night.startedAt)}`, ...live.rows.map(r => `${r.name} ${baht(r.net, true)}`), "", ...live.transfers.map(l => `${l.from} จ่าย ${l.to} ${baht(l.amount)}`)].join("\n") : ""; };
-  function payRow(l) {
-    const go = window.LeagueProfile?.openPay ? `<button type="button" class="secondary pay-go" data-pay-to-name="${esc(l.to)}" data-pay-from="${esc(l.from)}" data-pay-amount="${esc(l.amount)}" aria-label="โอนให้ ${esc(l.to)} ${esc(baht(l.amount))}">โอน</button>` : "";
-    return `<div class="d-pay-row"><b>${esc(l.from)}</b><span class="d-pay-arrow">จ่าย ➜</span><b>${esc(l.to)}</b><b class="d-pay-amt">${esc(baht(l.amount))}</b>${go}</div>`;
-  }
-  const nightNow = () => (roomId && P.openNights(poker).find(n => n.id === roomId)) || null;
+  const nightNow = () => (roomId && openRooms().find(n => n.id === roomId)) || null;
   $("pPlayers").addEventListener("click", e => {
     const b = e.target.closest("[data-buy]"); const night = nightNow(); if (!b || !night) return;
     change(P.addEvent(poker, night.id, { t: "buy", name: b.dataset.buy, amount: night.buyIn }));
-    toast(`${b.dataset.buy} ซื้อเพิ่ม ${baht(night.buyIn)}`);
+    toast(`${b.dataset.buy} ซื้อเพิ่ม ${chips(night.buyIn)}`);
   });
   $("pPlayers").addEventListener("change", e => {
     const input = e.target.closest("[data-out]"), night = nightNow(); if (!input || !night) return;
@@ -574,34 +543,34 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
     const night = nightNow(); if (!night) return;
     if (V(night).players.some(p => p.name === name)) return toast("มีชื่อนี้ในวงแล้ว");
     let next = P.addEvent(poker, night.id, { t: "join", name }); next = P.addEvent(next, night.id, { t: "buy", name, amount: night.buyIn });
-    change(next); toast(`${name} เข้าวง • ซื้อ ${baht(night.buyIn)}`);
+    change(next); toast(`${name} เข้าวง • ซื้อ ${chips(night.buyIn)}`);
   }));
   $("pLate").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("pLateAdd").click(); } });
   $("pUndo").addEventListener("click", () => {
     const night = nightNow(), last = night && V(night).lastAction; if (!last) return;
-    const what = last.t === "buy" ? `${last.name} ซื้อ ${baht(last.amount)}` : last.t === "out" ? `ชิปของ ${last.name} (${last.amount})` : last.amount ? `${last.name} เข้าโต๊ะ (${baht(last.amount)})` : `${last.name} เข้าวง`;
+    const what = last.t === "buy" ? `${last.name} ซื้อ ${chips(last.amount)}` : last.t === "out" ? `ชิปของ ${last.name} (${last.amount})` : last.amount ? `${last.name} เข้าโต๊ะ (${chips(last.amount)})` : `${last.name} เข้าวง`;
     change(P.addEvent(poker, night.id, { t: "undo", ref: last.id })); toast(`ย้อนแล้ว: ${what}`);
   });
   $("pClose").addEventListener("click", () => {
     const night = nightNow(); if (!night) return;
     const v = V(night);
-    if (!v.balanced && !confirm("ชิปยังไม่ครบหรือยังใส่ไม่ครบทุกคน จบวงเลยไหม? (วงนี้จะไม่มีสรุปเงิน)")) return;
+    if (!v.balanced && !confirm("ชิปยังไม่ครบหรือยังใส่ไม่ครบทุกคน จบวงเลยไหม?")) return;
     if (v.balanced && !confirm(night.credit ? "ปิดห้องนี้แล้วเก็บผลได้เสียเข้าประวัติ? ทุกคนจะออกจากห้อง" : "จบวงนี้แล้วเก็บเข้าประวัติ?")) return;
     change(P.closeNight(poker, night.id)); setRoom(""); render(); toast(night.credit ? "ปิดห้องแล้ว • ดูสรุปในประวัติ" : "จบวงแล้ว");
   });
   async function copyText(text) { try { await navigator.clipboard.writeText(text); toast("คัดลอกแล้ว วางในไลน์ได้เลย"); } catch { prompt("คัดลอกข้อความนี้", text); } }
   const dayText = at => new Date(at).toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short" });
-  const lineText = night => { const v = V(night); return [`♠️ สรุปโป๊กเกอร์ ${dayText(night.startedAt)}${night.name ? ` • ${night.name}` : ""} (${night.credit ? `เล่น ${v.hand.deals} ตา` : `ลงรวม ${baht(v.paid)}`})`, ...v.players.map(p => `${p.name} ${p.net === null ? "-" : baht(p.net, true)}`), "", ...P.transfers(v.players).map(l => `${l.from} จ่าย ${l.to} ${baht(l.amount)}`)].join("\n"); };
+  const lineText = night => { const v = V(night); return [`♠️ อันดับชิปโป๊กเกอร์ ${dayText(night.startedAt)}${night.name ? ` • ${night.name}` : ""} (เล่น ${v.hand.deals} ตา)`, ...v.players.slice().sort((a, b) => (b.net ?? 0) - (a.net ?? 0)).map((p, i) => `${i + 1}. ${p.name} ${chips(p.net ?? 0, true)}`)].join("\n"); };
   $("pPayCopy").addEventListener("click", () => { const night = nightNow(); if (night) copyText(lineText(night)); });
 
   // ---- history ----
   function renderHistory() {
-    const list = P.history(poker);
+    const list = P.history(poker).filter(n => n.credit);
     $("pHistCard").hidden = !list.length;
     $("pHist").innerHTML = list.map((night, i) => {
-      const v = V(night), lines = v.balanced ? P.transfers(v.players) : [];
-      const rows = v.players.slice().sort((a, b) => (b.net ?? -1e9) - (a.net ?? -1e9)).map(p => `<span class="${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(p.name)} ${p.net === null ? "–" : esc(baht(p.net, true))}</span>`).join("");
-      return `<details class="d-day"${i === 0 ? " open" : ""}><summary><b>${esc(dayText(night.startedAt))}</b><span class="muted">${esc(night.name ? `${night.name} • ` : "")}${v.players.length} คน • ${night.credit ? `${v.hand.deals} ตา` : `ลงรวม ${esc(baht(v.paid))}`}</span></summary><div class="d-preview-list">${rows}</div>${v.balanced ? `<div class="d-pay-list">${lines.length ? lines.map(payRow).join("") : '<div class="muted">เท่าทุนกันหมด</div>'}</div><button type="button" class="secondary" data-copy-night="${esc(night.id)}">คัดลอกไปส่งในไลน์</button>` : '<div class="muted">วงนี้ปิดก่อนนับชิปครบ จึงไม่มีสรุปเงิน</div>'}</details>`;
+      const v = V(night);
+      const rows = v.players.slice().sort((a, b) => (b.net ?? -1e9) - (a.net ?? -1e9)).map(p => `<span class="${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(p.name)} ${p.net === null ? "–" : esc(chips(p.net, true))}</span>`).join("");
+      return `<details class="d-day"${i === 0 ? " open" : ""}><summary><b>${esc(dayText(night.startedAt))}</b><span class="muted">${esc(night.name ? `${night.name} • ` : "")}${v.players.length} คน • ${v.hand.deals} ตา</span></summary><div class="d-preview-list">${rows}</div><button type="button" class="secondary" data-copy-night="${esc(night.id)}">คัดลอกอันดับไปส่งในไลน์</button></details>`;
     }).join("");
   }
   $("pHist").addEventListener("click", e => {
@@ -715,7 +684,7 @@ if (typeof window !== "undefined") window.PokerNight = PokerNight;
       return { nightId: night.id, me: name, players: sitting.map(p => p.name), hand: v.hand, handKey: `${night.id}:${v.hand.key}`,
         bet: v.hand.bet, stacks: Object.fromEntries(v.players.map(p => [p.name, p.stack])), sb: night.sb, bb: night.bb, credit: night.credit,
         nets: Object.fromEntries(v.players.map(p => [p.name, p.net])),
-        canDeal: sitting.filter(p => p.seated && p.stack > 0).length >= 2, settle: P.liveSettle(v), rate: v.rate, mode: v.mode, app: v.hand.app || v.hand.server, server: v.hand.server,
+        canDeal: sitting.filter(p => p.seated && p.stack > 0).length >= 2, rate: v.rate, mode: v.mode, app: v.hand.app || v.hand.server, server: v.hand.server,
         myCards: v.hand.app ? window.PokerDeal?.myCards(v.hand.key) || null : v.hand.server ? (srv.key === v.hand.key ? srv.mine : null) : null };
     },
     act(a, to) { const night = nightNow(), name = me(); if (night && name) change(P.act(poker, night.id, name, a, to)); },

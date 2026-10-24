@@ -1,10 +1,11 @@
-// ดัมมี่ออนไลน์ (dummy-online.html): rooms lobby, the table and the room's money. The game and the room model are in
+// ดัมมี่ออนไลน์ (dummy-online.html): rooms lobby, the table and the room's chip standings. The game and the room model are in
 // dummy-game.js; rooms sync through the `dummy` column of the shared row under `online` (same rev lock as poker).
 (() => {
   if (typeof document === "undefined" || !document.getElementById?.("dummyOnline")) return;
   const G = DummyGame, R = DummyRooms, $ = id => document.getElementById(id);
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const baht = (v, sign = false) => `${sign && v > 0 ? "+" : ""}${Number(v).toLocaleString("th-TH", { maximumFractionDigits: 2 })}฿`;
+  // Results are play chips, not money: no baht, no who-pays-whom, no transfer buttons.
+  const chips = (v, sign = false) => `${sign && v > 0 ? "+" : ""}${Number(v).toLocaleString("th-TH", { maximumFractionDigits: 2 })} ชิป`;
   const pts = (v, sign = true) => `${sign && v > 0 ? "+" : ""}${Number(v).toLocaleString("th-TH")}`;
   const KEY = "pp_dummy_online_v1", ROOM_KEY = "pp_dummy_online_room", Cloud = typeof LeagueShared !== "undefined" ? LeagueShared : null;
   let online = load(), dirty = (() => { try { return localStorage.getItem(KEY + "_dirty") === "1"; } catch { return false; } })();
@@ -75,7 +76,7 @@
     $("dmRooms").innerHTML = rooms.length ? rooms.map(r => {
       const v = R.view(r), mine = v.players.find(p => p.name === name), full = v.seated.length >= R.MAX_SEATS && !mine?.seated;
       const status = v.running ? `กำลังเล่นเกมที่ ${v.game.no}` : "รอเริ่มเกม";
-      return `<div class="p-room" role="listitem"><div class="p-room-info"><b>${esc(roomName(r))}</b><small>${v.seated.length}/${R.MAX_SEATS} คนนั่ง • ${status} • หาร ${esc(String(r.divisor))}${mine ? ` • คุณ ${esc(baht(mine.net, true))}` : ""}</small><span class="p-room-who">${v.seated.map(avatarFor).join("")}</span></div><button type="button" class="${full ? "secondary" : "primary"}" data-room="${esc(r.id)}">${mine?.seated ? "กลับเข้าห้อง" : full ? "ดูโต๊ะ" : "เข้าห้อง"}</button></div>`;
+      return `<div class="p-room" role="listitem"><div class="p-room-info"><b>${esc(roomName(r))}</b><small>${v.seated.length}/${R.MAX_SEATS} คนนั่ง • ${status} • ${esc(String(r.divisor))} แต้ม/ชิป${mine ? ` • คุณ ${esc(chips(mine.net, true))}` : ""}</small><span class="p-room-who">${v.seated.map(avatarFor).join("")}</span></div><button type="button" class="${full ? "secondary" : "primary"}" data-room="${esc(r.id)}">${mine?.seated ? "กลับเข้าห้อง" : full ? "ดูโต๊ะ" : "เข้าห้อง"}</button></div>`;
     }).join("") : '<div class="muted p-rooms-empty">ยังไม่มีห้องเปิดอยู่ • สร้างห้องด้านล่างได้เลย</div>';
     $("dmLogin").hidden = Boolean(name);
     $("dmCreate").disabled = !name;
@@ -103,7 +104,7 @@
     if (!name) { bar.innerHTML = `<span class="muted">เข้าสู่ระบบที่หน้าแรกก่อนถึงจะนั่งเล่นได้</span>${lobby}`; return; }
     const mine = v.players.find(p => p.name === name), playing = v.running && v.game.seats.includes(name);
     if (mine?.seated) {
-      bar.innerHTML = `<span class="p-seat-on">${avatarFor(name)}<b>${esc(name)}</b> นั่งอยู่ • ${mine.net > 0 ? "ได้" : mine.net < 0 ? "เสีย" : "เท่าทุน"} ${esc(baht(Math.abs(mine.net)))}</span>${playing ? "" : '<button type="button" class="secondary" data-leave>ลุกจากโต๊ะ</button>'}${lobby}`;
+      bar.innerHTML = `<span class="p-seat-on">${avatarFor(name)}<b>${esc(name)}</b> นั่งอยู่ • ${mine.net > 0 ? "ได้" : mine.net < 0 ? "เสีย" : "เท่าทุน"} ${esc(chips(Math.abs(mine.net)))}</span>${playing ? "" : '<button type="button" class="secondary" data-leave>ลุกจากโต๊ะ</button>'}${lobby}`;
     } else {
       const canSit = v.seated.length < R.MAX_SEATS && !v.running;
       bar.innerHTML = `${canSit ? `<button type="button" class="primary p-join" data-sit>${mine ? "กลับมานั่ง" : "นั่งโต๊ะ"}</button>` : `<span class="muted">${v.running ? "รอจบเกมนี้ก่อนถึงจะนั่งได้" : "โต๊ะเต็มแล้ว"}</span>`}<span class="muted">${v.seated.length}/${R.MAX_SEATS} คนนั่ง</span>${lobby}`;
@@ -168,10 +169,10 @@ ${over ? resultPanel(v, g, t, name) : mineSeat ? `<div class="dm-zone dm-mine"><
     return `<p class="dm-hint">${esc(hint)}</p><div class="dm-acts"><button type="button" class="secondary" data-act="meld"${picked.length >= 3 && ok({ a: "meld", cards: picked }) ? "" : " disabled"}>ลง</button><button type="button" class="primary" data-act="discard"${one !== null && ok({ a: "discard", c: one }) ? "" : " disabled"}>ทิ้ง${one !== null ? ` ${esc(G.label(one))}` : ""}</button></div>`;
   }
   function resultPanel(v, g, t, name) {
-    const sc = G.score(t), divisor = v.room.divisor, money = R.settle(g.seats.map(s => (g.scores || {})[s] ?? sc[s].total), divisor);
+    const sc = G.score(t), divisor = v.room.divisor, won = R.settle(g.seats.map(s => (g.scores || {})[s] ?? sc[s].total), divisor);
     const how = t.over?.reason === "knock" ? `${esc(t.over.knocker)} น็อค${t.over.dark ? "มืด" : ""}${t.over.color ? "สี" : ""}` : "กองจั่วหมด";
     const rows = g.seats.map((s, i) => ({ s, i, sc: sc[s] })).sort((a, b) => b.sc.total - a.sc.total).map(({ s, i, sc: x }) =>
-      `<div class="dm-res-row${s === name ? " p-row-me" : ""}"><span class="dm-res-name">${avatarFor(s)}<b>${esc(s)}</b></span><small class="muted">ลง ${x.played} • ค้างมือ −${x.hand}${x.list.map(e => ` • ${esc(e.why)} ${pts(e.pts)}`).join("")}</small><b class="p-net ${x.total > 0 ? "pos" : x.total < 0 ? "neg" : ""}">${pts(x.total)}</b><b class="dm-res-baht ${money[i] > 0 ? "pos" : money[i] < 0 ? "neg" : ""}">${esc(baht(money[i], true))}</b></div>`).join("");
+      `<div class="dm-res-row${s === name ? " p-row-me" : ""}"><span class="dm-res-name">${avatarFor(s)}<b>${esc(s)}</b></span><small class="muted">ลง ${x.played} • ค้างมือ −${x.hand}${x.list.map(e => ` • ${esc(e.why)} ${pts(e.pts)}`).join("")}</small><b class="p-net ${x.total > 0 ? "pos" : x.total < 0 ? "neg" : ""}">${pts(x.total)}</b><b class="dm-res-baht ${won[i] > 0 ? "pos" : won[i] < 0 ? "neg" : ""}">${esc(chips(won[i], true))}</b></div>`).join("");
     const seated = v.seated.includes(name);
     return `<div class="dm-zone dm-result"><div class="dm-zone-head"><b>จบเกม • ${how}</b></div>${rows}${seated && v.seated.length >= 2 ? `<div class="actions"><button type="button" class="primary" data-start>เริ่มเกมต่อไป</button></div>` : ""}</div>`;
   }
@@ -277,18 +278,12 @@ ${over ? resultPanel(v, g, t, name) : mineSeat ? `<div class="dm-zone dm-mine"><
 ${over ? `<div class="dm-st-over">${resultPanel(v, g, t, name)}</div>` : ""}</div>`;
   }
 
-  // ---- the room: points and money so far ----
-  function payRow(l) {
-    const go = window.LeagueProfile?.openPay ? `<button type="button" class="secondary pay-go" data-pay-to-name="${esc(l.to)}" data-pay-from="${esc(l.from)}" data-pay-amount="${esc(l.amount)}" aria-label="โอนให้ ${esc(l.to)} ${esc(baht(l.amount))}">โอน</button>` : "";
-    return `<div class="d-pay-row"><b>${esc(l.from)}</b><span class="d-pay-arrow">จ่าย ➜</span><b>${esc(l.to)}</b><b class="d-pay-amt">${esc(baht(l.amount))}</b>${go}</div>`;
-  }
+  // ---- the room: points and chips so far ----
   function renderRoom(v, name) {
     $("dmRoomTitle").textContent = roomName(v.room);
-    $("dmMeta").textContent = `${v.seated.length}/${R.MAX_SEATS} คนนั่ง • เล่นไป ${v.games.length} เกม • หารแต้มด้วย ${v.room.divisor}`;
-    $("dmPlayers").innerHTML = v.players.length ? v.players.slice().sort((a, b) => b.net - a.net || b.points - a.points).map(p => `<div class="p-row${p.name === name ? " p-row-me" : ""}${p.seated ? "" : " p-left"}"><div class="p-row-head">${avatarFor(p.name)}<div class="d-board-name"><b>${esc(p.name)}</b><small>${p.seated ? "นั่งอยู่" : "ลุกแล้ว"} • ${p.games} เกม • แต้มรวม ${pts(p.points)}</small></div><b class="p-net ${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(baht(p.net, true))}</b></div></div>`).join("") : '<div class="muted">ยังไม่มีใครนั่ง</div>';
-    $("dmPay").hidden = !v.games.length;
-    $("dmPayList").innerHTML = v.transfers.length ? v.transfers.map(payRow).join("") : '<div class="muted">ยังเท่าทุนกันหมด</div>';
-    $("dmPayCopy").hidden = !v.transfers.length;
+    $("dmMeta").textContent = `${v.seated.length}/${R.MAX_SEATS} คนนั่ง • เล่นไป ${v.games.length} เกม • ${v.room.divisor} แต้มต่อ 1 ชิป`;
+    $("dmPlayers").innerHTML = v.players.length ? v.players.slice().sort((a, b) => b.net - a.net || b.points - a.points).map(p => `<div class="p-row${p.name === name ? " p-row-me" : ""}${p.seated ? "" : " p-left"}"><div class="p-row-head">${avatarFor(p.name)}<div class="d-board-name"><b>${esc(p.name)}</b><small>${p.seated ? "นั่งอยู่" : "ลุกแล้ว"} • ${p.games} เกม • แต้มรวม ${pts(p.points)}</small></div><b class="p-net ${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(chips(p.net, true))}</b></div></div>`).join("") : '<div class="muted">ยังไม่มีใครนั่ง</div>';
+    $("dmPayCopy").hidden = !v.games.length;
     const seated = name && v.seated.includes(name), playing = v.running && v.game.seats.includes(name);
     const acts = [];
     if (!v.running && seated && !(v.game?.table && v.game.done)) acts.push(`<button type="button" class="primary" data-start${v.seated.length < 2 ? " disabled" : ""}>${v.seated.length < 2 ? "รอเพื่อนนั่งอีกคน" : `เริ่มเกม • แจกไพ่ ${v.seated.length} คน`}</button>`);
@@ -312,7 +307,7 @@ ${over ? `<div class="dm-st-over">${resultPanel(v, g, t, name)}</div>` : ""}</di
   async function copyText(text) { try { await navigator.clipboard.writeText(text); toast("คัดลอกแล้ว วางในไลน์ได้เลย"); } catch { prompt("คัดลอกข้อความนี้", text); } }
   const lineText = room => {
     const v = R.view(room);
-    return [`🃏 สรุปดัมมี่ ${dayText(room.createdAt)}${room.name ? ` • ${room.name}` : ""} (${v.games.length} เกม)`, ...v.players.map(p => `${p.name} ${baht(p.net, true)} (${pts(p.points)} แต้ม)`), "", ...v.transfers.map(l => `${l.from} จ่าย ${l.to} ${baht(l.amount)}`)].join("\n");
+    return [`🃏 สรุปดัมมี่ ${dayText(room.createdAt)}${room.name ? ` • ${room.name}` : ""} (${v.games.length} เกม)`, ...v.players.slice().sort((a, b) => b.net - a.net).map((p, i) => `${i + 1}. ${p.name} ${chips(p.net, true)} (${pts(p.points)} แต้ม)`)].join("\n");
   };
   $("dmPayCopy").addEventListener("click", () => { const room = roomNow(); if (room) copyText(lineText(room)); });
 
@@ -322,8 +317,8 @@ ${over ? `<div class="dm-st-over">${resultPanel(v, g, t, name)}</div>` : ""}</di
     $("dmHistCard").hidden = !list.length;
     $("dmHist").innerHTML = list.map((room, i) => {
       const v = R.view(room);
-      const rows = v.players.slice().sort((a, b) => b.net - a.net).map(p => `<span class="${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(p.name)} ${esc(baht(p.net, true))}</span>`).join("");
-      return `<details class="d-day"${i === 0 ? " open" : ""}><summary><b>${esc(dayText(room.createdAt))}</b><span class="muted">${esc(room.name ? `${room.name} • ` : "")}${v.players.length} คน • ${v.games.length} เกม</span></summary><div class="d-preview-list">${rows}</div><div class="d-pay-list">${v.transfers.length ? v.transfers.map(payRow).join("") : '<div class="muted">เท่าทุนกันหมด</div>'}</div><button type="button" class="secondary" data-copy-room="${esc(room.id)}">คัดลอกไปส่งในไลน์</button></details>`;
+      const rows = v.players.slice().sort((a, b) => b.net - a.net).map(p => `<span class="${p.net > 0 ? "pos" : p.net < 0 ? "neg" : ""}">${esc(p.name)} ${esc(chips(p.net, true))}</span>`).join("");
+      return `<details class="d-day"${i === 0 ? " open" : ""}><summary><b>${esc(dayText(room.createdAt))}</b><span class="muted">${esc(room.name ? `${room.name} • ` : "")}${v.players.length} คน • ${v.games.length} เกม</span></summary><div class="d-preview-list">${rows}</div><button type="button" class="secondary" data-copy-room="${esc(room.id)}">คัดลอกไปส่งในไลน์</button></details>`;
     }).join("");
   }
   $("dmHist").addEventListener("click", e => {

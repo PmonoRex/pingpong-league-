@@ -182,7 +182,7 @@ test('rooms: create, join, start deals the seated players, leaving mid-game is r
   assert.equal(R.view(R.join(R.join(R.join(p, id, 'c'), id, 'd'), id, 'e').rooms[id]).seated.length, 4);
 });
 
-test('rooms: moves replay, a finished game scores in baht and the next deal moves left', () => {
+test('rooms: moves replay, a finished game scores in chips and the next deal moves left', () => {
   let { p, id } = room2();
   p = R.start(p, id, 'seedA');
   let v = R.view(p.rooms[id]);
@@ -209,10 +209,9 @@ test('rooms: moves replay, a finished game scores in baht and the next deal move
   assert.equal(v.games.length, 1); assert.deepEqual(plain(v.games[0].scores), plain(scores));
 });
 
-test('rooms: settle in baht like the score sheet, transfers are fewest', () => {
+test('rooms: chips are worked out like the score sheet (points ÷ divisor, pairwise)', () => {
   assert.deepEqual(plain(R.settle([100, 40], 10)), [6, -6]);
   assert.deepEqual(plain(R.settle([25, -25, 0], 10)), [9, -9, 0]);
-  assert.deepEqual(plain(R.transfers({ a: 10, b: -4, c: -6 })), [{ from: 'c', to: 'a', amount: 6 }, { from: 'b', to: 'a', amount: 4 }]);
 });
 
 test('rooms: merging two phones keeps both sides; abort calls a game off', () => {
